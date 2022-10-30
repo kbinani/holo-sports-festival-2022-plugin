@@ -22,6 +22,8 @@ public class FencingEventListener implements Listener {
     private final JavaPlugin owner;
     private @Nullable UUID playerLeft;
     private @Nullable UUID playerRight;
+    static final String kBossbarLeft = "sports_festival_2022_bossbar_left";
+    static final String kBossbarRight = "sports_festival_2022_bossbar_right";
 
     FencingEventListener(JavaPlugin owner) {
         this.owner = owner;
@@ -204,6 +206,22 @@ public class FencingEventListener implements Listener {
         // バリアブロックの柵
         execute("fill 165 -17 -269 103 -17 -269 barrier");
         execute("fill 104 -17 -263 165 -17 -263 barrier");
+
+        // bossbar 追加
+        execute("bossbar remove " + kBossbarLeft);
+        execute("bossbar add " + kBossbarLeft + " \"<<< LEFT SIDE <<<\"");
+        execute("bossbar set " + kBossbarLeft + " max 3");
+        execute("bossbar set " + kBossbarLeft + " value 3");
+        execute("bossbar set " + kBossbarLeft + " color green");
+
+        execute("bossbar remove " + kBossbarRight);
+        execute("bossbar add " + kBossbarRight + " \">>> RIGHT SIDE >>>\"");
+        execute("bossbar set " + kBossbarRight + " max 3");
+        execute("bossbar set " + kBossbarRight + " value 3");
+        execute("bossbar set " + kBossbarRight + " color green");
+
+        execute("bossbar set " + kBossbarLeft + " players @a");
+        execute("bossbar set " + kBossbarRight + " players @a");
 
         broadcast("");
         broadcast("[フェンシング] 競技を開始します！");
