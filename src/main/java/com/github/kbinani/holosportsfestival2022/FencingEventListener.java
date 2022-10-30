@@ -1,18 +1,19 @@
 package com.github.kbinani.holosportsfestival2022;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Server;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
@@ -24,8 +25,16 @@ public class FencingEventListener implements Listener {
     private final JavaPlugin owner;
     private @Nullable UUID playerLeft;
     private @Nullable UUID playerRight;
+    private int hitpointLeft = 3;
+    private int hitpointRight = 3;
     static final String kBossbarLeft = "sports_festival_2022_bossbar_left";
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
+    static final int kFieldX = 104;
+    static final int kFieldY = -18;
+    static final int kFieldZ = -268;
+    static final int kFieldDx = 61;
+    static final int kFieldDz = 4;
+    static final int kWeaponKnockbackLevel = 10;
 
     FencingEventListener(JavaPlugin owner) {
         this.owner = owner;
@@ -52,7 +61,7 @@ public class FencingEventListener implements Listener {
         switch (status) {
             case RUN:
                 // 範囲内に居るプレイヤーを観客席側に排除する
-                execute("tp @p[x=104,y=-18,z=-268,dx=61,dy=5,dz=4] 134 -17 -276");
+                execute("tp @p[x=" + kFieldX + ",y=" + kFieldY + ",z=" + kFieldZ + ",dx=" + kFieldDx + ",dy=5,dz=" + kFieldDz + "] 134 -17 -276");
 
                 // 左ゲート構築
                 execute("fill 165 -16 -268 165 -18 -264 white_concrete");
@@ -90,23 +99,132 @@ public class FencingEventListener implements Listener {
                 execute("bossbar set " + kBossbarLeft + " players @a");
                 execute("bossbar set " + kBossbarRight + " players @a");
 
+                hitpointRight = 3;
+                hitpointLeft = 3;
+
                 broadcast("");
                 broadcast("[フェンシング] 競技を開始します！");
                 broadcast("");
                 break;
             case IDLE:
-                execute("fill 102 -16 -269 165 -18 -264 air");
-                execute("bossbar remove " + kBossbarLeft);
-                execute("bossbar remove " + kBossbarRight);
+                clearField();
                 break;
             case AWAIT_DEATH:
+                clearField();
                 break;
         }
     }
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
+        if (_status != Status.RUN) {
+            return;
+        }
+    }
 
+    @EventHandler
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
+        if (_status != Status.RUN) {
+            return;
+        }
+        if (playerRight == null || playerLeft == null) {
+            return;
+        }
+        Entity entity = e.getEntity();
+        Entity damager = e.getDamager();
+        if (entity.getType() != EntityType.PLAYER || damager.getType() != EntityType.PLAYER) {
+            return;
+        }
+        Player defence = (Player) entity;
+        Player offence = (Player) damager;
+
+        Team defenceTeam = null;
+        if (defence.getUniqueId().equals(playerLeft) && offence.getUniqueId().equals(playerRight)) {
+            defenceTeam = Team.LEFT;
+        } else if (defence.getUniqueId().equals(playerRight) && offence.getUniqueId().equals(playerLeft)) {
+            defenceTeam = Team.RIGHT;
+        } else {
+            return;
+        }
+        Team offenceTeam = TeamHostile(defenceTeam);
+
+        Location location = offence.getLocation();
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
+        //NOTE: 攻撃側がフィールド内に居るかどうかだけ判定する.
+        if (x < kFieldX || kFieldX + kFieldDx < x || y < kFieldY || z < kFieldZ || kFieldZ + kFieldDz < z) {
+            return;
+        }
+        EntityEquipment equipment = offence.getEquipment();
+        if (equipment == null) {
+            return;
+        }
+        ItemStack mainHand = equipment.getItemInMainHand();
+        if (mainHand.getType() != Material.IRON_SWORD) {
+            e.setCancelled(true);
+            return;
+        }
+        int knockback = mainHand.getEnchantments().get(Enchantment.KNOCKBACK);
+        if (knockback != kWeaponKnockbackLevel) {
+            e.setCancelled(true);
+            return;
+        }
+        Player loser = damageToKill(defenceTeam);
+
+        execute("bossbar set " + kBossbarLeft + " value " + hitpointLeft);
+        execute("bossbar set " + kBossbarRight + " value " + hitpointRight);
+
+        if (loser != null) {
+            //TODO: この処理は敗北者を kill してから行う
+            Player winner = getPlayer(getPlayerUid(offenceTeam));
+            broadcast("");
+            broadcast("-----------------------");
+            broadcast("[試合終了]");
+            if (winner == null) {
+                broadcastUnofficial(TeamName(offenceTeam) + "が勝利！");
+            } else {
+                broadcast(winner.getName() + "が勝利！");
+            }
+            broadcast("-----------------------");
+            broadcast("");
+        }
+    }
+
+    private void clearField() {
+        execute("fill 102 -16 -269 165 -18 -264 air");
+        execute("bossbar remove " + kBossbarLeft);
+        execute("bossbar remove " + kBossbarRight);
+    }
+
+    private @Nullable Player damageToKill(Team team) {
+        if (_status != Status.RUN) {
+            return null;
+        }
+        if (hitpointLeft < 1 || hitpointRight < 1) {
+            // 既に決着がついている
+            return null;
+        }
+        if (team == Team.LEFT) {
+            hitpointLeft -= 1;
+        } else if (team == Team.RIGHT) {
+            hitpointRight -= 1;
+        }
+        UUID loserUid;
+        if (hitpointLeft < 1) {
+            loserUid = playerLeft;
+        } else if (hitpointRight < 1) {
+            loserUid = playerRight;
+        } else {
+            return null;
+        }
+        if (loserUid == null) {
+            // playerLeft か playerRight なぜか null. ノーコンテストにする
+            setStatus(Status.IDLE);
+            return null;
+        }
+        setStatus(Status.AWAIT_DEATH);
+        return getPlayer(loserUid);
     }
 
     @EventHandler
@@ -216,6 +334,14 @@ public class FencingEventListener implements Listener {
                 return "RIGHT SIDE";
             default:
                 return "";
+        }
+    }
+
+    private static Team TeamHostile(Team team) {
+        if (team == Team.LEFT) {
+            return Team.RIGHT;
+        } else {
+            return Team.LEFT;
         }
     }
 
