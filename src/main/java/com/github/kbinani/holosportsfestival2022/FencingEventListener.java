@@ -194,6 +194,9 @@ public class FencingEventListener implements Listener {
         if (settled) {
             BukkitScheduler scheduler = owner.getServer().getScheduler();
             scheduler.runTaskLater(owner, () -> {
+                if (_status != Status.AWAIT_DEATH) {
+                    return;
+                }
                 UUID loserUid = getPlayerUid(TeamHostile(offenceTeam));
                 if (loserUid == null) {
                     return;
