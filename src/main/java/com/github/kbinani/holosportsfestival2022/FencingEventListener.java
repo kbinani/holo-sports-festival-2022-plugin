@@ -14,6 +14,7 @@ import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,7 +30,7 @@ public class FencingEventListener implements Listener {
         this.owner = owner;
     }
 
-    enum State {
+    enum Status {
         IDLE,
         RUN,
         AWAIT_DEATH,
@@ -40,7 +41,67 @@ public class FencingEventListener implements Listener {
         RIGHT,
     }
 
-    private FencingEventListener.State state = FencingEventListener.State.IDLE;
+    private FencingEventListener.Status _status = FencingEventListener.Status.IDLE;
+
+    private void setStatus(Status status) {
+        if (status == _status) {
+            return;
+        }
+        _status = status;
+        switch (status) {
+            case RUN:
+                // 範囲内に居るプレイヤーを観客席側に排除する
+                execute("tp @p[x=104,y=-18,z=-268,dx=61,dy=5,dz=4] 134 -17 -276");
+
+                // 左ゲート構築
+                execute("fill 165 -16 -268 165 -18 -264 white_concrete");
+                execute("fill 165 -17 -267 165 -18 -265 glass");
+                execute("setblock 164 -17 -266 iron_door[facing=west,half=upper,hinge=left]");
+                execute("setblock 164 -18 -266 iron_door[facing=west,half=lower,hinge=left]");
+                execute("setblock 165 -17 -266 air");
+                execute("setblock 165 -18 -266 heavy_weighted_pressure_plate");
+
+                // 右ゲート構築
+                execute("fill 103 -16 -264 103 -18 -268 white_concrete");
+                execute("fill 103 -17 -265 103 -18 -267 glass");
+                execute("setblock 104 -17 -266 iron_door[facing=east,half=upper,hinge=left]");
+                execute("setblock 104 -18 -266 iron_door[facing=east,half=lower,hinge=left]");
+                execute("setblock 103 -17 -266 air");
+                execute("setblock 103 -18 -266 heavy_weighted_pressure_plate");
+
+                // バリアブロックの柵
+                execute("fill 165 -17 -269 103 -17 -269 barrier");
+                execute("fill 104 -17 -263 165 -17 -263 barrier");
+
+                // bossbar 追加
+                execute("bossbar remove " + kBossbarLeft);
+                execute("bossbar add " + kBossbarLeft + " \"<<< LEFT SIDE <<<\"");
+                execute("bossbar set " + kBossbarLeft + " max 3");
+                execute("bossbar set " + kBossbarLeft + " value 3");
+                execute("bossbar set " + kBossbarLeft + " color green");
+
+                execute("bossbar remove " + kBossbarRight);
+                execute("bossbar add " + kBossbarRight + " \">>> RIGHT SIDE >>>\"");
+                execute("bossbar set " + kBossbarRight + " max 3");
+                execute("bossbar set " + kBossbarRight + " value 3");
+                execute("bossbar set " + kBossbarRight + " color green");
+
+                execute("bossbar set " + kBossbarLeft + " players @a");
+                execute("bossbar set " + kBossbarRight + " players @a");
+
+                broadcast("");
+                broadcast("[フェンシング] 競技を開始します！");
+                broadcast("");
+                break;
+            case IDLE:
+                execute("fill 102 -16 -269 165 -18 -264 air");
+                execute("bossbar remove " + kBossbarLeft);
+                execute("bossbar remove " + kBossbarRight);
+                break;
+            case AWAIT_DEATH:
+                break;
+        }
+    }
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
@@ -81,11 +142,9 @@ public class FencingEventListener implements Listener {
         }
     }
 
-    private void setPlayer(Player player, Team team) {
+    private void joinPlayer(@Nonnull Player  player, Team team) {
         if (team == Team.RIGHT) {
-            if (player == null) {
-                playerRight = null;
-            } else if (playerLeft != null && playerLeft.equals(player.getUniqueId())) {
+            if (playerLeft != null && playerLeft.equals(player.getUniqueId())) {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.LEFT) + "としてエントリー済みです");
             } else {
                 playerRight = player.getUniqueId();
@@ -93,9 +152,7 @@ public class FencingEventListener implements Listener {
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         } else if (team == Team.LEFT) {
-            if (player == null) {
-                playerLeft = null;
-            } else if (playerRight != null && playerRight.equals(player.getUniqueId())) {
+            if (playerRight != null && playerRight.equals(player.getUniqueId())) {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.RIGHT) + "としてエントリー済みです");
             } else {
                 playerLeft = player.getUniqueId();
@@ -103,6 +160,15 @@ public class FencingEventListener implements Listener {
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         }
+    }
+
+    private void clearPlayer(Team team) {
+        if (team == Team.RIGHT) {
+            playerRight = null;
+        } else if (team == Team.LEFT) {
+            playerLeft = null;
+        }
+        setStatus(Status.IDLE);
     }
 
     private void broadcast(String message) {
@@ -115,6 +181,9 @@ public class FencingEventListener implements Listener {
     }
 
     private void onClickJoin(Location location, Team team) {
+        if (_status != Status.IDLE) {
+            return;
+        }
         UUID uid = getPlayerUid(team);
         if (uid != null) {
             //TODO: 既に join 済みの時のメッセージ
@@ -124,7 +193,7 @@ public class FencingEventListener implements Listener {
         if (player == null) {
             return;
         }
-        setPlayer(player, team);
+        joinPlayer(player, team);
     }
 
     private static String TeamName(Team team) {
@@ -139,6 +208,7 @@ public class FencingEventListener implements Listener {
     }
 
     private void onClickLeave(Location location, Team team) {
+        // status をリセットするため _status == Status.IDLE チェックは入れずに強制的にエントリー解除処理する
         UUID uid = getPlayerUid(team);
         if (uid == null) {
             return;
@@ -150,12 +220,12 @@ public class FencingEventListener implements Listener {
         if (!uid.equals(player.getUniqueId())) {
             return;
         }
-        setPlayer(null, team);
+        clearPlayer(team);
         broadcastUnofficial("[フェンシング] " + player.getName() + "がエントリー解除しました（" + TeamName(team) + "）");
     }
 
     private void onClickStart() {
-        if (state != State.IDLE) {
+        if (_status != Status.IDLE) {
             return;
         }
         Player left = null;
@@ -165,7 +235,7 @@ public class FencingEventListener implements Listener {
         if (playerLeft != null) {
             left = getPlayer(playerLeft);
             if (left == null) {
-                playerLeft = null;
+                clearPlayer(Team.LEFT);
             } else {
                 numLeft += 1;
             }
@@ -173,7 +243,7 @@ public class FencingEventListener implements Listener {
         if (playerRight != null) {
             right = getPlayer(playerRight);
             if (right == null) {
-                playerRight = null;
+                clearPlayer(Team.RIGHT);
             } else {
                 numRight += 1;
             }
@@ -182,50 +252,7 @@ public class FencingEventListener implements Listener {
             broadcast("参加人数が正しくありません（" + TeamName(Team.LEFT) + " : " + numLeft + "人、" + TeamName(Team.RIGHT) + " : " + numRight + "人）");
             return;
         }
-        state = State.RUN;
-
-        // 範囲内に居るプレイヤーを観客席側に排除する
-        execute("tp @p[x=104,y=-18,z=-268,dx=61,dy=5,dz=4] 134 -17 -276");
-
-        // 左ゲート構築
-        execute("fill 165 -16 -268 165 -18 -264 white_concrete");
-        execute("fill 165 -17 -267 165 -18 -265 glass");
-        execute("setblock 164 -17 -266 iron_door[facing=west,half=upper,hinge=left]");
-        execute("setblock 164 -18 -266 iron_door[facing=west,half=lower,hinge=left]");
-        execute("setblock 165 -17 -266 air");
-        execute("setblock 165 -18 -266 heavy_weighted_pressure_plate");
-
-        // 右ゲート構築
-        execute("fill 103 -16 -264 103 -18 -268 white_concrete");
-        execute("fill 103 -17 -265 103 -18 -267 glass");
-        execute("setblock 104 -17 -266 iron_door[facing=east,half=upper,hinge=left]");
-        execute("setblock 104 -18 -266 iron_door[facing=east,half=lower,hinge=left]");
-        execute("setblock 103 -17 -266 air");
-        execute("setblock 103 -18 -266 heavy_weighted_pressure_plate");
-
-        // バリアブロックの柵
-        execute("fill 165 -17 -269 103 -17 -269 barrier");
-        execute("fill 104 -17 -263 165 -17 -263 barrier");
-
-        // bossbar 追加
-        execute("bossbar remove " + kBossbarLeft);
-        execute("bossbar add " + kBossbarLeft + " \"<<< LEFT SIDE <<<\"");
-        execute("bossbar set " + kBossbarLeft + " max 3");
-        execute("bossbar set " + kBossbarLeft + " value 3");
-        execute("bossbar set " + kBossbarLeft + " color green");
-
-        execute("bossbar remove " + kBossbarRight);
-        execute("bossbar add " + kBossbarRight + " \">>> RIGHT SIDE >>>\"");
-        execute("bossbar set " + kBossbarRight + " max 3");
-        execute("bossbar set " + kBossbarRight + " value 3");
-        execute("bossbar set " + kBossbarRight + " color green");
-
-        execute("bossbar set " + kBossbarLeft + " players @a");
-        execute("bossbar set " + kBossbarRight + " players @a");
-
-        broadcast("");
-        broadcast("[フェンシング] 競技を開始します！");
-        broadcast("");
+        setStatus(Status.RUN);
     }
 
     private void execute(String command) {
