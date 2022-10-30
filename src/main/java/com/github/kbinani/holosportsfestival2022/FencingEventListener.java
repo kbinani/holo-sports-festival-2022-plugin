@@ -151,6 +151,7 @@ public class FencingEventListener implements Listener {
         }
         Player defence = (Player) entity;
         Player offence = (Player) damager;
+        float offenceYaw = offence.getLocation().getYaw();
 
         Team defenceTeam = null;
         if (defence.getUniqueId().equals(playerLeft) && offence.getUniqueId().equals(playerRight)) {
@@ -201,8 +202,9 @@ public class FencingEventListener implements Listener {
                 if (loser == null) {
                     return;
                 }
+
                 //NOTE: onEntityDamageByEntity と同一 tick 内で velocity を変更しても効果がないので 1 tick 後に変更する.
-                Vector velocity = new Vector(offenceTeam == Team.LEFT ? -100 : 100, 10, 0);
+                Vector velocity = new Vector(offenceYaw > 0 ? -100 : 100, 10, 0);
                 loser.setVelocity(velocity);
             }, 1);
 
