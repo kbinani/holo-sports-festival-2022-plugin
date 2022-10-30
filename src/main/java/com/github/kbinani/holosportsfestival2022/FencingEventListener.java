@@ -16,6 +16,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -178,9 +179,21 @@ public class FencingEventListener implements Listener {
         execute("bossbar set " + kBossbarRight + " value " + hitpointRight);
 
         if (settled) {
-            //TODO: ここで敗北者に斜め上方への velocity を与える
-
             BukkitScheduler scheduler = owner.getServer().getScheduler();
+            scheduler.runTaskLater(owner, () -> {
+                UUID loserUid = getPlayerUid(TeamHostile(offenceTeam));
+                if (loserUid == null) {
+                    return;
+                }
+                Player loser = getPlayer(loserUid);
+                if (loser == null) {
+                    return;
+                }
+                //NOTE: onEntityDamageByEntity と同一 tick 内で velocity を変更しても効果がないので 1 tick 後に変更する.
+                Vector velocity = new Vector(offenceTeam == Team.LEFT ? -100 : 100, 10, 0);
+                loser.setVelocity(velocity);
+            }, 1);
+
             scheduler.runTaskLater(owner, () -> {
                 if (_status != Status.AWAIT_DEATH) {
                     return;
@@ -423,6 +436,7 @@ public class FencingEventListener implements Listener {
             broadcast("参加人数が正しくありません（" + TeamName(Team.LEFT) + " : " + numLeft + "人、" + TeamName(Team.RIGHT) + " : " + numRight + "人）");
             return;
         }
+        //TODO: カウントダウン
         setStatus(Status.RUN);
     }
 
