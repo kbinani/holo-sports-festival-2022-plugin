@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -171,27 +172,54 @@ public class FencingEventListener implements Listener {
             e.setCancelled(true);
             return;
         }
-        Player loser = damageToKill(defenceTeam);
+        boolean settled = damageToKill(defenceTeam);
 
         execute("bossbar set " + kBossbarLeft + " value " + hitpointLeft);
         execute("bossbar set " + kBossbarRight + " value " + hitpointRight);
 
-        if (loser != null) {
-            //TODO: この処理は敗北者を kill してから行う
-            Player winner = getPlayer(getPlayerUid(offenceTeam));
-            broadcast("");
-            broadcast("-----------------------");
-            broadcast("[試合終了]");
-            if (winner == null) {
-                broadcastUnofficial(TeamName(offenceTeam) + "が勝利！");
-            } else {
-                broadcast(winner.getName() + "が勝利！");
-            }
-            broadcast("-----------------------");
-            broadcast("");
-            playerLeft = null;
-            playerRight = null;
-            setStatus(Status.IDLE);
+        if (settled) {
+            //TODO: ここで敗北者に斜め上方への velocity を与える
+
+            BukkitScheduler scheduler = owner.getServer().getScheduler();
+            scheduler.runTaskLater(owner, () -> {
+                if (_status != Status.AWAIT_DEATH) {
+                    return;
+                }
+                //NOTE: 敗北者を kill する前にアイテムを回収
+                execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
+
+                // 敗北者を kill する
+                UUID loserUid = getPlayerUid(TeamHostile(offenceTeam));
+                UUID winnerUid = getPlayerUid(offenceTeam);
+                if (loserUid != null) {
+                    Player loser = getPlayer(getPlayerUid(TeamHostile(offenceTeam)));
+                    if (loser != null) {
+                        execute("kill @p[name=\"" + loser.getName() + "\"]");
+                    }
+                }
+
+                //TODO: 花火
+
+                // 結果を通知する
+                Player winner = null;
+                if (winnerUid != null) {
+                    winner = getPlayer(getPlayerUid(offenceTeam));
+                }
+                broadcast("");
+                broadcast("-----------------------");
+                broadcast("[試合終了]");
+                if (winner == null) {
+                    broadcastUnofficial(TeamName(offenceTeam) + "が勝利！");
+                } else {
+                    broadcast(winner.getName() + "が勝利！");
+                }
+                broadcast("-----------------------");
+                broadcast("");
+
+                playerLeft = null;
+                playerRight = null;
+                setStatus(Status.IDLE);
+            }, 30);
         }
     }
 
@@ -202,13 +230,13 @@ public class FencingEventListener implements Listener {
         execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
     }
 
-    private @Nullable Player damageToKill(Team team) {
+    private boolean damageToKill(Team team) {
         if (_status != Status.RUN) {
-            return null;
+            return false;
         }
         if (hitpointLeft < 1 || hitpointRight < 1) {
             // 既に決着がついている
-            return null;
+            return false;
         }
         if (team == Team.LEFT) {
             hitpointLeft -= 1;
@@ -221,15 +249,15 @@ public class FencingEventListener implements Listener {
         } else if (hitpointRight < 1) {
             loserUid = playerRight;
         } else {
-            return null;
+            return false;
         }
         if (loserUid == null) {
             // playerLeft か playerRight なぜか null. ノーコンテストにする
             setStatus(Status.IDLE);
-            return null;
+            return false;
         }
         setStatus(Status.AWAIT_DEATH);
-        return getPlayer(loserUid);
+        return true;
     }
 
     @EventHandler
