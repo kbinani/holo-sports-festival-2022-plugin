@@ -25,6 +25,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 public class FencingEventListener implements Listener {
     private final JavaPlugin owner;
@@ -48,6 +49,7 @@ public class FencingEventListener implements Listener {
 
     enum Status {
         IDLE,
+        COUNTDOWN,
         RUN,
         AWAIT_DEATH,
     }
@@ -65,7 +67,7 @@ public class FencingEventListener implements Listener {
         }
         _status = status;
         switch (status) {
-            case RUN:
+            case COUNTDOWN:
                 // 範囲内に居るプレイヤーを観客席側に排除する
                 execute("tp @p[x=" + kFieldX + ",y=" + kFieldY + ",z=" + kFieldZ + ",dx=" + kFieldDx + ",dy=5,dz=" + kFieldDz + "] 134 -17 -276");
 
@@ -112,8 +114,14 @@ public class FencingEventListener implements Listener {
                 broadcast("[フェンシング] 競技を開始します！");
                 broadcast("");
                 break;
+            case RUN:
+                break;
             case IDLE:
                 clearField();
+                playerLeft = null;
+                playerRight = null;
+                hitpointRight = 3;
+                hitpointLeft = 3;
                 break;
             case AWAIT_DEATH:
                 clearField();
@@ -480,8 +488,13 @@ public class FencingEventListener implements Listener {
         left.setHealth(left.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         right.setHealth(right.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
 
-        //TODO: カウントダウン
-        setStatus(Status.RUN);
+        setStatus(Status.COUNTDOWN);
+        CountdownThen(owner, () -> {
+            if (_status == Status.COUNTDOWN) {
+                //TODO: 花火の音
+                setStatus(Status.RUN);
+            }
+        });
     }
 
     private void execute(String command) {
@@ -516,5 +529,38 @@ public class FencingEventListener implements Listener {
         } else {
             return null;
         }
+    }
+
+    static void PlayNote(Server server, Predicate<Player> predicate, Instrument instrument, Note note) {
+        server.getOnlinePlayers().stream().filter(predicate).forEach(player -> {
+            player.playNote(player.getLocation(), instrument, note);
+        });
+    }
+
+    static void CountdownThen(JavaPlugin plugin, Runnable callback) {
+        Server server = plugin.getServer();
+        CommandSender sender = server.getConsoleSender();
+        BukkitScheduler scheduler = server.getScheduler();
+        Predicate<Player> predicate = it -> {
+            Location loc = it.getLocation();
+            double x = loc.getX();
+            double y = loc.getY();
+            double z = loc.getZ();
+            return (85 <= x && x <= 171 && -280 <= z && z <= -253 && -20 <= y && it.getWorld().getEnvironment() == World.Environment.NORMAL);
+        };
+        PlayNote(server, predicate, Instrument.BIT, new Note(12));
+        server.dispatchCommand(sender, "title @a title 3");
+        scheduler.runTaskLater(plugin, () -> {
+            PlayNote(server, predicate, Instrument.BIT, new Note(12));
+            server.dispatchCommand(sender, "title @a title 2");
+            scheduler.runTaskLater(plugin, () -> {
+                PlayNote(server, predicate, Instrument.BIT, new Note(12));
+                server.dispatchCommand(sender, "title @a title 1");
+                scheduler.runTaskLater(plugin, () -> {
+                    server.dispatchCommand(sender, "title @a title \"START!!!\"");
+                    callback.run();
+                }, 20);
+            }, 20);
+        }, 20);
     }
 }
