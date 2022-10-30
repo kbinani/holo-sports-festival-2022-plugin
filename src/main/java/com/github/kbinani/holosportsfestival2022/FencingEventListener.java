@@ -129,6 +129,7 @@ public class FencingEventListener implements Listener {
     }
 
     @EventHandler
+    @SuppressWarnings("unused")
     public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
         if (_status != Status.RUN) {
             return;
@@ -275,6 +276,7 @@ public class FencingEventListener implements Listener {
     }
 
     @EventHandler
+    @SuppressWarnings("unused")
     public void onBlockRedstoneEvent(BlockRedstoneEvent e) {
         if (e.getOldCurrent() != 0 || e.getNewCurrent() <= 0) {
             return;
@@ -299,6 +301,7 @@ public class FencingEventListener implements Listener {
     }
 
     @EventHandler
+    @SuppressWarnings("unused")
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player player = e.getPlayer();
         if (playerLeft != null && player.getUniqueId().equals(playerLeft)) {
