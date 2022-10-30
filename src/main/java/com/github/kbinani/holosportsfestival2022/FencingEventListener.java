@@ -29,6 +29,7 @@ public class FencingEventListener implements Listener {
     private int hitpointRight = 3;
     static final String kBossbarLeft = "sports_festival_2022_bossbar_left";
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
+    static final String kWeaponCustomTag = "hololive_sports_festival_2022_fencing";
     static final int kFieldX = 104;
     static final int kFieldY = -18;
     static final int kFieldZ = -268;
@@ -188,6 +189,9 @@ public class FencingEventListener implements Listener {
             }
             broadcast("-----------------------");
             broadcast("");
+            playerLeft = null;
+            playerRight = null;
+            setStatus(Status.IDLE);
         }
     }
 
@@ -195,6 +199,7 @@ public class FencingEventListener implements Listener {
         execute("fill 102 -16 -269 165 -18 -264 air");
         execute("bossbar remove " + kBossbarLeft);
         execute("bossbar remove " + kBossbarRight);
+        execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
     }
 
     private @Nullable Player damageToKill(Team team) {
@@ -278,7 +283,7 @@ public class FencingEventListener implements Listener {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.LEFT) + "としてエントリー済みです");
             } else {
                 playerRight = player.getUniqueId();
-                execute("give @p[name=\"" + player.getName() + "\"] iron_sword{Enchantments:[{id:knockback,lvl:10}]}");
+                execute("give @p[name=\"" + player.getName() + "\"] iron_sword{tag:{" + kWeaponCustomTag + ":1b},Enchantments:[{id:knockback,lvl:10}]}");
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         } else if (team == Team.LEFT) {
@@ -286,7 +291,7 @@ public class FencingEventListener implements Listener {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.RIGHT) + "としてエントリー済みです");
             } else {
                 playerLeft = player.getUniqueId();
-                execute("give @p[name=\"" + player.getName() + "\"] iron_sword{Enchantments:[{id:knockback,lvl:10}]}");
+                execute("give @p[name=\"" + player.getName() + "\"] iron_sword{tag:{" + kWeaponCustomTag + ":1b},Enchantments:[{id:knockback,lvl:10}]}");
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         }
