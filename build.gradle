@@ -1,0 +1,36 @@
+apply plugin: 'java'
+
+group = 'com.github.kbinani'
+version = '1.0.0'
+
+sourceCompatibility = '1.11'
+targetCompatibility = '1.11'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.19.2-R0.1-SNAPSHOT'
+    compileOnly 'org.jetbrains:annotations:22.0.0'
+}
+
+processResources {
+    filesMatching('plugin.yml') {
+        expand(
+                version: project.version
+        )
+    }
+}
+
+wrapper {
+    gradleVersion = '7.3'
+}
