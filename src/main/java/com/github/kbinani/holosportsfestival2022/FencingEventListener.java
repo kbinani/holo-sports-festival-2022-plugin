@@ -433,6 +433,7 @@ public class FencingEventListener implements Listener {
             return;
         }
         clearPlayer(team);
+        execute("clear @p[name=\"" + player.getName() + "\"]" + " iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
         broadcastUnofficial("[フェンシング] " + player.getName() + "がエントリー解除しました（" + TeamName(team) + "）");
     }
 
