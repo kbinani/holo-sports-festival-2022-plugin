@@ -187,27 +187,6 @@ public class FencingEventListener implements Listener {
 
         boolean settled = damageToKill(defenceTeam);
 
-        if (hitpointLeft > 0) {
-            UUID leftUuid = getPlayerUid(Team.LEFT);
-            if (leftUuid != null) {
-                Player leftPlayer = getPlayer(leftUuid);
-                if (leftPlayer != null) {
-                    double maxHealth = leftPlayer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-                    leftPlayer.setHealth(maxHealth * hitpointLeft / 3.0);
-                }
-            }
-        }
-        if (hitpointRight > 0) {
-            UUID rightUuid = getPlayerUid(Team.RIGHT);
-            if (rightUuid != null) {
-                Player rightPlayer = getPlayer(rightUuid);
-                if (rightPlayer != null) {
-                    double maxHealth = rightPlayer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-                    rightPlayer.setHealth(maxHealth * hitpointRight / 3.0);
-                }
-            }
-        }
-
         execute("bossbar set " + kBossbarLeft + " value " + hitpointLeft);
         execute("bossbar set " + kBossbarRight + " value " + hitpointRight);
 
@@ -238,7 +217,7 @@ public class FencingEventListener implements Listener {
                 UUID loserUid = getPlayerUid(TeamHostile(offenceTeam));
                 UUID winnerUid = getPlayerUid(offenceTeam);
                 if (loserUid != null) {
-                    Player loser = getPlayer(getPlayerUid(TeamHostile(offenceTeam)));
+                    Player loser = getPlayer(loserUid);
                     if (loser != null) {
                         execute("kill @p[name=\"" + loser.getName() + "\"]");
                     }
@@ -249,7 +228,7 @@ public class FencingEventListener implements Listener {
                 // 結果を通知する
                 Player winner = null;
                 if (winnerUid != null) {
-                    winner = getPlayer(getPlayerUid(offenceTeam));
+                    winner = getPlayer(winnerUid);
                 }
                 broadcast("");
                 broadcast("-----------------------");
