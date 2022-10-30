@@ -144,6 +144,7 @@ public class FencingEventListener implements Listener {
         Player defence = (Player) entity;
         Player offence = (Player) damager;
         float offenceYaw = offence.getLocation().getYaw();
+        String offenceName = offence.getName();
 
         Team defenceTeam = null;
         if (defence.getUniqueId().equals(playerLeft) && offence.getUniqueId().equals(playerRight)) {
@@ -212,7 +213,6 @@ public class FencingEventListener implements Listener {
 
                 // 敗北者を kill する
                 UUID loserUid = getPlayerUid(TeamHostile(offenceTeam));
-                UUID winnerUid = getPlayerUid(offenceTeam);
                 if (loserUid != null) {
                     Player loser = getPlayer(loserUid);
                     if (loser != null) {
@@ -223,18 +223,10 @@ public class FencingEventListener implements Listener {
                 //TODO: 花火
 
                 // 結果を通知する
-                Player winner = null;
-                if (winnerUid != null) {
-                    winner = getPlayer(winnerUid);
-                }
                 broadcast("");
                 broadcast("-----------------------");
                 broadcast("[試合終了]");
-                if (winner == null) {
-                    broadcastUnofficial(TeamName(offenceTeam) + "が勝利！");
-                } else {
-                    broadcast(winner.getName() + "が勝利！");
-                }
+                broadcast(offenceName + "が勝利！");
                 broadcast("-----------------------");
                 broadcast("");
 
