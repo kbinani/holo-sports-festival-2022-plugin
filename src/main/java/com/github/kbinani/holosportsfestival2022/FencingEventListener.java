@@ -1,6 +1,7 @@
 package com.github.kbinani.holosportsfestival2022;
 
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -20,6 +21,8 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -173,7 +176,29 @@ public class FencingEventListener implements Listener {
             e.setCancelled(true);
             return;
         }
+
         boolean settled = damageToKill(defenceTeam);
+
+        if (hitpointLeft > 0) {
+            UUID leftUuid = getPlayerUid(Team.LEFT);
+            if (leftUuid != null) {
+                Player leftPlayer = getPlayer(leftUuid);
+                if (leftPlayer != null) {
+                    double maxHealth = leftPlayer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                    leftPlayer.setHealth(maxHealth * hitpointLeft / 3.0);
+                }
+            }
+        }
+        if (hitpointRight > 0) {
+            UUID rightUuid = getPlayerUid(Team.RIGHT);
+            if (rightUuid != null) {
+                Player rightPlayer = getPlayer(rightUuid);
+                if (rightPlayer != null) {
+                    double maxHealth = rightPlayer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                    rightPlayer.setHealth(maxHealth * hitpointRight / 3.0);
+                }
+            }
+        }
 
         execute("bossbar set " + kBossbarLeft + " value " + hitpointLeft);
         execute("bossbar set " + kBossbarRight + " value " + hitpointRight);
@@ -324,7 +349,7 @@ public class FencingEventListener implements Listener {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.LEFT) + "としてエントリー済みです");
             } else {
                 playerRight = player.getUniqueId();
-                execute("give @p[name=\"" + player.getName() + "\"] iron_sword{tag:{" + kWeaponCustomTag + ":1b},Enchantments:[{id:knockback,lvl:10}]}");
+                execute("give @p[name=\"" + player.getName() + "\"] " + Weapon());
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         } else if (team == Team.LEFT) {
@@ -332,10 +357,26 @@ public class FencingEventListener implements Listener {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.RIGHT) + "としてエントリー済みです");
             } else {
                 playerLeft = player.getUniqueId();
-                execute("give @p[name=\"" + player.getName() + "\"] iron_sword{tag:{" + kWeaponCustomTag + ":1b},Enchantments:[{id:knockback,lvl:10}]}");
+                execute("give @p[name=\"" + player.getName() + "\"] " + Weapon());
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         }
+    }
+
+    private String Weapon() {
+        UUID attributeUid = UUID.randomUUID();
+        return "iron_sword{tag:{" + kWeaponCustomTag + ":1b},HideFlags:2,Enchantments:[{id:knockback,lvl:10}],AttributeModifiers:[{AttributeName:\"generic.attack_damage\",Amount:0,Operation:0,UUID:" + UUIDString(attributeUid) + "}]}";
+    }
+
+    // [I;-519191173,-134519044,310236205,-136580550]
+    static String UUIDString(UUID uid) {
+        byte[] bytes = new byte[16];
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        bb.order(ByteOrder.BIG_ENDIAN);
+        bb.putLong(uid.getMostSignificantBits());
+        bb.putLong(uid.getLeastSignificantBits());
+        bb.flip();
+        return "[I;" + bb.getInt(0) + "," + bb.getInt(1) + "," + bb.getInt(2) + "," + bb.getInt(3) + "]";
     }
 
     private void clearPlayer(Team team) {
@@ -436,6 +477,9 @@ public class FencingEventListener implements Listener {
             broadcast("参加人数が正しくありません（" + TeamName(Team.LEFT) + " : " + numLeft + "人、" + TeamName(Team.RIGHT) + " : " + numRight + "人）");
             return;
         }
+        left.setHealth(left.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+        right.setHealth(right.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+
         //TODO: カウントダウン
         setStatus(Status.RUN);
     }
@@ -446,7 +490,7 @@ public class FencingEventListener implements Listener {
         server.dispatchCommand(sender, command);
     }
 
-    private @Nullable Player getPlayer(UUID uid) {
+    private @Nullable Player getPlayer(@Nonnull UUID uid) {
         Server server = owner.getServer();
         Optional<World> maybeWorld = server.getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
         if (maybeWorld.isEmpty()) {
