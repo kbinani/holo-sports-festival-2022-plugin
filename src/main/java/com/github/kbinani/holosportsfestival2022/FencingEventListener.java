@@ -87,6 +87,7 @@ public class FencingEventListener implements Listener {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.LEFT) + "としてエントリー済みです");
             } else {
                 playerRight = player.getUniqueId();
+                execute("give @p[name=\"" + player.getName() + "\"] iron_sword{Enchantments:[{id:knockback,lvl:10}]}");
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         } else if (team == Team.LEFT) {
@@ -96,6 +97,7 @@ public class FencingEventListener implements Listener {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.RIGHT) + "としてエントリー済みです");
             } else {
                 playerLeft = player.getUniqueId();
+                execute("give @p[name=\"" + player.getName() + "\"] iron_sword{Enchantments:[{id:knockback,lvl:10}]}");
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         }
