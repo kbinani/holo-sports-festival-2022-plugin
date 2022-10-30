@@ -461,12 +461,25 @@ public class FencingEventListener implements Listener {
         right.setHealth(right.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
 
         setStatus(Status.COUNTDOWN);
-        CountdownThen(owner, () -> {
+        Countdown.Then(owner, (count) -> {
+            Server server = owner.getServer();
+            PlayNote(server, this::isInField, Instrument.BIT, new Note(12));
+            execute("title @a title " + count);
+        }, () -> {
             if (_status == Status.COUNTDOWN) {
                 //TODO: 花火の音
+                execute("title @a title \"START!!!\"");
                 setStatus(Status.RUN);
             }
         });
+    }
+
+    private boolean isInField(Player it) {
+        Location loc = it.getLocation();
+        double x = loc.getX();
+        double y = loc.getY();
+        double z = loc.getZ();
+        return (85 <= x && x <= 171 && -280 <= z && z <= -253 && -20 <= y && it.getWorld().getEnvironment() == World.Environment.NORMAL);
     }
 
     private void execute(String command) {
@@ -511,32 +524,5 @@ public class FencingEventListener implements Listener {
         server.getOnlinePlayers().stream().filter(predicate).forEach(player -> {
             player.playNote(player.getLocation(), instrument, note);
         });
-    }
-
-    static void CountdownThen(JavaPlugin plugin, Runnable callback) {
-        Server server = plugin.getServer();
-        CommandSender sender = server.getConsoleSender();
-        BukkitScheduler scheduler = server.getScheduler();
-        Predicate<Player> predicate = it -> {
-            Location loc = it.getLocation();
-            double x = loc.getX();
-            double y = loc.getY();
-            double z = loc.getZ();
-            return (85 <= x && x <= 171 && -280 <= z && z <= -253 && -20 <= y && it.getWorld().getEnvironment() == World.Environment.NORMAL);
-        };
-        PlayNote(server, predicate, Instrument.BIT, new Note(12));
-        server.dispatchCommand(sender, "title @a title 3");
-        scheduler.runTaskLater(plugin, () -> {
-            PlayNote(server, predicate, Instrument.BIT, new Note(12));
-            server.dispatchCommand(sender, "title @a title 2");
-            scheduler.runTaskLater(plugin, () -> {
-                PlayNote(server, predicate, Instrument.BIT, new Note(12));
-                server.dispatchCommand(sender, "title @a title 1");
-                scheduler.runTaskLater(plugin, () -> {
-                    server.dispatchCommand(sender, "title @a title \"START!!!\"");
-                    callback.run();
-                }, 20);
-            }, 20);
-        }, 20);
     }
 }
