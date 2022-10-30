@@ -504,7 +504,11 @@ public class FencingEventListener implements Listener {
         if (world == null) {
             return null;
         }
-        Optional<Entity> entity = world.getNearbyEntities(location, 2.5, 2.5, 2.5, (it) -> it.getType() == EntityType.PLAYER).stream().findFirst();
+        Optional<Entity> entity = world.getNearbyEntities(location, 2.5, 2.5, 2.5, (it) -> it.getType() == EntityType.PLAYER).stream().min((a, b) -> {
+            double distanceToA = a.getLocation().distanceSquared(location);
+            double distanceToB = b.getLocation().distanceSquared(location);
+            return Double.compare(distanceToA, distanceToB);
+        });
         if (entity.isEmpty()) {
             return null;
         }
