@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
@@ -132,6 +133,17 @@ public class FencingEventListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent e) {
+        Player player = e.getPlayer();
+        if (playerLeft != null && player.getUniqueId().equals(playerLeft)) {
+            clearPlayer(Team.LEFT);
+        }
+        if (playerRight != null && player.getUniqueId().equals(playerRight)) {
+            clearPlayer(Team.RIGHT);
+        }
+    }
+
     private @Nullable UUID getPlayerUid(Team team) {
         if (team == Team.RIGHT) {
             return playerRight;
@@ -142,7 +154,7 @@ public class FencingEventListener implements Listener {
         }
     }
 
-    private void joinPlayer(@Nonnull Player  player, Team team) {
+    private void joinPlayer(@Nonnull Player player, Team team) {
         if (team == Team.RIGHT) {
             if (playerLeft != null && playerLeft.equals(player.getUniqueId())) {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.LEFT) + "としてエントリー済みです");
