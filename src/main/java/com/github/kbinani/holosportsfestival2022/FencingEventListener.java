@@ -76,13 +76,13 @@ public class FencingEventListener implements Listener {
 
                 // bossbar 追加
                 execute("bossbar remove " + kBossbarLeft);
-                execute("bossbar add " + kBossbarLeft + " \"<<< LEFT SIDE <<<\"");
+                execute("bossbar add " + kBossbarLeft + " \"<<< " + TeamName(Team.LEFT) + " <<<\"");
                 execute("bossbar set " + kBossbarLeft + " max 3");
                 execute("bossbar set " + kBossbarLeft + " value 3");
                 execute("bossbar set " + kBossbarLeft + " color green");
 
                 execute("bossbar remove " + kBossbarRight);
-                execute("bossbar add " + kBossbarRight + " \">>> RIGHT SIDE >>>\"");
+                execute("bossbar add " + kBossbarRight + " \">>> " + TeamName(Team.RIGHT) + " >>>\"");
                 execute("bossbar set " + kBossbarRight + " max 3");
                 execute("bossbar set " + kBossbarRight + " value 3");
                 execute("bossbar set " + kBossbarRight + " color green");
