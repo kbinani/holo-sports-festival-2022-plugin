@@ -68,27 +68,27 @@ public class FencingEventListener implements Listener {
         switch (status) {
             case COUNTDOWN:
                 // 範囲内に居るプレイヤーを観客席側に排除する
-                execute("tp @p[x=" + kFieldX + ",y=" + kFieldY + ",z=" + kFieldZ + ",dx=" + kFieldDx + ",dy=5,dz=" + kFieldDz + "] 134 -17 -276");
+                execute(String.format("tp @p[x=%d,y=%d,z=%d,dx=%d,dy=5,dz=%d] %s", x(kFieldX), y(kFieldY), z(kFieldZ), kFieldDx, kFieldDz, xyz(134, -17, -276)));
 
                 // 左ゲート構築
-                execute("fill 165 -16 -268 165 -18 -264 white_concrete");
-                execute("fill 165 -17 -267 165 -18 -265 glass");
-                execute("setblock 164 -17 -266 iron_door[facing=west,half=upper,hinge=left]");
-                execute("setblock 164 -18 -266 iron_door[facing=west,half=lower,hinge=left]");
-                execute("setblock 165 -17 -266 air");
-                execute("setblock 165 -18 -266 heavy_weighted_pressure_plate");
+                execute(String.format("fill %s %s white_concrete", xyz(165, -16, -268), xyz(165, -18, -264)));
+                execute(String.format("fill %s %s glass", xyz(165, -17, -267), xyz(165, -18, -265)));
+                execute(String.format("setblock %s iron_door[facing=west,half=upper,hinge=left]", xyz(164, -17, -266)));
+                execute(String.format("setblock %s iron_door[facing=west,half=lower,hinge=left]", xyz(164, -18, -266)));
+                execute(String.format("setblock %s air", xyz(165, -17, -266)));
+                execute(String.format("setblock %s heavy_weighted_pressure_plate", xyz(165, -18, -266)));
 
                 // 右ゲート構築
-                execute("fill 103 -16 -264 103 -18 -268 white_concrete");
-                execute("fill 103 -17 -265 103 -18 -267 glass");
-                execute("setblock 104 -17 -266 iron_door[facing=east,half=upper,hinge=left]");
-                execute("setblock 104 -18 -266 iron_door[facing=east,half=lower,hinge=left]");
-                execute("setblock 103 -17 -266 air");
-                execute("setblock 103 -18 -266 heavy_weighted_pressure_plate");
+                execute(String.format("fill %s %s white_concrete", xyz(103, -16, -264), xyz(103, -18, -268)));
+                execute(String.format("fill %s %s glass", xyz(103, -17, -265), xyz(103, -18, -267)));
+                execute(String.format("setblock %s iron_door[facing=east,half=upper,hinge=left]", xyz(104, -17, -266)));
+                execute(String.format("setblock %s iron_door[facing=east,half=lower,hinge=left]", xyz(104, -18, -266)));
+                execute(String.format("setblock %s air", xyz(103, -17, -266)));
+                execute(String.format("setblock %s heavy_weighted_pressure_plate", xyz(103, -18, -266)));
 
                 // バリアブロックの柵
-                execute("fill 165 -17 -269 103 -17 -269 barrier");
-                execute("fill 104 -17 -263 165 -17 -263 barrier");
+                execute(String.format("fill %s %s barrier", xyz(165, -17, -269), xyz(103, -17, -269)));
+                execute(String.format("fill %s %s barrier", xyz(104, -17, -263), xyz(165, -17, -263)));
 
                 // bossbar 追加
                 execute("bossbar remove " + kBossbarLeft);
@@ -128,6 +128,26 @@ public class FencingEventListener implements Listener {
         }
     }
 
+    private String xyz(int x, int y, int z) {
+        // 座標が間違っていたらここでオフセットする
+        return String.format("%d %d %d", x, y, z);
+    }
+
+    private int x(int x) {
+        // 座標が間違っていたらここでオフセットする
+        return x;
+    }
+
+    private int y(int y) {
+        // 座標が間違っていたらここでオフセットする
+        return y;
+    }
+
+    private int z(int z) {
+        // 座標が間違っていたらここでオフセットする
+        return z;
+    }
+
     @EventHandler
     @SuppressWarnings("unused")
     public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
@@ -158,11 +178,11 @@ public class FencingEventListener implements Listener {
         Team offenceTeam = TeamHostile(defenceTeam);
 
         Location location = offence.getLocation();
-        int x = location.getBlockX();
-        int y = location.getBlockY();
-        int z = location.getBlockZ();
+        int bx = location.getBlockX();
+        int by = location.getBlockY();
+        int bz = location.getBlockZ();
         //NOTE: 攻撃側がフィールド内に居るかどうかだけ判定する.
-        if (x < kFieldX || kFieldX + kFieldDx < x || y < kFieldY || z < kFieldZ || kFieldZ + kFieldDz < z) {
+        if (bx < x(kFieldX) || x(kFieldX) + kFieldDx < bx || by < y(kFieldY) || bz < z(kFieldZ) || z(kFieldZ) + kFieldDz < bz) {
             return;
         }
         EntityEquipment equipment = offence.getEquipment();
@@ -239,7 +259,7 @@ public class FencingEventListener implements Listener {
     }
 
     private void clearField() {
-        execute("fill 102 -16 -269 165 -18 -264 air");
+        execute(String.format("fill %s %s air", xyz(102, -16, -269), xyz(165, -18, -264)));
         execute("bossbar remove " + kBossbarLeft);
         execute("bossbar remove " + kBossbarRight);
         execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
@@ -283,19 +303,19 @@ public class FencingEventListener implements Listener {
         }
 
         Location location = e.getBlock().getLocation();
-        int x = location.getBlockX();
-        int y = location.getBlockY();
-        int z = location.getBlockZ();
+        int bx = location.getBlockX();
+        int by = location.getBlockY();
+        int bz = location.getBlockZ();
 
-        if (x == 101 && y == -18 && z == -264) {
+        if (bx == x(101) && by == y(-18) && bz == z(-264)) {
             onClickJoin(location, Team.RIGHT);
-        } else if (x == 167 && y == -18 && z == -264) {
+        } else if (bx == x(167) && by == y(-18) && bz == z(-264)) {
             onClickJoin(location, Team.LEFT);
-        } else if (x == 169 && y == -18 && z == -264) {
+        } else if (bx == x(169) && by == y(-18) && bz == z(-264)) {
             onClickLeave(location, Team.LEFT);
-        } else if (x == 99 && y == -18 && z == -264) {
+        } else if (bx == x(99) && by == y(-18) && bz == z(-264)) {
             onClickLeave(location, Team.RIGHT);
-        } else if (x == 134 && y == -18 && z == -272) {
+        } else if (bx == x(134) && by == y(-18) && bz == z(-272)) {
             onClickStart();
         }
     }
@@ -476,10 +496,10 @@ public class FencingEventListener implements Listener {
 
     private boolean isInField(Player it) {
         Location loc = it.getLocation();
-        double x = loc.getX();
-        double y = loc.getY();
-        double z = loc.getZ();
-        return (85 <= x && x <= 171 && -280 <= z && z <= -253 && -20 <= y && it.getWorld().getEnvironment() == World.Environment.NORMAL);
+        double bx = loc.getX();
+        double by = loc.getY();
+        double bz = loc.getZ();
+        return (x(85) <= bx && bx <= x(171) && z(-280) <= bz && bz <= z(-253) && y(-20) <= by && it.getWorld().getEnvironment() == World.Environment.NORMAL);
     }
 
     private void execute(String command) {
