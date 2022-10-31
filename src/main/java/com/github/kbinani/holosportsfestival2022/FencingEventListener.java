@@ -133,7 +133,10 @@ public class FencingEventListener implements Listener {
                 break;
             case AWAIT_DEATH:
                 overworld().ifPresent(world -> {
-                    showDeathMessage = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
+                    Boolean value = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
+                    if (value != null) {
+                        this.showDeathMessage = value;
+                    }
                     world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
                 });
                 clearField();
