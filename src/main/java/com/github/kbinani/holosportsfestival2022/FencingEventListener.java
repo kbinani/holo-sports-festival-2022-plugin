@@ -237,12 +237,13 @@ public class FencingEventListener implements Listener {
                 if (loserUid != null) {
                     Player loser = getPlayer(loserUid);
                     if (loser != null) {
+                        Location loc = loser.getLocation();
+                        // https://symtm.blog.fc2.com/blog-entry-96.html
+                        execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:0b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
                         execute("kill @p[name=\"" + loser.getName() + "\"]");
                     }
                 }
-
-                //TODO: 花火
-
+                
                 // 結果を通知する
                 broadcast("");
                 broadcast("-----------------------");
