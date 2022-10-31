@@ -32,6 +32,7 @@ public class FencingEventListener implements Listener {
     private @Nullable UUID playerRight;
     private int hitpointLeft = 3;
     private int hitpointRight = 3;
+    private @Nullable Boolean showDeathMessage = null;
     static final String kBossbarLeft = "sports_festival_2022_bossbar_left";
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
     static final String kWeaponCustomTag = "hololive_sports_festival_2022_fencing";
@@ -44,6 +45,9 @@ public class FencingEventListener implements Listener {
 
     FencingEventListener(JavaPlugin owner) {
         this.owner = owner;
+        overworld().ifPresent(world -> {
+            this.showDeathMessage = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
+        });
     }
 
     enum Status {
@@ -121,11 +125,24 @@ public class FencingEventListener implements Listener {
                 playerRight = null;
                 hitpointRight = 3;
                 hitpointLeft = 3;
+                overworld().ifPresent(world -> {
+                    if (showDeathMessage != null) {
+                        world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, showDeathMessage);
+                    }
+                });
                 break;
             case AWAIT_DEATH:
+                overworld().ifPresent(world -> {
+                    showDeathMessage = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
+                    world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
+                });
                 clearField();
                 break;
         }
+    }
+
+    private Optional<World> overworld() {
+        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     }
 
     private String xyz(int x, int y, int z) {
@@ -243,7 +260,7 @@ public class FencingEventListener implements Listener {
                         execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
                         execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
                         execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
-                        execute("kill @p[name=\"" + loser.getName() + "\"]");
+                        loser.setHealth(0);
                     }
                 }
 
