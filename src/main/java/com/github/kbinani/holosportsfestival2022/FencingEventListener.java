@@ -487,7 +487,7 @@ public class FencingEventListener implements Listener {
             execute("title @a title " + count);
         }, () -> {
             if (_status == Status.COUNTDOWN) {
-                //TODO: 花火の音
+                PlaySound(owner.getServer(), this::isInField, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1, 1);
                 execute("title @a title \"START!!!\"");
                 setStatus(Status.RUN);
             }
@@ -543,6 +543,12 @@ public class FencingEventListener implements Listener {
     static void PlayNote(Server server, Predicate<Player> predicate, Instrument instrument, Note note) {
         server.getOnlinePlayers().stream().filter(predicate).forEach(player -> {
             player.playNote(player.getLocation(), instrument, note);
+        });
+    }
+
+    static void PlaySound(Server server, Predicate<Player> predicate, Sound sound, float volume, float pitch) {
+        server.getOnlinePlayers().stream().filter(predicate).forEach(player -> {
+            player.playSound(player.getLocation(), sound, volume, pitch);
         });
     }
 }
