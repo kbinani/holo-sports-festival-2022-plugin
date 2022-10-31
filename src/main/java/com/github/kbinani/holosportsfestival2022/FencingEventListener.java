@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -33,6 +34,9 @@ public class FencingEventListener implements Listener {
     private int hitpointLeft = 3;
     private int hitpointRight = 3;
     private @Nullable Boolean showDeathMessage = null;
+    private Bossbar bossbarLeft;
+    private Bossbar bossbarRight;
+
     static final String kBossbarLeft = "sports_festival_2022_bossbar_left";
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
     static final String kWeaponCustomTag = "hololive_sports_festival_2022_fencing";
@@ -52,6 +56,7 @@ public class FencingEventListener implements Listener {
 
     enum Status {
         IDLE,
+        AWAIT_COUNTDOWN,
         COUNTDOWN,
         RUN,
         AWAIT_DEATH,
@@ -70,9 +75,32 @@ public class FencingEventListener implements Listener {
         }
         _status = status;
         switch (status) {
-            case COUNTDOWN:
+            case IDLE:
+                clearField();
+                playerLeft = null;
+                playerRight = null;
+                hitpointRight = 3;
+                hitpointLeft = 3;
+                overworld().ifPresent(world -> {
+                    if (showDeathMessage != null) {
+                        world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, showDeathMessage);
+                    }
+                });
+                break;
+            case AWAIT_COUNTDOWN:
                 // 範囲内に居るプレイヤーを観客席側に排除する
-                execute(String.format("tp @p[x=%d,y=%d,z=%d,dx=%d,dy=5,dz=%d] %s", x(kFieldX), y(kFieldY), z(kFieldZ), kFieldDx, kFieldDz, xyz(134, -17, -276)));
+                Server server = owner.getServer();
+                server.getOnlinePlayers().forEach(player -> {
+                    Location loc = player.getLocation();
+                    int bx = loc.getBlockX();
+                    int by = loc.getBlockY();
+                    int bz = loc.getBlockZ();
+                    if (x(kFieldX) <= bx && bx <= x(kFieldX) + kFieldDx && y(kFieldY) <= by && by <= y(kFieldY) + 5 && z(kFieldZ) <= bz && bz <= z(kFieldZ) + kFieldDz) {
+                        loc.setZ(z(-273));
+                        loc.setY(y(-19));
+                        player.teleport(loc);
+                    }
+                });
 
                 // 左ゲート構築
                 execute(String.format("fill %s %s white_concrete", xyz(165, -16, -268), xyz(165, -18, -264)));
@@ -94,42 +122,22 @@ public class FencingEventListener implements Listener {
                 execute(String.format("fill %s %s barrier", xyz(165, -17, -269), xyz(103, -17, -269)));
                 execute(String.format("fill %s %s barrier", xyz(104, -17, -263), xyz(165, -17, -263)));
 
-                // bossbar 追加
-                execute("bossbar remove " + kBossbarLeft);
-                execute("bossbar add " + kBossbarLeft + " \"<<< " + TeamName(Team.LEFT) + " <<<\"");
-                execute("bossbar set " + kBossbarLeft + " max 3");
-                execute("bossbar set " + kBossbarLeft + " value 3");
-                execute("bossbar set " + kBossbarLeft + " color green");
-
-                execute("bossbar remove " + kBossbarRight);
-                execute("bossbar add " + kBossbarRight + " \">>> " + TeamName(Team.RIGHT) + " >>>\"");
-                execute("bossbar set " + kBossbarRight + " max 3");
-                execute("bossbar set " + kBossbarRight + " value 3");
-                execute("bossbar set " + kBossbarRight + " color green");
-
-                execute("bossbar set " + kBossbarLeft + " players @a");
-                execute("bossbar set " + kBossbarRight + " players @a");
-
+                break;
+            case COUNTDOWN:
                 hitpointRight = 3;
                 hitpointLeft = 3;
+
+                // bossbar 追加
+                bossbarLeft.setValue(3);
+                bossbarRight.setValue(3);
+                bossbarLeft.setVisible(true);
+                bossbarRight.setVisible(true);
 
                 broadcast("");
                 broadcast("[フェンシング] 競技を開始します！");
                 broadcast("");
                 break;
             case RUN:
-                break;
-            case IDLE:
-                clearField();
-                playerLeft = null;
-                playerRight = null;
-                hitpointRight = 3;
-                hitpointLeft = 3;
-                overworld().ifPresent(world -> {
-                    if (showDeathMessage != null) {
-                        world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, showDeathMessage);
-                    }
-                });
                 break;
             case AWAIT_DEATH:
                 overworld().ifPresent(world -> {
@@ -222,8 +230,8 @@ public class FencingEventListener implements Listener {
 
         boolean settled = damageToKill(defenceTeam);
 
-        execute("bossbar set " + kBossbarLeft + " value " + hitpointLeft);
-        execute("bossbar set " + kBossbarRight + " value " + hitpointRight);
+        bossbarLeft.setValue(hitpointLeft);
+        bossbarRight.setValue(hitpointRight);
 
         if (settled) {
             BukkitScheduler scheduler = owner.getServer().getScheduler();
@@ -283,8 +291,8 @@ public class FencingEventListener implements Listener {
 
     private void clearField() {
         execute(String.format("fill %s %s air", xyz(102, -16, -269), xyz(165, -18, -264)));
-        execute("bossbar remove " + kBossbarLeft);
-        execute("bossbar remove " + kBossbarRight);
+        bossbarLeft.setVisible(false);
+        bossbarRight.setVisible(false);
         execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
     }
 
@@ -355,6 +363,23 @@ public class FencingEventListener implements Listener {
         }
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onServerLoad(ServerLoadEvent e) {
+        if (e.getType() != ServerLoadEvent.LoadType.STARTUP) {
+            return;
+        }
+        bossbarLeft = new Bossbar(owner, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<");
+        bossbarLeft.setMax(3);
+        bossbarLeft.setValue(3);
+        bossbarLeft.setColor("green");
+
+        bossbarRight = new Bossbar(owner, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>");
+        bossbarRight.setMax(3);
+        bossbarRight.setValue(3);
+        bossbarRight.setColor("green");
+    }
+
     private @Nullable UUID getPlayerUid(Team team) {
         if (team == Team.RIGHT) {
             return playerRight;
@@ -383,6 +408,11 @@ public class FencingEventListener implements Listener {
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         }
+        if (playerRight == null && playerLeft == null) {
+            setStatus(Status.IDLE);
+        } else {
+            setStatus(Status.AWAIT_COUNTDOWN);
+        }
     }
 
     private String Weapon() {
@@ -407,7 +437,11 @@ public class FencingEventListener implements Listener {
         } else if (team == Team.LEFT) {
             playerLeft = null;
         }
-        setStatus(Status.IDLE);
+        if (playerRight == null && playerLeft == null) {
+            setStatus(Status.IDLE);
+        } else {
+            setStatus(Status.AWAIT_COUNTDOWN);
+        }
     }
 
     private void broadcast(String message) {
@@ -420,7 +454,7 @@ public class FencingEventListener implements Listener {
     }
 
     private void onClickJoin(Location location, Team team) {
-        if (_status != Status.IDLE) {
+        if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
         }
         UUID uid = getPlayerUid(team);
@@ -473,7 +507,7 @@ public class FencingEventListener implements Listener {
     }
 
     private void onClickStart() {
-        if (_status != Status.IDLE) {
+        if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
         }
         Player left = null;
