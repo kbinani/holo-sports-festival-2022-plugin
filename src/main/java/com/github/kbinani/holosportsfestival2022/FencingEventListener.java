@@ -17,6 +17,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
@@ -92,6 +93,9 @@ public class FencingEventListener implements Listener {
                 Server server = owner.getServer();
                 server.getOnlinePlayers().forEach(player -> {
                     Location loc = player.getLocation();
+                    if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
+                        return;
+                    }
                     int bx = loc.getBlockX();
                     int by = loc.getBlockY();
                     int bz = loc.getBlockZ();
@@ -369,12 +373,13 @@ public class FencingEventListener implements Listener {
         if (e.getType() != ServerLoadEvent.LoadType.STARTUP) {
             return;
         }
-        bossbarLeft = new Bossbar(owner, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<");
+        BoundingBox bounds = getBounds();
+        bossbarLeft = new Bossbar(owner, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
         bossbarLeft.setMax(3);
         bossbarLeft.setValue(3);
         bossbarLeft.setColor("green");
 
-        bossbarRight = new Bossbar(owner, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>");
+        bossbarRight = new Bossbar(owner, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>", bounds);
         bossbarRight.setMax(3);
         bossbarRight.setValue(3);
         bossbarRight.setColor("green");
@@ -541,14 +546,23 @@ public class FencingEventListener implements Listener {
         Countdown.Then(owner, (count) -> {
             Server server = owner.getServer();
             PlayNote(server, this::isInField, Instrument.BIT, new Note(12));
-            execute("title @a title " + count);
+            execute(String.format("title %s title %d", getPlayersSelector(), count));
         }, () -> {
             if (_status == Status.COUNTDOWN) {
                 PlaySound(owner.getServer(), this::isInField, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1, 1);
-                execute("title @a title \"START!!!\"");
+                execute(String.format("title %s title \"START!!!\"", getPlayersSelector()));
                 setStatus(Status.RUN);
             }
         });
+    }
+
+    private String getPlayersSelector() {
+        BoundingBox box = getBounds();
+        return String.format("@p[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+    }
+
+    private BoundingBox getBounds() {
+        return new BoundingBox(x(85), y(-20), z(-280), x(171), y(384), z(-253));
     }
 
     private boolean isInField(Player it) {
@@ -556,7 +570,8 @@ public class FencingEventListener implements Listener {
         double bx = loc.getX();
         double by = loc.getY();
         double bz = loc.getZ();
-        return (x(85) <= bx && bx <= x(171) && z(-280) <= bz && bz <= z(-253) && y(-20) <= by && it.getWorld().getEnvironment() == World.Environment.NORMAL);
+        BoundingBox box = getBounds();
+        return box.contains(bx, by, bz) && it.getWorld().getEnvironment() == World.Environment.NORMAL;
     }
 
     private void execute(String command) {
@@ -566,18 +581,15 @@ public class FencingEventListener implements Listener {
     }
 
     private @Nullable Player getPlayer(@Nonnull UUID uid) {
-        Server server = owner.getServer();
-        Optional<World> maybeWorld = server.getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
-        if (maybeWorld.isEmpty()) {
+        World world = overworld().orElse(null);
+        if (world == null) {
             return null;
         }
-        World world = maybeWorld.get();
-        Optional<Player> maybePlayer = world.getPlayers().stream().filter(it -> it.getUniqueId().equals(uid)).findFirst();
-        return maybePlayer.orElse(null);
+        return world.getPlayers().stream().filter(it -> it.getUniqueId().equals(uid)).findFirst().orElse(null);
     }
 
     private Player findNearest(Location location) {
-        World world = location.getWorld();
+        World world = overworld().orElse(null);
         if (world == null) {
             return null;
         }
