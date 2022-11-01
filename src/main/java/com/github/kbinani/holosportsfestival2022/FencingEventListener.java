@@ -13,8 +13,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -403,16 +405,34 @@ public class FencingEventListener implements Listener {
         int by = location.getBlockY();
         int bz = location.getBlockZ();
 
-        if (bx == x(101) && by == y(-18) && bz == z(-264)) {
-            onClickJoin(location, Team.RIGHT);
-        } else if (bx == x(167) && by == y(-18) && bz == z(-264)) {
-            onClickJoin(location, Team.LEFT);
-        } else if (bx == x(169) && by == y(-18) && bz == z(-264)) {
-            onClickLeave(location, Team.LEFT);
-        } else if (bx == x(99) && by == y(-18) && bz == z(-264)) {
-            onClickLeave(location, Team.RIGHT);
-        } else if (bx == x(134) && by == y(-18) && bz == z(-272)) {
+        if (bx == x(134) && by == y(-18) && bz == z(-272)) {
             onClickStart();
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerInteract(PlayerInteractEvent e) {
+        Player player = e.getPlayer();
+        Block block = e.getClickedBlock();
+        if (block == null) {
+            return;
+        }
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        Location location = block.getLocation();
+        int bx = location.getBlockX();
+        int by = location.getBlockY();
+        int bz = location.getBlockZ();
+        if (bx == x(101) && by == y(-19) && bz == z(-265)) {
+            onClickJoin(player, Team.RIGHT);
+        } else if (bx == x(167) && by == y(-19) && bz == z(-265)) {
+            onClickJoin(player, Team.LEFT);
+        } else if (bx == x(169) && by == y(-19) && bz == z(-265)) {
+            onClickLeave(player, Team.LEFT);
+        } else if (bx == x(99) && by == y(-19) && bz == z(-265)) {
+            onClickLeave(player, Team.RIGHT);
         }
     }
 
@@ -521,17 +541,13 @@ public class FencingEventListener implements Listener {
         broadcast(message);
     }
 
-    private void onClickJoin(Location location, Team team) {
+    private void onClickJoin(@Nonnull Player player, Team team) {
         if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
         }
         UUID uid = getPlayerUid(team);
         if (uid != null) {
             //TODO: 既に join 済みの時のメッセージ
-            return;
-        }
-        Player player = findNearest(location);
-        if (player == null) {
             return;
         }
         joinPlayer(player, team);
@@ -556,14 +572,10 @@ public class FencingEventListener implements Listener {
         }
     }
 
-    private void onClickLeave(Location location, Team team) {
+    private void onClickLeave(@Nonnull Player player, Team team) {
         // status をリセットするため _status == Status.IDLE チェックは入れずに強制的にエントリー解除処理する
         UUID uid = getPlayerUid(team);
         if (uid == null) {
-            return;
-        }
-        Player player = findNearest(location);
-        if (player == null) {
             return;
         }
         if (!uid.equals(player.getUniqueId())) {
