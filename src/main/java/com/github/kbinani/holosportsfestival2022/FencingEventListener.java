@@ -190,7 +190,7 @@ public class FencingEventListener implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
-        if (_status != Status.RUN) {
+        if (_status != Status.RUN && _status != Status.AWAIT_DEATH) {
             return;
         }
         if (playerRight == null || playerLeft == null) {
@@ -203,7 +203,6 @@ public class FencingEventListener implements Listener {
         }
         Player defence = (Player) entity;
         Player offence = (Player) damager;
-        float offenceYaw = offence.getLocation().getYaw();
         String offenceName = offence.getName();
 
         Team defenceTeam = null;
@@ -215,6 +214,9 @@ public class FencingEventListener implements Listener {
             return;
         }
         Team offenceTeam = TeamHostile(defenceTeam);
+
+        Server server = owner.getServer();
+        World world = entity.getWorld();
 
         Location location = offence.getLocation();
         int bx = location.getBlockX();
@@ -239,65 +241,119 @@ public class FencingEventListener implements Listener {
             return;
         }
 
-        boolean settled = damageToKill(defenceTeam);
+        boolean shouldKill = false;
+        if (defenceTeam == Team.RIGHT) {
+            hitpointRight = Math.max(0, hitpointRight - 1);
+            shouldKill = hitpointRight == 0;
+        } else {
+            hitpointLeft = Math.max(0, hitpointLeft - 1);
+            shouldKill = hitpointLeft == 0;
+        }
 
         bossbarLeft.setValue(hitpointLeft);
         bossbarRight.setValue(hitpointRight);
 
-        if (settled) {
+        if (shouldKill) {
             BukkitScheduler scheduler = owner.getServer().getScheduler();
-            scheduler.runTaskLater(owner, () -> {
-                if (_status != Status.AWAIT_DEATH) {
-                    return;
-                }
-                UUID loserUid = getPlayerUid(TeamHostile(offenceTeam));
-                if (loserUid == null) {
-                    return;
-                }
-                Player loser = getPlayer(loserUid);
-                if (loser == null) {
-                    return;
-                }
-
-                //NOTE: onEntityDamageByEntity と同一 tick 内で velocity を変更しても効果がないので 1 tick 後に変更する.
-                Vector velocity = new Vector(offenceYaw > 0 ? -100 : 100, 10, 0);
-                loser.setVelocity(velocity);
-            }, 1);
-
-            scheduler.runTaskLater(owner, () -> {
-                if (_status != Status.AWAIT_DEATH) {
-                    return;
-                }
-                //NOTE: 敗北者を kill する前にアイテムを回収
-                execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
-
-                // 敗北者を kill する
-                UUID loserUid = getPlayerUid(TeamHostile(offenceTeam));
-                if (loserUid != null) {
-                    Player loser = getPlayer(loserUid);
-                    if (loser != null) {
-                        Location loc = loser.getLocation();
-                        // https://symtm.blog.fc2.com/blog-entry-96.html
-                        execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;14188952],FadeColors:[I;14188952]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
-                        execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
-                        execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;14602026],FadeColors:[I;14602026]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
-                        loser.setHealth(0);
-                    }
-                }
-
-                // 結果を通知する
-                broadcast("");
-                broadcast("-----------------------");
-                broadcast("[試合終了]");
-                broadcast(offenceName + "が勝利！");
-                broadcast("-----------------------");
-                broadcast("");
-
-                playerLeft = null;
-                playerRight = null;
-                setStatus(Status.IDLE);
-            }, 30);
+            scheduler.runTaskLater(owner, this::decideResult, 1);
         }
+    }
+
+    private void decideResult() {
+        if (_status != Status.RUN) {
+            return;
+        }
+
+        // 同一 tick 内で攻撃しあって相打ちになった場合を考慮して, 1 tick 後に勝敗の判定をする.
+        setStatus(Status.AWAIT_DEATH);
+
+        Player left = null, right = null;
+        if (playerLeft != null) {
+            left = getPlayer(playerLeft);
+        }
+        if (playerRight != null) {
+            right = getPlayer(playerRight);
+        }
+        if (left == null || right == null) {
+            // 不在なのでノーコンテストに戻す
+            setStatus(Status.IDLE);
+            return;
+        }
+
+        //NOTE: onEntityDamageByEntity と同一 tick 内で velocity を変更しても効果がないので 1 tick 後に変更する.
+        if (hitpointLeft == 0) {
+            float yaw = right.getLocation().getYaw();
+            Vector velocity = new Vector(yaw > 0 ? -100 : 100, 10, 0);
+            left.setVelocity(velocity);
+        }
+        if (hitpointRight == 0) {
+            float yaw = left.getLocation().getYaw();
+            Vector velocity = new Vector(yaw > 0 ? -100 : 100, 10, 0);
+            right.setVelocity(velocity);
+        }
+
+        BukkitScheduler scheduler = owner.getServer().getScheduler();
+        scheduler.runTaskLater(owner, this::killLosers, 30);
+    }
+
+    private void killLosers() {
+        if (_status != Status.AWAIT_DEATH) {
+            return;
+        }
+        //NOTE: 敗北者を kill する前にアイテムを回収
+        execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
+
+        Player left = null, right = null;
+        if (playerLeft != null) {
+            left = getPlayer(playerLeft);
+        }
+        if (playerRight != null) {
+            right = getPlayer(playerRight);
+        }
+        if (left == null || right == null) {
+            // 不在なのでノーコンテストに戻す
+            setStatus(Status.IDLE);
+            return;
+        }
+
+        // 敗北者を kill する
+        if (hitpointLeft == 0) {
+            Location loc = left.getLocation();
+            // https://symtm.blog.fc2.com/blog-entry-96.html
+            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;14188952],FadeColors:[I;14188952]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
+            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
+            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;14602026],FadeColors:[I;14602026]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
+            left.setHealth(0);
+        }
+        if (hitpointRight == 0) {
+            Location loc = right.getLocation();
+            // https://symtm.blog.fc2.com/blog-entry-96.html
+            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;14188952],FadeColors:[I;14188952]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
+            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
+            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;14602026],FadeColors:[I;14602026]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
+            right.setHealth(0);
+        }
+
+        String message;
+        if (hitpointLeft == 0 && hitpointRight == 0) {
+            message = "相打ち！両者引き分け！！";
+        } else if (hitpointLeft == 0) {
+            message = right.getName() + "が勝利！";
+        } else {
+            message = left.getName() + "が勝利！";
+        }
+
+        // 結果を通知する
+        broadcast("");
+        broadcast("-----------------------");
+        broadcast("[試合終了]");
+        broadcast(message);
+        broadcast("-----------------------");
+        broadcast("");
+
+        playerLeft = null;
+        playerRight = null;
+        setStatus(Status.IDLE);
     }
 
     private void clearField() {
@@ -361,36 +417,6 @@ public class FencingEventListener implements Listener {
         if (!loaded) {
             world.unloadChunk(cx, cz);
         }
-    }
-
-    private boolean damageToKill(Team team) {
-        if (_status != Status.RUN) {
-            return false;
-        }
-        if (hitpointLeft < 1 || hitpointRight < 1) {
-            // 既に決着がついている
-            return false;
-        }
-        if (team == Team.LEFT) {
-            hitpointLeft -= 1;
-        } else if (team == Team.RIGHT) {
-            hitpointRight -= 1;
-        }
-        UUID loserUid;
-        if (hitpointLeft < 1) {
-            loserUid = playerLeft;
-        } else if (hitpointRight < 1) {
-            loserUid = playerRight;
-        } else {
-            return false;
-        }
-        if (loserUid == null) {
-            // playerLeft か playerRight なぜか null. ノーコンテストにする
-            setStatus(Status.IDLE);
-            return false;
-        }
-        setStatus(Status.AWAIT_DEATH);
-        return true;
     }
 
     @EventHandler
