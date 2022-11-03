@@ -443,7 +443,7 @@ public class BoatRaceEventListener implements Listener {
             Participant participant = ensureTeam(team);
             int count = participant.getPlayerCount();
             if (count < 1) {
-                broadcast(String.format("%s の参加者が見つかりません", ToString(team)));
+                broadcast(String.format("%sの参加者が見つかりません", ToString(team)));
             } else {
                 broadcast(String.format("%s が競技に参加します（参加者%d人）", ToColoredString(team), count));
             }
