@@ -202,6 +202,7 @@ public class BoatRaceEventListener implements Listener {
             new Point3i(-37, -62, -238),
             new Point3i(-29, -62, -218),
             new Point3i(-41, -62, -224),
+            new Point3i(-50, -62, -232),
     };
     private static final String kItemTag = "hololive_sports_festival_2022_boat_race";
     private static final Point3i kFieldNorthWest = new Point3i(-106, -60, -294);
