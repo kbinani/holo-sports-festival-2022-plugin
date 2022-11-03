@@ -3,7 +3,6 @@ package com.github.kbinani.holosportsfestival2022;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Powerable;
 import org.bukkit.command.CommandSender;
@@ -113,11 +112,9 @@ public class BoatRaceEventListener implements Listener {
         Block block = world.getBlockAt(pos.x, pos.y, pos.z);
         BlockData data = block.getBlockData();
         if (data.getMaterial() != Material.LEVER) {
-            System.out.println("is not lever:" + data.getMaterial());
             return;
         }
         if (!(data instanceof Powerable)) {
-            System.out.println("is not powerable" + data);
             return;
         }
         Powerable lever = (Powerable) data;
