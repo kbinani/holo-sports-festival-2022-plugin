@@ -2,25 +2,33 @@ package com.github.kbinani.holosportsfestival2022;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class BoatRaceEventListener implements Listener {
     private final JavaPlugin owner;
@@ -183,6 +191,8 @@ public class BoatRaceEventListener implements Listener {
             new Point3i(-41, -62, -224),
     };
     private static final String kItemTag = "hololive_sports_festival_2022_boat_race";
+    private static final Point3i kFieldNorthWest = new Point3i(-106, -60, -294);
+    private static final Point3i kFieldSouthEast = new Point3i(-24, -30, -127);
 
     BoatRaceEventListener(JavaPlugin owner) {
         this.owner = owner;
@@ -259,6 +269,37 @@ public class BoatRaceEventListener implements Listener {
         }
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onEntitySpawn(EntitySpawnEvent e) {
+        if (e.getEntityType() != EntityType.DROPPED_ITEM) {
+            return;
+        }
+        Item item = (Item) e.getEntity();
+        Point3i pos = new Point3i(item.getLocation());
+        ItemStack itemStack = item.getItemStack();
+        Material material = itemStack.getType();
+        Server server = owner.getServer();
+        UUID id = e.getEntity().getUniqueId();
+        if (material != Boat(Team.RED) && material == Boat(Team.WHITE) && material == Boat(Team.YELLOW)) {
+            return;
+        }
+        BoundingBox bounds = getBounds();
+        if (!bounds.contains(pos.x, pos.y, pos.z)) {
+            return;
+        }
+
+        // onEntitySpawn と同一 tick で data コマンド実行しても反映されないので次の tick で実行する.
+        BukkitScheduler scheduler = owner.getServer().getScheduler();
+        scheduler.runTask(owner, () -> {
+            execute("data merge entity %s {Item:{tag:{%s:1b}}}", id, kItemTag);
+        });
+    }
+
+    private BoundingBox getBounds() {
+        return new BoundingBox(x(kFieldNorthWest.x), y(kFieldNorthWest.y), z(kFieldNorthWest.z), x(kFieldSouthEast.x), y(kFieldSouthEast.y), z(kFieldSouthEast.z));
+    }
+
     private void broadcast(String msg) {
         owner.getServer().broadcastMessage(msg);
     }
@@ -268,13 +309,13 @@ public class BoatRaceEventListener implements Listener {
         broadcast(msg);
     }
 
-    private static String Boat(Team team) {
+    private static Material Boat(Team team) {
         if (team == Team.WHITE) {
-            return "birch_boat";
+            return Material.BIRCH_BOAT;
         } else if (team == Team.YELLOW) {
-            return "jungle_boat";
+            return Material.JUNGLE_BOAT;
         } else {
-            return "mangrove_boat";
+            return Material.MANGROVE_BOAT;
         }
     }
 
@@ -284,7 +325,7 @@ public class BoatRaceEventListener implements Listener {
             Participant p = ensureTeam(team);
             p.setPlayer(role, player);
             if (role == Role.DRIVER) {
-                execute("give @p[name=\"%s\"] %s{tag:{%s:1b}}", player.getName(), Boat(team), kItemTag);
+                execute("give @p[name=\"%s\"] %s{tag:{%s:1b}}", player.getName(), Boat(team).name().toLowerCase(), kItemTag);
             } else {
                 execute("give @p[name=\"%s\"] snowball{tag:{%s:1b},display:{Name:'[{\"text\":\"[水上レース専用] 暗闇（弱）\"}]'}}", player.getName(), kItemTag);
                 execute("give @p[name=\"%s\"] crossbow{tag:{%s:1b}}", player.getName(), kItemTag);
@@ -311,8 +352,7 @@ public class BoatRaceEventListener implements Listener {
     }
 
     private void clearItems(String selector) {
-        //TODO: 競技場内でドロップしたボートにタグを付ける
-        for (String item : new String[]{"snowball", "crossbow", "splash_potion", Boat(Team.RED), Boat(Team.YELLOW), Boat(Team.WHITE)}) {
+        for (String item : new String[]{"snowball", "crossbow", "splash_potion", Boat(Team.RED).name().toLowerCase(), Boat(Team.YELLOW).name().toLowerCase(), Boat(Team.WHITE).name().toLowerCase()}) {
             execute("clear %s %s{tag:{%s:1b}}", selector, item, kItemTag);
         }
     }
