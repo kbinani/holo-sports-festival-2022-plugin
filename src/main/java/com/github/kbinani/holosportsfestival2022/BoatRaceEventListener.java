@@ -439,7 +439,7 @@ public class BoatRaceEventListener implements Listener {
         }
         broadcast("");
         broadcast("-----------------------");
-        for (Team team : new Team[]{Team.RED, Team.WHITE, Team.YELLOW}) {
+        for (Team team : new Team[]{Team.YELLOW, Team.RED, Team.WHITE}) {
             Participant participant = ensureTeam(team);
             int count = participant.getPlayerCount();
             if (count < 1) {
