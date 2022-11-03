@@ -1,11 +1,11 @@
 package com.github.kbinani.holosportsfestival2022;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Server;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Powerable;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class BoatRaceEventListener implements Listener {
@@ -74,7 +75,7 @@ public class BoatRaceEventListener implements Listener {
                 // 妨害装置を起動
                 //TODO: 同時起動だと妨害装置が同期するので適当にずらす
                 for (Point3i p : kJammingBlockStarterBlocks) {
-                    execute("setblock %s redstone_block", xyz(p));
+                    setLeverPowered(offset(p), true);
                 }
                 break;
         }
@@ -100,8 +101,32 @@ public class BoatRaceEventListener implements Listener {
 
         // 妨害装置を停止
         for (Point3i p : kJammingBlockStarterBlocks) {
-            execute("setblock %s air", xyz(p));
+            setLeverPowered(offset(p), false);
         }
+    }
+
+    private void setLeverPowered(Point3i pos, boolean powered) {
+        World world = overworld().orElse(null);
+        if (world == null) {
+            return;
+        }
+        Block block = world.getBlockAt(pos.x, pos.y, pos.z);
+        BlockData data = block.getBlockData();
+        if (data.getMaterial() != Material.LEVER) {
+            System.out.println("is not lever:" + data.getMaterial());
+            return;
+        }
+        if (!(data instanceof Powerable)) {
+            System.out.println("is not powerable" + data);
+            return;
+        }
+        Powerable lever = (Powerable) data;
+        lever.setPowered(powered);
+        world.setBlockData(pos.x, pos.y, pos.z, data);
+    }
+
+    private Optional<World> overworld() {
+        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     }
 
     static String ToString(Role role) {
@@ -203,6 +228,8 @@ public class BoatRaceEventListener implements Listener {
             new Point3i(-29, -62, -218),
             new Point3i(-41, -62, -224),
             new Point3i(-50, -62, -232),
+
+            new Point3i(-105, -56, -189), // 西側のフェンスゲート
     };
     private static final String kItemTag = "hololive_sports_festival_2022_boat_race";
     private static final Point3i kFieldNorthWest = new Point3i(-106, -60, -294);
