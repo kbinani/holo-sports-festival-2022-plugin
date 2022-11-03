@@ -1,5 +1,6 @@
 package com.github.kbinani.holosportsfestival2022;
 
+import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -8,9 +9,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,12 +32,78 @@ public class BoatRaceEventListener implements Listener {
         SHOOTER,
     }
 
+    static String ToString(Role role) {
+        if (role == Role.DRIVER) {
+            return "（操縦担当）";
+        } else {
+            return "（妨害担当）";
+        }
+    }
+
+    static String ToColoredString(Team team) {
+        if (team == Team.RED) {
+            return ChatColor.RED + "TEAM RED" + ChatColor.RESET;
+        } else if (team == Team.YELLOW) {
+            return ChatColor.YELLOW + "TEAM YELLOW" + ChatColor.RESET;
+        } else {
+            return ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
+        }
+    }
+
+    class Participation {
+        final Team team;
+        final Role role;
+
+        Participation(Team team, Role role) {
+            this.team = team;
+            this.role = role;
+        }
+    }
+
     class Participant {
-        Player driver;
-        Player shooter;
+        private @Nullable Player shooter;
+        private @Nullable Player driver;
+
+        void setPlayer(Role role, @Nullable Player player) {
+            if (role == Role.DRIVER) {
+                this.driver = player;
+            } else {
+                this.shooter = player;
+            }
+        }
+
+        @Nullable
+        Player getPlayer(Role role) {
+            if (role == Role.DRIVER) {
+                return driver;
+            } else {
+                return shooter;
+            }
+        }
+
+        @Nullable
+        Role getCurrentRole(@Nonnull Player player) {
+            if (driver != null && driver.getUniqueId().equals(player.getUniqueId())) {
+                return Role.DRIVER;
+            }
+            if (shooter != null && shooter.getUniqueId().equals(player.getUniqueId())) {
+                return Role.SHOOTER;
+            }
+            return null;
+        }
     }
 
     private final Map<Team, Participant> teams = new HashMap<>();
+
+    private @Nonnull Participant ensureTeam(Team team) {
+        Participant t = teams.get(team);
+        if (t == null) {
+            t = new Participant();
+            teams.put(team, t);
+        }
+        return t;
+    }
+
     private static final Point3i kYellowEntryShooter = new Point3i(-56, -59, -198);
     private static final Point3i kYellowEntryDriver = new Point3i(-56, -59, -200);
     private static final Point3i kWhiteEntryShooter = new Point3i(-56, -59, -202);
@@ -86,13 +156,24 @@ public class BoatRaceEventListener implements Listener {
         if (e.getType() != ServerLoadEvent.LoadType.STARTUP) {
             return;
         }
-        WallSign.Place(offset(kYellowEntryShooter), BlockFace.WEST, "黄組", "エントリー", "（妨害担当）");
-        WallSign.Place(offset(kYellowEntryDriver), BlockFace.WEST, "黄組", "エントリー", "（操縦担当）");
-        WallSign.Place(offset(kWhiteEntryShooter), BlockFace.WEST, "白組", "エントリー", "（妨害担当）");
-        WallSign.Place(offset(kWhiteEntryDriver), BlockFace.WEST, "白組", "エントリー", "（操縦担当）");
-        WallSign.Place(offset(kRedEntryShooter), BlockFace.WEST, "赤組", "エントリー", "（妨害担当）");
-        WallSign.Place(offset(kRedEntryDriver), BlockFace.WEST, "赤組", "エントリー", "（操縦担当）");
+        WallSign.Place(offset(kYellowEntryShooter), BlockFace.WEST, "黄組", "エントリー", ToString(Role.SHOOTER));
+        WallSign.Place(offset(kYellowEntryDriver), BlockFace.WEST, "黄組", "エントリー", ToString(Role.DRIVER));
+        WallSign.Place(offset(kWhiteEntryShooter), BlockFace.WEST, "白組", "エントリー", ToString(Role.SHOOTER));
+        WallSign.Place(offset(kWhiteEntryDriver), BlockFace.WEST, "白組", "エントリー", ToString(Role.DRIVER));
+        WallSign.Place(offset(kRedEntryShooter), BlockFace.WEST, "赤組", "エントリー", ToString(Role.SHOOTER));
+        WallSign.Place(offset(kRedEntryDriver), BlockFace.WEST, "赤組", "エントリー", ToString(Role.DRIVER));
         WallSign.Place(offset(kLeaveButton), BlockFace.WEST, "エントリー解除");
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerQuit(PlayerQuitEvent e) {
+        Player player = e.getPlayer();
+        @Nullable Participation current = getCurrentParticipation(player);
+        if (current == null) {
+            return;
+        }
+        onClickLeave(player);
     }
 
     private void broadcast(String msg) {
@@ -101,15 +182,42 @@ public class BoatRaceEventListener implements Listener {
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
     private void broadcastUnofficial(String msg) {
-
+        broadcast(msg);
     }
 
-    private void onClickJoin(Player player, Team team, Role tole) {
-
+    private void onClickJoin(Player player, Team team, Role role) {
+        @Nullable Participation current = getCurrentParticipation(player);
+        if (current == null) {
+            Participant p = ensureTeam(team);
+            p.setPlayer(role, player);
+            broadcast(String.format("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(team), ToString(role)));
+        } else {
+            broadcastUnofficial(ChatColor.RED + String.format("[水上レース] %sは%s%sで既にエントリー済みです", ChatColor.RESET + player.getName(), ToColoredString(team), ChatColor.RED + ToString(role)));
+        }
     }
 
     private void onClickLeave(Player player) {
+        @Nullable Participation current = getCurrentParticipation(player);
+        if (current == null) {
+            return;
+        }
+        Participant team = ensureTeam(current.team);
+        team.setPlayer(current.role, null);
+        broadcastUnofficial(String.format("[水上レース] %sが%s%sのエントリー解除しました", player.getName(), ToColoredString(current.team), ToString(current.role)));
+    }
 
+    private @Nullable Participation getCurrentParticipation(@Nonnull Player player) {
+        for (Team team : teams.keySet()) {
+            Participant participant = teams.get(team);
+            if (participant == null) {
+                continue;
+            }
+            @Nullable Role role = participant.getCurrentRole(player);
+            if (role != null) {
+                return new Participation(team, role);
+            }
+        }
+        return null;
     }
 
     private Point3i offset(Point3i p) {
