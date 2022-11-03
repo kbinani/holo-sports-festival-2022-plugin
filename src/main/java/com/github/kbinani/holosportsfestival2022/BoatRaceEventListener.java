@@ -1,12 +1,16 @@
 package com.github.kbinani.holosportsfestival2022;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -30,6 +34,65 @@ public class BoatRaceEventListener implements Listener {
     enum Role {
         DRIVER,
         SHOOTER,
+    }
+
+    enum Status {
+        IDLE,
+        RUN,
+    }
+
+    private Status _status = Status.IDLE;
+
+    private void setStatus(Status status) {
+        if (status == _status) {
+            return;
+        }
+        _status = status;
+        switch (status) {
+            case IDLE:
+                resetField();
+                clearItems("@a");
+                break;
+            case RUN:
+                // ゴールラインの柵を撤去
+                execute("fill %s %s air", xyz(-52, -58, -196), xyz(-25, -58, -196));
+
+                // スタートラインの柵を撤去
+                execute("fill %s %s air", xyz(-26, -58, -186), xyz(-36, -58, -186));
+                execute("fill %s %s air", xyz(-37, -58, -187), xyz(-44, -58, -187));
+                execute("fill %s %s air", xyz(-45, -58, -188), xyz(-52, -58, -188));
+
+                // 妨害装置を起動
+                //TODO: 同時起動だと妨害装置が同期するので適当にずらす
+                for (Point3i p : kJammingBlockStarterBlocks) {
+                    execute("setblock %s redstone_block", xyz(p));
+                }
+                break;
+        }
+    }
+
+    private void resetField() {
+        // 操作用の看板を設置
+        WallSign.Place(offset(kYellowEntryShooter), BlockFace.WEST, "黄組", "エントリー", ToString(Role.SHOOTER));
+        WallSign.Place(offset(kYellowEntryDriver), BlockFace.WEST, "黄組", "エントリー", ToString(Role.DRIVER));
+        WallSign.Place(offset(kWhiteEntryShooter), BlockFace.WEST, "白組", "エントリー", ToString(Role.SHOOTER));
+        WallSign.Place(offset(kWhiteEntryDriver), BlockFace.WEST, "白組", "エントリー", ToString(Role.DRIVER));
+        WallSign.Place(offset(kRedEntryShooter), BlockFace.WEST, "赤組", "エントリー", ToString(Role.SHOOTER));
+        WallSign.Place(offset(kRedEntryDriver), BlockFace.WEST, "赤組", "エントリー", ToString(Role.DRIVER));
+        WallSign.Place(offset(kLeaveButton), BlockFace.WEST, "エントリー解除");
+
+        // ゴールラインに柵を設置
+        execute("fill %s %s bedrock", xyz(-52, -58, -196), xyz(-25, -58, -196));
+
+        // スタートラインに柵を設置
+        execute("fill %s %s bedrock", xyz(-26, -58, -186), xyz(-36, -58, -186));
+        execute("fill %s %s bedrock", xyz(-37, -58, -187), xyz(-44, -58, -187));
+        execute("fill %s %s bedrock", xyz(-45, -58, -188), xyz(-52, -58, -188));
+
+        // 妨害装置を停止
+        for (Point3i p : kJammingBlockStarterBlocks) {
+            execute("setblock %s air", xyz(p));
+        }
     }
 
     static String ToString(Role role) {
@@ -111,6 +174,15 @@ public class BoatRaceEventListener implements Listener {
     private static final Point3i kRedEntryShooter = new Point3i(-56, -59, -206);
     private static final Point3i kRedEntryDriver = new Point3i(-56, -59, -208);
     private static final Point3i kLeaveButton = new Point3i(-56, -59, -210);
+    private static final Point3i[] kJammingBlockStarterBlocks = new Point3i[]{
+            new Point3i(-49, -62, -249),
+            new Point3i(-39, -62, -247),
+            new Point3i(-47, -62, -240),
+            new Point3i(-37, -62, -238),
+            new Point3i(-29, -62, -218),
+            new Point3i(-41, -62, -224),
+    };
+    private static final String kItemTag = "hololive_sports_festival_2022_boat_race";
 
     BoatRaceEventListener(JavaPlugin owner) {
         this.owner = owner;
@@ -156,13 +228,7 @@ public class BoatRaceEventListener implements Listener {
         if (e.getType() != ServerLoadEvent.LoadType.STARTUP) {
             return;
         }
-        WallSign.Place(offset(kYellowEntryShooter), BlockFace.WEST, "黄組", "エントリー", ToString(Role.SHOOTER));
-        WallSign.Place(offset(kYellowEntryDriver), BlockFace.WEST, "黄組", "エントリー", ToString(Role.DRIVER));
-        WallSign.Place(offset(kWhiteEntryShooter), BlockFace.WEST, "白組", "エントリー", ToString(Role.SHOOTER));
-        WallSign.Place(offset(kWhiteEntryDriver), BlockFace.WEST, "白組", "エントリー", ToString(Role.DRIVER));
-        WallSign.Place(offset(kRedEntryShooter), BlockFace.WEST, "赤組", "エントリー", ToString(Role.SHOOTER));
-        WallSign.Place(offset(kRedEntryDriver), BlockFace.WEST, "赤組", "エントリー", ToString(Role.DRIVER));
-        WallSign.Place(offset(kLeaveButton), BlockFace.WEST, "エントリー解除");
+        resetField();
     }
 
     @EventHandler
@@ -176,6 +242,23 @@ public class BoatRaceEventListener implements Listener {
         onClickLeave(player);
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onBlockRedstoneEvent(BlockRedstoneEvent e) {
+        if (e.getOldCurrent() != 0 || e.getNewCurrent() <= 0) {
+            return;
+        }
+
+        Location location = e.getBlock().getLocation();
+        int bx = location.getBlockX();
+        int by = location.getBlockY();
+        int bz = location.getBlockZ();
+
+        if (bx == x(-55) && by == y(-58) && bz == z(-196)) {
+            onClickStart();
+        }
+    }
+
     private void broadcast(String msg) {
         owner.getServer().broadcastMessage(msg);
     }
@@ -185,11 +268,28 @@ public class BoatRaceEventListener implements Listener {
         broadcast(msg);
     }
 
+    private static String Boat(Team team) {
+        if (team == Team.WHITE) {
+            return "birch_boat";
+        } else if (team == Team.YELLOW) {
+            return "jungle_boat";
+        } else {
+            return "mangrove_boat";
+        }
+    }
+
     private void onClickJoin(Player player, Team team, Role role) {
         @Nullable Participation current = getCurrentParticipation(player);
         if (current == null) {
             Participant p = ensureTeam(team);
             p.setPlayer(role, player);
+            if (role == Role.DRIVER) {
+                execute("give @p[name=\"%s\"] %s{tag:{%s:1b}}", player.getName(), Boat(team), kItemTag);
+            } else {
+                execute("give @p[name=\"%s\"] snowball{tag:{%s:1b},display:{Name:'[{\"text\":\"[水上レース専用] 暗闇（弱）\"}]'}}", player.getName(), kItemTag);
+                execute("give @p[name=\"%s\"] crossbow{tag:{%s:1b}}", player.getName(), kItemTag);
+                execute("give @p[name=\"%s\"] splash_potion{Potion:darkness,tag:{%s:1b},display:{Name:'[{\"text\":\"[水上レース専用] 暗闇（強）\"}]'}}", player.getName(), kItemTag);
+            }
             broadcast(String.format("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(team), ToString(role)));
         } else {
             broadcastUnofficial(ChatColor.RED + String.format("[水上レース] %sは%s%sで既にエントリー済みです", ChatColor.RESET + player.getName(), ToColoredString(team), ChatColor.RED + ToString(role)));
@@ -203,7 +303,18 @@ public class BoatRaceEventListener implements Listener {
         }
         Participant team = ensureTeam(current.team);
         team.setPlayer(current.role, null);
+        clearItems(String.format("@p[name=\"%s\"]", player.getName()));
         broadcastUnofficial(String.format("[水上レース] %sが%s%sのエントリー解除しました", player.getName(), ToColoredString(current.team), ToString(current.role)));
+        if (_status == Status.RUN) {
+            setStatus(Status.IDLE);
+        }
+    }
+
+    private void clearItems(String selector) {
+        //TODO: 競技場内でドロップしたボートにタグを付ける
+        for (String item : new String[]{"snowball", "crossbow", "splash_potion", Boat(Team.RED), Boat(Team.YELLOW), Boat(Team.WHITE)}) {
+            execute("clear %s %s{tag:{%s:1b}}", selector, item, kItemTag);
+        }
     }
 
     private @Nullable Participation getCurrentParticipation(@Nonnull Player player) {
@@ -218,6 +329,21 @@ public class BoatRaceEventListener implements Listener {
             }
         }
         return null;
+    }
+
+    private void onClickStart() {
+        setStatus(Status.RUN);
+    }
+
+    private String xyz(Point3i p) {
+        // 座標が間違っていてもここはオフセットしなくていい
+        Point3i o = offset(p);
+        return String.format("%d %d %d", o.x, o.y, o.z);
+    }
+
+    private String xyz(int x, int y, int z) {
+        // 座標が間違っていたらここでオフセットする
+        return String.format("%d %d %d", x, y, z);
     }
 
     private Point3i offset(Point3i p) {
@@ -238,5 +364,11 @@ public class BoatRaceEventListener implements Listener {
     private int z(int z) {
         // 座標が間違っていたらここでオフセットする
         return z;
+    }
+
+    private void execute(String format, Object... args) {
+        Server server = owner.getServer();
+        CommandSender sender = server.getConsoleSender();
+        server.dispatchCommand(sender, String.format(format, args));
     }
 }
