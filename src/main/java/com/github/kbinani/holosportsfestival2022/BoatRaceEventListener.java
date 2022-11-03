@@ -46,6 +46,7 @@ public class BoatRaceEventListener implements Listener {
 
     enum Status {
         IDLE,
+        COUNTDOWN,
         RUN,
     }
 
@@ -161,6 +162,18 @@ public class BoatRaceEventListener implements Listener {
                 return Role.SHOOTER;
             }
             return null;
+        }
+
+        int getPlayerCount() {
+            // 一人でもメンバーが居れば準備済み扱いにする
+            int result = 0;
+            if (driver != null && driver.isOnline()) {
+                result++;
+            }
+            if (shooter != null && shooter.isOnline()) {
+                result++;
+            }
+            return result;
         }
     }
 
@@ -372,7 +385,45 @@ public class BoatRaceEventListener implements Listener {
     }
 
     private void onClickStart() {
-        setStatus(Status.RUN);
+        if (_status == Status.RUN) {
+            return;
+        }
+        // 1 チームでも準備ができていればスタート可能にする
+        int totalPlayerCount = 0;
+        boolean ready = true;
+        for (Team team : new Team[]{Team.RED, Team.WHITE, Team.YELLOW}) {
+            Participant participant = ensureTeam(team);
+            totalPlayerCount += participant.getPlayerCount();
+        }
+        if (totalPlayerCount < 1) {
+            broadcastUnofficial(ChatColor.RED + "[水上レース] 参加者が 0 人です");
+            return;
+        }
+        broadcast("");
+        broadcast("-----------------------");
+        for (Team team : new Team[]{Team.RED, Team.WHITE, Team.YELLOW}) {
+            Participant participant = ensureTeam(team);
+            int count = participant.getPlayerCount();
+            if (count < 1) {
+                continue;
+            }
+            broadcast(String.format("%s が競技に参加します（参加者%d人）", ToColoredString(team), count));
+        }
+        broadcast("-----------------------");
+        broadcast("");
+        broadcast("[水上レース] 競技を開始します！");
+        broadcast("");
+        setStatus(Status.COUNTDOWN);
+
+        Countdown.Then(getBounds(), owner, (count) -> {
+            return _status == Status.COUNTDOWN;
+        }, () -> {
+            if (_status != Status.COUNTDOWN) {
+                return false;
+            }
+            setStatus(Status.RUN);
+            return true;
+        });
     }
 
     private String xyz(Point3i p) {

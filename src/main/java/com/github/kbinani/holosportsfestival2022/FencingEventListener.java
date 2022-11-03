@@ -30,7 +30,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 public class FencingEventListener implements Listener {
     private final JavaPlugin owner;
@@ -589,35 +588,19 @@ public class FencingEventListener implements Listener {
         right.setHealth(right.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
 
         setStatus(Status.COUNTDOWN);
-        Countdown.Then(owner, (count) -> {
-            Server server = owner.getServer();
-            PlayNote(server, this::isInField, Instrument.BIT, new Note(12));
-            execute(String.format("title %s title %d", getPlayersSelector(), count));
+        Countdown.Then(getBounds(), owner, (count) -> {
+            return _status == Status.COUNTDOWN;
         }, () -> {
-            if (_status == Status.COUNTDOWN) {
-                PlaySound(owner.getServer(), this::isInField, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1, 1);
-                execute(String.format("title %s title \"START!!!\"", getPlayersSelector()));
-                setStatus(Status.RUN);
+            if (_status != Status.COUNTDOWN) {
+                return false;
             }
+            setStatus(Status.RUN);
+            return true;
         });
-    }
-
-    private String getPlayersSelector() {
-        BoundingBox box = getBounds();
-        return String.format("@p[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
     }
 
     private BoundingBox getBounds() {
         return new BoundingBox(x(85), y(-20), z(-280), x(171), y(384), z(-253));
-    }
-
-    private boolean isInField(Player it) {
-        Location loc = it.getLocation();
-        double bx = loc.getX();
-        double by = loc.getY();
-        double bz = loc.getZ();
-        BoundingBox box = getBounds();
-        return box.contains(bx, by, bz) && it.getWorld().getEnvironment() == World.Environment.NORMAL;
     }
 
     private void execute(String command) {
@@ -632,38 +615,5 @@ public class FencingEventListener implements Listener {
             return null;
         }
         return world.getPlayers().stream().filter(it -> it.getUniqueId().equals(uid)).findFirst().orElse(null);
-    }
-
-    private Player findNearest(Location location) {
-        World world = overworld().orElse(null);
-        if (world == null) {
-            return null;
-        }
-        Optional<Entity> entity = world.getNearbyEntities(location, 2.5, 2.5, 2.5, (it) -> it.getType() == EntityType.PLAYER).stream().min((a, b) -> {
-            double distanceToA = a.getLocation().distanceSquared(location);
-            double distanceToB = b.getLocation().distanceSquared(location);
-            return Double.compare(distanceToA, distanceToB);
-        });
-        if (entity.isEmpty()) {
-            return null;
-        }
-        Entity e = entity.get();
-        if (e instanceof Player) {
-            return (Player) e;
-        } else {
-            return null;
-        }
-    }
-
-    static void PlayNote(Server server, Predicate<Player> predicate, Instrument instrument, Note note) {
-        server.getOnlinePlayers().stream().filter(predicate).forEach(player -> {
-            player.playNote(player.getLocation(), instrument, note);
-        });
-    }
-
-    static void PlaySound(Server server, Predicate<Player> predicate, Sound sound, float volume, float pitch) {
-        server.getOnlinePlayers().stream().filter(predicate).forEach(player -> {
-            player.playSound(player.getLocation(), sound, volume, pitch);
-        });
     }
 }
