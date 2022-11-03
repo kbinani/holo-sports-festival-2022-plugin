@@ -3,9 +3,7 @@ package com.github.kbinani.holosportsfestival2022;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Sign;
-import org.bukkit.block.data.BlockData;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -32,7 +30,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class FencingEventListener implements Listener {
@@ -361,62 +358,10 @@ public class FencingEventListener implements Listener {
         bossbarLeft.setVisible(false);
         bossbarRight.setVisible(false);
         execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
-        overworld().ifPresent(world -> {
-            PlaceBlock(world, x(101), y(-19), z(-265), Material.BIRCH_WALL_SIGN, "[facing=north]", block -> {
-                BlockState state = block.getState();
-                if (!(state instanceof Sign)) {
-                    return;
-                }
-                Sign sign = (Sign) state;
-                sign.setLine(0, "§l[看板を右クリック]§r");
-                sign.setLine(1, "右側エントリー");
-                sign.update();
-            });
-            PlaceBlock(world, x(99), y(-19), z(-265), Material.BIRCH_WALL_SIGN, "[facing=north]", block -> {
-                BlockState state = block.getState();
-                if (!(state instanceof Sign)) {
-                    return;
-                }
-                Sign sign = (Sign) state;
-                sign.setLine(0, "§l[看板を右クリック]§r");
-                sign.setLine(1, "エントリー解除");
-                sign.update();
-            });
-            PlaceBlock(world, x(167), y(-19), z(-265), Material.BIRCH_WALL_SIGN, "[facing=north]", block -> {
-                BlockState state = block.getState();
-                if (!(state instanceof Sign)) {
-                    return;
-                }
-                Sign sign = (Sign) state;
-                sign.setLine(0, "§l[看板を右クリック]§r");
-                sign.setLine(1, "左側エントリー");
-                sign.update();
-            });
-            PlaceBlock(world, x(169), y(-19), z(-265), Material.BIRCH_WALL_SIGN, "[facing=north]", block -> {
-                BlockState state = block.getState();
-                if (!(state instanceof Sign)) {
-                    return;
-                }
-                Sign sign = (Sign) state;
-                sign.setLine(0, "§l[看板を右クリック]§r");
-                sign.setLine(1, "エントリー解除");
-                sign.update();
-            });
-        });
-    }
-
-    private static void PlaceBlock(World world, int x, int y, int z, Material material, String data, Consumer<Block> then) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        boolean loaded = world.isChunkLoaded(cx, cz);
-        world.loadChunk(cx, cz);
-        BlockData blockData = material.createBlockData(data);
-        world.setBlockData(x, y, z, blockData);
-        Block block = world.getBlockAt(x, y, z);
-        then.accept(block);
-        if (!loaded) {
-            world.unloadChunk(cx, cz);
-        }
+        WallSign.Place(new Point3i(x(101), y(-19), z(-265)), BlockFace.NORTH, "右側エントリー");
+        WallSign.Place(new Point3i(x(99), y(-19), z(-265)), BlockFace.NORTH, "エントリー解除");
+        WallSign.Place(new Point3i(x(167), y(-19), z(-265)), BlockFace.NORTH, "左側エントリー");
+        WallSign.Place(new Point3i(x(169), y(-19), z(-265)), BlockFace.NORTH, "エントリー解除");
     }
 
     @EventHandler
