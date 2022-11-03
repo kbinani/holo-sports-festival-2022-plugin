@@ -102,6 +102,9 @@ public class BoatRaceEventListener implements Listener {
         for (Point3i p : kJammingBlockStarterBlocks) {
             setLeverPowered(offset(p), false);
         }
+
+        // 競技用のエンティティを削除する. 競技場内に居るアイテム化したボート.
+        execute("kill @e[tag=%s,%s]", kItemTag, getTargetSelectorArguments());
     }
 
     private void setLeverPowered(Point3i pos, boolean powered) {
@@ -341,6 +344,7 @@ public class BoatRaceEventListener implements Listener {
         BukkitScheduler scheduler = owner.getServer().getScheduler();
         scheduler.runTask(owner, () -> {
             execute("data merge entity %s {Item:{tag:{%s:1b}}}", id, kItemTag);
+            execute("tag %s add %s", id, kItemTag);
         });
     }
 
@@ -425,7 +429,6 @@ public class BoatRaceEventListener implements Listener {
         }
         // 1 チームでも準備ができていればスタート可能にする
         int totalPlayerCount = 0;
-        boolean ready = true;
         for (Team team : new Team[]{Team.RED, Team.WHITE, Team.YELLOW}) {
             Participant participant = ensureTeam(team);
             totalPlayerCount += participant.getPlayerCount();
@@ -450,6 +453,9 @@ public class BoatRaceEventListener implements Listener {
         broadcast("[水上レース] 競技を開始します！");
         broadcast("");
         setStatus(Status.COUNTDOWN);
+
+        // 場内に居るボートに tag を付ける. 競技終了した時このタグが付いているボートを kill する.
+        execute("tag @e[type=boat,%s] add %s", getTargetSelectorArguments(), kItemTag);
 
         Countdown.Then(getBounds(), owner, (count) -> {
             return _status == Status.COUNTDOWN;
@@ -497,5 +503,10 @@ public class BoatRaceEventListener implements Listener {
         Server server = owner.getServer();
         CommandSender sender = server.getConsoleSender();
         server.dispatchCommand(sender, String.format(format, args));
+    }
+
+    private String getTargetSelectorArguments() {
+        BoundingBox box = getBounds();
+        return String.format("x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
     }
 }
