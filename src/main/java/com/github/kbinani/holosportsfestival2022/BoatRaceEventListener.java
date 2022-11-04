@@ -25,10 +25,11 @@ import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class BoatRaceEventListener implements Listener {
     private final JavaPlugin owner;
@@ -39,6 +40,12 @@ public class BoatRaceEventListener implements Listener {
         YELLOW,
     }
 
+    static void AllTeams(Consumer<Team> callback) {
+        callback.accept(Team.RED);
+        callback.accept(Team.WHITE);
+        callback.accept(Team.YELLOW);
+    }
+
     enum Role {
         DRIVER,
         SHOOTER,
@@ -46,11 +53,13 @@ public class BoatRaceEventListener implements Listener {
 
     enum Status {
         IDLE,
+        AWAIT_START,
         COUNTDOWN,
         RUN,
     }
 
     private Status _status = Status.IDLE;
+    private final Map<Team, Long> finishedServerTime = new HashMap<>();
 
     private void setStatus(Status status) {
         if (status == _status) {
@@ -61,6 +70,17 @@ public class BoatRaceEventListener implements Listener {
             case IDLE:
                 resetField();
                 clearItems("@a");
+                break;
+            case AWAIT_START:
+                // ゴールラインに柵を設置
+                execute("fill %s %s bedrock", xyz(-52, -58, -196), xyz(-25, -58, -196));
+
+                // スタートラインに柵を設置
+                execute("fill %s %s bedrock", xyz(-26, -58, -186), xyz(-36, -58, -186));
+                execute("fill %s %s bedrock", xyz(-37, -58, -187), xyz(-44, -58, -187));
+                execute("fill %s %s bedrock", xyz(-45, -58, -188), xyz(-52, -58, -188));
+                break;
+            case COUNTDOWN:
                 break;
             case RUN:
                 // ゴールラインの柵を撤去
@@ -90,13 +110,13 @@ public class BoatRaceEventListener implements Listener {
         WallSign.Place(offset(kRedEntryDriver), BlockFace.WEST, "赤組", "エントリー", ToString(Role.DRIVER));
         WallSign.Place(offset(kLeaveButton), BlockFace.WEST, "エントリー解除");
 
-        // ゴールラインに柵を設置
-        execute("fill %s %s bedrock", xyz(-52, -58, -196), xyz(-25, -58, -196));
+        // ゴールラインの柵を撤去
+        execute("fill %s %s air", xyz(-52, -58, -196), xyz(-25, -58, -196));
 
-        // スタートラインに柵を設置
-        execute("fill %s %s bedrock", xyz(-26, -58, -186), xyz(-36, -58, -186));
-        execute("fill %s %s bedrock", xyz(-37, -58, -187), xyz(-44, -58, -187));
-        execute("fill %s %s bedrock", xyz(-45, -58, -188), xyz(-52, -58, -188));
+        // スタートラインの柵を撤去
+        execute("fill %s %s air", xyz(-26, -58, -186), xyz(-36, -58, -186));
+        execute("fill %s %s air", xyz(-37, -58, -187), xyz(-44, -58, -187));
+        execute("fill %s %s air", xyz(-45, -58, -188), xyz(-52, -58, -188));
 
         // 妨害装置を停止
         for (Point3i p : kJammingBlockStarterBlocks) {
@@ -157,7 +177,7 @@ public class BoatRaceEventListener implements Listener {
         }
     }
 
-    class Participation {
+    static class Participation {
         final Team team;
         final Role role;
 
@@ -167,9 +187,35 @@ public class BoatRaceEventListener implements Listener {
         }
     }
 
-    class Participant {
+    static class Participant {
         private @Nullable Player shooter;
         private @Nullable Player driver;
+
+        enum PlayerStatus {
+            IDLE,
+            STARTED,
+            CLEARED_CHECKPOINT1,
+            CLEARED_START_LINE1,
+            CLEARED_CHECKPOINT2,
+            FINISHED,
+        }
+
+        private static int RemainingRound(PlayerStatus s) {
+            switch (s) {
+                case IDLE:
+                case STARTED:
+                case CLEARED_CHECKPOINT1:
+                    return 2;
+                case CLEARED_START_LINE1:
+                case CLEARED_CHECKPOINT2:
+                    return 1;
+                case FINISHED:
+                    return 0;
+            }
+            return 2;
+        }
+
+        private final Map<Role, PlayerStatus> status = new HashMap<>();
 
         void setPlayer(Role role, @Nullable Player player) {
             if (role == Role.DRIVER) {
@@ -210,6 +256,50 @@ public class BoatRaceEventListener implements Listener {
             }
             return result;
         }
+
+        void usePlayerStatus(Role role, Consumer<PlayerStatus> callback) {
+            if (role == Role.DRIVER && driver != null && driver.isOnline()) {
+                PlayerStatus s = status.computeIfAbsent(role, it -> PlayerStatus.IDLE);
+                callback.accept(s);
+            }
+            if (role == Role.SHOOTER && shooter != null && shooter.isOnline()) {
+                PlayerStatus s = status.computeIfAbsent(role, it -> PlayerStatus.IDLE);
+                callback.accept(s);
+            }
+        }
+
+        void updatePlayerStatus(Role role, PlayerStatus status) {
+            if (driver == null || !driver.isOnline()) {
+                this.status.put(Role.DRIVER, PlayerStatus.IDLE);
+            }
+            if (shooter == null || !shooter.isOnline()) {
+                this.status.put(Role.SHOOTER, PlayerStatus.IDLE);
+            }
+            this.status.put(role, status);
+        }
+
+        void eachPlayer(BiFunction<Role, Player, Void> callback) {
+            if (driver != null && driver.isOnline()) {
+                callback.apply(Role.DRIVER, driver);
+            }
+            if (shooter != null && shooter.isOnline()) {
+                callback.apply(Role.SHOOTER, shooter);
+            }
+        }
+
+        int getRemainingRound() {
+            PlayerStatus driverStatus = status.computeIfAbsent(Role.DRIVER, it -> PlayerStatus.IDLE);
+            PlayerStatus shooterStatus = status.computeIfAbsent(Role.SHOOTER, it -> PlayerStatus.IDLE);
+            int driverRound = 0;
+            if (driver != null && driver.isOnline()) {
+                driverRound = RemainingRound(driverStatus);
+            }
+            int shooterRound = 0;
+            if (shooter != null && shooter.isOnline()) {
+                shooterRound = RemainingRound(shooterStatus);
+            }
+            return Math.max(driverRound, shooterRound);
+        }
     }
 
     private final Map<Team, Participant> teams = new HashMap<>();
@@ -221,6 +311,17 @@ public class BoatRaceEventListener implements Listener {
             teams.put(team, t);
         }
         return t;
+    }
+
+    private void eachParticipants(BiFunction<Player, Participation, Void> callback) {
+        teams.forEach((team, participant) -> {
+            Participant p = ensureTeam(team);
+            p.eachPlayer((role, player) -> {
+                Participation participation = new Participation(team, role);
+                callback.apply(player, participation);
+                return null;
+            });
+        });
     }
 
     private static final Point3i kYellowEntryShooter = new Point3i(-56, -59, -198);
@@ -250,8 +351,94 @@ public class BoatRaceEventListener implements Listener {
     }
 
     @EventHandler
+    @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
-
+        if (_status != Status.RUN) {
+            return;
+        }
+        Player player = e.getPlayer();
+        if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
+            return;
+        }
+        Location location = player.getLocation();
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
+        Participation participation = getCurrentParticipation(player);
+        if (participation == null) {
+            return;
+        }
+        Participant team = ensureTeam(participation.team);
+        team.usePlayerStatus(participation.role, s -> {
+            switch (s) {
+                case IDLE:
+                    break;
+                case STARTED:
+                    if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
+                        // 滝の頂上を通過
+                        team.updatePlayerStatus(participation.role, Participant.PlayerStatus.CLEARED_CHECKPOINT1);
+                        owner.getLogger().info(String.format("[水上レース] %s %s%sが1周目のチェックポイントを通過", player.getName(), ToString(participation.team), ToString(participation.role)));
+                    }
+                    break;
+                case CLEARED_CHECKPOINT1:
+                    if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
+                        // ゴールラインを通過
+                        team.updatePlayerStatus(participation.role, Participant.PlayerStatus.CLEARED_START_LINE1);
+                        owner.getLogger().info(String.format("[水上レース] %s %s%sが1周目のゴールラインを通過", player.getName(), ToString(participation.team), ToString(participation.role)));
+                        if (team.getRemainingRound() == 1) {
+                            broadcast("%s あと1周！", ToColoredString(participation.team));
+                        }
+                    }
+                    break;
+                case CLEARED_START_LINE1:
+                    if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
+                        // 滝の頂上を通過
+                        team.updatePlayerStatus(participation.role, Participant.PlayerStatus.CLEARED_CHECKPOINT2);
+                        owner.getLogger().info(String.format("[水上レース] %s %s%sが2周目のチェックポイントを通過", player.getName(), ToString(participation.team), ToString(participation.role)));
+                    }
+                    break;
+                case CLEARED_CHECKPOINT2:
+                    if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
+                        // ゴールラインを通過
+                        team.updatePlayerStatus(participation.role, Participant.PlayerStatus.FINISHED);
+                        owner.getLogger().info(String.format("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.team), ToString(participation.role)));
+                        if (team.getRemainingRound() == 0) {
+                            broadcast("%s GOAL !!", ToColoredString(participation.team));
+                            finishedServerTime.put(participation.team, player.getWorld().getGameTime());
+                            boolean cleared = true;
+                            for (Long it : finishedServerTime.values()) {
+                                if (it < 0) {
+                                    cleared = false;
+                                }
+                            }
+                            if (cleared) {
+                                broadcast("");
+                                broadcast("-----------------------");
+                                broadcast("[結果発表]");
+                                List<Team> ordered = finishedServerTime.keySet().stream().sorted((a, b) -> {
+                                    long timeA = finishedServerTime.get(a);
+                                    long timeB = finishedServerTime.get(b);
+                                    return (int) (timeA - timeB);
+                                }).collect(Collectors.toList());
+                                for (int i = 0; i < ordered.size(); i++) {
+                                    broadcast("%d位: %s", i + 1, ToColoredString(ordered.get(i)));
+                                }
+                                broadcast("-----------------------");
+                                broadcast("");
+                                AllTeams(t -> {
+                                    Participant p = ensureTeam(t);
+                                    p.setPlayer(Role.DRIVER, null);
+                                    p.setPlayer(Role.SHOOTER, null);
+                                });
+                                setStatus(Status.IDLE);
+                            }
+                        }
+                    }
+                    break;
+                case FINISHED:
+                    break;
+            }
+        });
     }
 
     @EventHandler
@@ -352,13 +539,13 @@ public class BoatRaceEventListener implements Listener {
         return new BoundingBox(x(kFieldNorthWest.x), y(kFieldNorthWest.y), z(kFieldNorthWest.z), x(kFieldSouthEast.x), y(kFieldSouthEast.y), z(kFieldSouthEast.z));
     }
 
-    private void broadcast(String msg) {
-        owner.getServer().broadcastMessage(msg);
+    private void broadcast(String msg, Object... args) {
+        owner.getServer().broadcastMessage(String.format(msg, args));
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
-    private void broadcastUnofficial(String msg) {
-        broadcast(msg);
+    private void broadcastUnofficial(String msg, Object... args) {
+        broadcast(msg, args);
     }
 
     private static Material Boat(Team team) {
@@ -372,6 +559,9 @@ public class BoatRaceEventListener implements Listener {
     }
 
     private void onClickJoin(Player player, Team team, Role role) {
+        if (_status != Status.IDLE && _status != Status.AWAIT_START) {
+            return;
+        }
         @Nullable Participation current = getCurrentParticipation(player);
         if (current == null) {
             Participant p = ensureTeam(team);
@@ -384,12 +574,15 @@ public class BoatRaceEventListener implements Listener {
                 execute("give @p[name=\"%s\"] splash_potion{Potion:darkness,tag:{%s:1b},display:{Name:'[{\"text\":\"[水上レース専用] 暗闇（強）\"}]'}}", player.getName(), kItemTag);
             }
             broadcast(String.format("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(team), ToString(role)));
+            setStatus(Status.AWAIT_START);
         } else {
             broadcastUnofficial(ChatColor.RED + String.format("[水上レース] %sは%s%sで既にエントリー済みです", ChatColor.RESET + player.getName(), ToColoredString(team), ChatColor.RED + ToString(role)));
         }
     }
 
     private void onClickLeave(Player player) {
+        // 競技中でもエントリー解除したらノーコンテストにする. ので status のチェックはここではやらない
+
         @Nullable Participation current = getCurrentParticipation(player);
         if (current == null) {
             return;
@@ -397,8 +590,14 @@ public class BoatRaceEventListener implements Listener {
         Participant team = ensureTeam(current.team);
         team.setPlayer(current.role, null);
         clearItems(String.format("@p[name=\"%s\"]", player.getName()));
-        broadcastUnofficial(String.format("[水上レース] %sが%s%sのエントリー解除しました", player.getName(), ToColoredString(current.team), ToString(current.role)));
-        if (_status == Status.RUN) {
+        broadcast(String.format("[水上レース] %sがエントリー解除しました", player.getName()));
+
+        AtomicInteger totalPlayerCount = new AtomicInteger(0);
+        AllTeams(t -> {
+            Participant p = ensureTeam(t);
+            totalPlayerCount.addAndGet(p.getPlayerCount());
+        });
+        if (totalPlayerCount.get() < 1) {
             setStatus(Status.IDLE);
         }
     }
@@ -448,6 +647,14 @@ public class BoatRaceEventListener implements Listener {
                 broadcast(String.format("%s が競技に参加します（参加者%d人）", ToColoredString(team), count));
             }
         }
+        AllTeams(team -> {
+            Participant participant = ensureTeam(team);
+            participant.updatePlayerStatus(Role.DRIVER, Participant.PlayerStatus.STARTED);
+            participant.updatePlayerStatus(Role.SHOOTER, Participant.PlayerStatus.STARTED);
+            if (participant.getPlayerCount() > 0) {
+                finishedServerTime.put(team, (long) -1);
+            }
+        });
         broadcast("-----------------------");
         broadcast("");
         broadcast("[水上レース] 競技を開始します！");
