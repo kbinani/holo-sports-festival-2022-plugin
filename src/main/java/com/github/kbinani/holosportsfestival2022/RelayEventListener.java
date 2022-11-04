@@ -76,10 +76,12 @@ public class RelayEventListener implements Listener {
         switch (_status) {
             case IDLE:
                 resetField();
+                clearItems("@a");
                 break;
             case AWAIT_START:
                 setEnableStartGate(true);
                 setEnableCornerFence(true);
+                clearItems("@a");
                 break;
             case COUNTDOWN:
                 break;
@@ -277,9 +279,14 @@ public class RelayEventListener implements Listener {
         Team team = ensureTeam(color);
         team.remove(player);
         broadcast("[リレー] %sがエントリー解除しました", player.getName());
+        clearItems(player.getName());
 
         // チーム競技なので人数が減ったら強制的にノーコンテストにする
         setStatus(Status.IDLE);
+    }
+
+    private void clearItems(String selector) {
+        execute("clear %s blaze_rod{tag:{%s:1b}}", selector, kItemTag);
     }
 
     private void onClickStart() {
