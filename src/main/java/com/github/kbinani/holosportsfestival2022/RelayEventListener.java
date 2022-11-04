@@ -3,9 +3,12 @@ package com.github.kbinani.holosportsfestival2022;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,13 +17,13 @@ import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BoundingBox;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Nonnull;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -58,6 +61,7 @@ public class RelayEventListener implements Listener {
     enum Status {
         IDLE,
         AWAIT_START,
+        COUNTDOWN,
         RUN,
     }
 
@@ -74,16 +78,12 @@ public class RelayEventListener implements Listener {
                 break;
             case AWAIT_START:
                 setEnableStartGate(true);
-                stroke("birch_fence", kCorner1stInner);
-                stroke("birch_fence", kCorner1stOuter);
-                stroke("birch_fence", kCorner2ndInner);
-                stroke("birch_fence", kCorner2ndOuter);
-                stroke("birch_fence", kCorner3rdInner);
-                stroke("birch_fence", kCorner3rdOuter);
-                stroke("birch_fence", kCorner4thInner);
-                stroke("birch_fence", kCorner4thOuter);
+                setEnableCornerFence(true);
+                break;
+            case COUNTDOWN:
                 break;
             case RUN:
+                setEnableStartGate(false);
                 break;
         }
     }
@@ -166,15 +166,24 @@ public class RelayEventListener implements Listener {
         WallSign.Place(offset(kButtonLeave), BlockFace.NORTH, "エントリー解除");
 
         setEnableStartGate(false);
+        setEnableCornerFence(false);
+    }
 
-        stroke("air", kCorner1stInner);
-        stroke("air", kCorner1stOuter);
-        stroke("air", kCorner2ndInner);
-        stroke("air", kCorner2ndOuter);
-        stroke("air", kCorner3rdInner);
-        stroke("air", kCorner3rdOuter);
-        stroke("air", kCorner4thInner);
-        stroke("air", kCorner4thOuter);
+    private void setEnableCornerFence(boolean enable) {
+        String block;
+        if (enable) {
+            block = "birch_fence";
+        } else {
+            block = "air";
+        }
+        stroke(block, kCorner1stInner);
+        stroke(block, kCorner1stOuter);
+        stroke(block, kCorner2ndInner);
+        stroke(block, kCorner2ndOuter);
+        stroke(block, kCorner3rdInner);
+        stroke(block, kCorner3rdOuter);
+        stroke(block, kCorner4thInner);
+        stroke(block, kCorner4thOuter);
     }
 
     private void setEnableStartGate(boolean enable) {
@@ -206,7 +215,7 @@ public class RelayEventListener implements Listener {
         AtomicBoolean ok = new AtomicBoolean(true);
         useTeams((team, color) -> {
             if (team.contains(player)) {
-                broadcastUnofficial(ChatColor.RED + "%sは既に%sにエントリー済みです", player.getName(), ToString(color));
+                broadcast("%sは%sにエントリー済みです", player.getName(), ToColoredString(color));
                 ok.set(false);
             }
             return null;
@@ -241,17 +250,135 @@ public class RelayEventListener implements Listener {
     }
 
     private void onClickLeave(Player player) {
-        useTeams((team, color) -> {
-            team.remove(player);
-            return null;
-        });
+        TeamColor color = getCurrentTeam(player);
+        if (color == null) {
+            return;
+        }
+        Team team = ensureTeam(color);
+        team.remove(player);
+        broadcast("[リレー] %sがエントリー解除しました", player.getName());
         if (getPlayerCount() < 1) {
             setStatus(Status.IDLE);
         }
     }
 
     private void onClickStart() {
+        if (_status != Status.AWAIT_START) {
+            return;
+        }
 
+        if (getPlayerCount() < 1) {
+            broadcastUnofficial(ChatColor.RED + "[リレー] 参加者が 0 人です");
+            return;
+        }
+
+        // 第一走者を検出する
+        Map<TeamColor, Player> firstRunners = new HashMap<>();
+        World world = overworld().orElse(null);
+        if (world == null) {
+            return;
+        }
+        Player[] lanes = new Player[]{null, null, null};
+        BoundingBox firstLane = new BoundingBox(xd(37.5), yd(-60), zd(-177.5), xd(38.5), yd(-58), zd(-175.5));
+        BoundingBox secondLane = new BoundingBox(xd(38.5), yd(-60), zd(-175.5), xd(39.5), yd(-58), zd(-173.5));
+        BoundingBox thirdLane = new BoundingBox(xd(39.5), yd(-60), zd(-173.5), xd(40.5), yd(-58), zd(-171.5));
+        BoundingBox[] laneBoundingBox = new BoundingBox[]{firstLane, secondLane, thirdLane};
+        for (int i = 0; i < 3; i++) {
+            BoundingBox box = laneBoundingBox[i];
+            Collection<Entity> entities = world.getNearbyEntities(box, it -> it.getType() == EntityType.PLAYER);
+            if (entities.isEmpty()) {
+                continue;
+            }
+            if (entities.size() > 1) {
+                broadcastUnofficial(ChatColor.RED + "[リレー] 一つのゲートに複数人入っています");
+                return;
+            }
+            Player player = (Player) entities.stream().findFirst().get();
+            TeamColor tc = getCurrentTeam(player);
+            if (tc == null) {
+                broadcastUnofficial(ChatColor.RED + "[リレー] ゲートに競技者でないプレイヤーが入っています");
+                return;
+            }
+            if (firstRunners.containsKey(tc)) {
+                broadcastUnofficial(ChatColor.RED + "[リレー] 同じチームの人が複数人ゲートに入っています");
+                return;
+            }
+            firstRunners.put(tc, player);
+            lanes[i] = player;
+        }
+        AtomicBoolean canStart = new AtomicBoolean(true);
+        useTeams((team, color) -> {
+            if (team.getPlayerCount() < 1) {
+                return null;
+            }
+            if (!firstRunners.containsKey(color)) {
+                broadcast("%sの第一走者はスタート位置についてください！", ToColoredString(color));
+                canStart.set(false);
+            }
+            return null;
+        });
+        if (!canStart.get()) {
+            return;
+        }
+
+        broadcast("");
+        broadcast("-----------------------");
+        useTeams((team, color) -> {
+            int c = team.getPlayerCount();
+            if (c < 1) {
+                return null;
+            }
+            broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), c);
+            return null;
+        });
+        broadcast("-----------------------");
+        broadcast("");
+        broadcast("[リレー] 競技を開始します！");
+        broadcast("");
+        setStatus(Status.COUNTDOWN);
+        Countdown.Then(getBounds(), owner, c -> _status == Status.COUNTDOWN, () -> {
+            if (_status != Status.COUNTDOWN) {
+                return false;
+            }
+            boolean ok = true;
+            for (int i = 0; i < lanes.length; i++) {
+                Player runner = lanes[i];
+                if (runner == null) {
+                    continue;
+                }
+                BoundingBox box = laneBoundingBox[i];
+                Location location = runner.getLocation();
+                if (!box.contains(location.getX(), location.getY(), location.getZ())) {
+                    ok = false;
+                    broadcastUnofficial("[リレー] %sがゲート内に入っていません", runner.getName());
+                }
+            }
+            if (!ok) {
+                setStatus(Status.AWAIT_START);
+                return false;
+            }
+            firstRunners.forEach((teamColor, runner) -> {
+                broadcast("%s 第一走者 : %sがスタート！", ToColoredString(teamColor), runner.getName());
+            });
+            setStatus(Status.RUN);
+            return true;
+        });
+    }
+
+    private TeamColor getCurrentTeam(@Nonnull Player player) {
+        AtomicReference<TeamColor> color = new AtomicReference<>(null);
+        useTeams((team, teamColor) -> {
+            if (team.contains(player)) {
+                color.set(teamColor);
+            }
+            return null;
+        });
+        return color.get();
+    }
+
+
+    private BoundingBox getBounds() {
+        return new BoundingBox(x(-2), y(-61), z(-241), x(82), y(384), z(-115));
     }
 
     private void useTeams(BiFunction<Team, TeamColor, Void> callback) {
@@ -259,6 +386,10 @@ public class RelayEventListener implements Listener {
             Team team = ensureTeam(color);
             callback.apply(team, color);
         });
+    }
+
+    private Optional<World> overworld() {
+        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     }
 
     static String ToColoredString(TeamColor color) {
@@ -316,6 +447,21 @@ public class RelayEventListener implements Listener {
     private Point3i offset(Point3i p) {
         // 座標が間違っていたらここでオフセットする
         return new Point3i(p.x, p.y, p.z);
+    }
+
+    private double xd(double x) {
+        // 座標が間違っていたらここでオフセットする
+        return x;
+    }
+
+    private double yd(double y) {
+        // 座標が間違っていたらここでオフセットする
+        return y;
+    }
+
+    private double zd(double z) {
+        // 座標が間違っていたらここでオフセットする
+        return z;
     }
 
     private int x(int x) {
