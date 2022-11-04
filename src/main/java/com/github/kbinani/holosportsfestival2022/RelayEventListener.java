@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
@@ -156,6 +157,25 @@ public class RelayEventListener implements Listener {
             onClickJoin(player, TeamColor.YELLOW);
         } else if (location.equals(offset(kButtonLeave))) {
             onClickLeave(player);
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerQuit(PlayerQuitEvent e) {
+        if (_status != Status.RUN && _status != Status.COUNTDOWN) {
+            return;
+        }
+        Player player = e.getPlayer();
+        TeamColor color = getCurrentTeam(player);
+        if (color == null) {
+            return;
+        }
+        onClickLeave(player);
+        if (getPlayerCount() > 0) {
+            setStatus(Status.AWAIT_START);
+        } else {
+            setStatus(Status.IDLE);
         }
     }
 
