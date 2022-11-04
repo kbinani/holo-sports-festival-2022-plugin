@@ -381,6 +381,7 @@ public class BoatRaceEventListener implements Listener {
                             for (Long it : finishedServerTime.values()) {
                                 if (it < 0) {
                                     cleared = false;
+                                    break;
                                 }
                             }
                             if (cleared) {
@@ -402,6 +403,7 @@ public class BoatRaceEventListener implements Listener {
                                     p.setPlayer(Role.DRIVER, null);
                                     p.setPlayer(Role.SHOOTER, null);
                                 });
+                                finishedServerTime.clear();
                                 setStatus(Status.IDLE);
                             }
                         }
