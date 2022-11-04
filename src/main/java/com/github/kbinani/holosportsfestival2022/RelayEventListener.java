@@ -257,9 +257,9 @@ public class RelayEventListener implements Listener {
         Team team = ensureTeam(color);
         team.remove(player);
         broadcast("[リレー] %sがエントリー解除しました", player.getName());
-        if (getPlayerCount() < 1) {
-            setStatus(Status.IDLE);
-        }
+
+        // チーム競技なので人数が減ったら強制的にノーコンテストにする
+        setStatus(Status.IDLE);
     }
 
     private void onClickStart() {
