@@ -27,9 +27,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+//TODO: アイテム使った時の処理
 
 public class BoatRaceEventListener implements Listener {
     private final JavaPlugin owner;
@@ -226,15 +227,6 @@ public class BoatRaceEventListener implements Listener {
         }
 
         @Nullable
-        Player getPlayer(Role role) {
-            if (role == Role.DRIVER) {
-                return driver;
-            } else {
-                return shooter;
-            }
-        }
-
-        @Nullable
         Role getCurrentRole(@Nonnull Player player) {
             if (driver != null && driver.getUniqueId().equals(player.getUniqueId())) {
                 return Role.DRIVER;
@@ -278,15 +270,6 @@ public class BoatRaceEventListener implements Listener {
             this.status.put(role, status);
         }
 
-        void eachPlayer(BiFunction<Role, Player, Void> callback) {
-            if (driver != null && driver.isOnline()) {
-                callback.apply(Role.DRIVER, driver);
-            }
-            if (shooter != null && shooter.isOnline()) {
-                callback.apply(Role.SHOOTER, shooter);
-            }
-        }
-
         int getRemainingRound() {
             PlayerStatus driverStatus = status.computeIfAbsent(Role.DRIVER, it -> PlayerStatus.IDLE);
             PlayerStatus shooterStatus = status.computeIfAbsent(Role.SHOOTER, it -> PlayerStatus.IDLE);
@@ -311,17 +294,6 @@ public class BoatRaceEventListener implements Listener {
             teams.put(team, t);
         }
         return t;
-    }
-
-    private void eachParticipants(BiFunction<Player, Participation, Void> callback) {
-        teams.forEach((team, participant) -> {
-            Participant p = ensureTeam(team);
-            p.eachPlayer((role, player) -> {
-                Participation participation = new Participation(team, role);
-                callback.apply(player, participation);
-                return null;
-            });
-        });
     }
 
     private static final Point3i kYellowEntryShooter = new Point3i(-56, -59, -198);
