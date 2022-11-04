@@ -378,6 +378,7 @@ public class RelayEventListener implements Listener {
                 return false;
             }
             firstRunners.forEach((teamColor, runner) -> {
+                execute("give %s blaze_rod{tag:{%s:1b},display:{Name:'[{\"text\":\"バトン\"}]'}}", runner.getName(), kItemTag);
                 broadcast("%s 第一走者 : %sがスタート！", ToColoredString(teamColor), runner.getName());
             });
             setStatus(Status.RUN);
@@ -582,4 +583,6 @@ public class RelayEventListener implements Listener {
     private static final Point3i kButtonEntryWhite = new Point3i(37, -60, -184);
     private static final Point3i kButtonEntryYellow = new Point3i(35, -60, -184);
     private static final Point3i kButtonLeave = new Point3i(33, -60, -184);
+
+    private static final String kItemTag = "hololive_sports_festival_2022_relay";
 }
