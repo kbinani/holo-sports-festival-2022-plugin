@@ -29,8 +29,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class RelayEventListener implements Listener {
     private final JavaPlugin owner;
@@ -293,8 +291,8 @@ public class RelayEventListener implements Listener {
         if (!runner.getUniqueId().equals(player.getUniqueId())) {
             return;
         }
-        BoundingBox outer = getFieldOuterArea();
-        BoundingBox inner = getFieldInnerArea();
+        BoundingBox outer = offset(kFieldOuterArea);
+        BoundingBox inner = offset(kFieldInnerArea);
         Vector location = player.getLocation().toVector();
         if (!outer.contains(location) || inner.contains(location)) {
             broadcastUnofficial(ChatColor.RED + "%sの%sがコースから逸脱しました。失格とします", ToColoredString(color), player.getName());
@@ -309,11 +307,8 @@ public class RelayEventListener implements Listener {
             return;
         }
 
-        // バトンパス領域の手前 8 ブロック
-        BoundingBox checkPoint = new BoundingBox(xd(25), yd(-61), zd(-179), xd(33), yd(-58), zd(-170));
-
-        // ゴールラインから 8 ブロック
-        BoundingBox goal = new BoundingBox(xd(41), yd(-61), zd(-179), xd(49), yd(-58), zd(-170));
+        BoundingBox checkPoint = offset(kPreGoalCheckPointArea);
+        BoundingBox goal = offset(kGoalArea);
 
         if (!team.isRunnerPassedCheckPoint(player) && checkPoint.contains(location)) {
             team.pushPassedCheckPoint(player);
@@ -491,10 +486,7 @@ public class RelayEventListener implements Listener {
             return;
         }
         Player[] lanes = new Player[]{null, null, null};
-        BoundingBox firstLane = new BoundingBox(xd(37.5), yd(-60), zd(-177.5), xd(38.5), yd(-58), zd(-175.5));
-        BoundingBox secondLane = new BoundingBox(xd(38.5), yd(-60), zd(-175.5), xd(39.5), yd(-58), zd(-173.5));
-        BoundingBox thirdLane = new BoundingBox(xd(39.5), yd(-60), zd(-173.5), xd(40.5), yd(-58), zd(-171.5));
-        BoundingBox[] laneBoundingBox = new BoundingBox[]{firstLane, secondLane, thirdLane};
+        BoundingBox[] laneBoundingBox = new BoundingBox[]{offset(kStartGateFirstLane), offset(kStartGateSecondLane), offset(kStartGateThirdLane)};
         for (int i = 0; i < 3; i++) {
             BoundingBox box = laneBoundingBox[i];
             Collection<Entity> entities = world.getNearbyEntities(box, it -> it.getType() == EntityType.PLAYER);
@@ -542,7 +534,7 @@ public class RelayEventListener implements Listener {
                 // リレーなので 1 回はバトンパスが必要, ということにする
                 return;
             }
-            // 最も参加人数が多いチームの人数を周回数とする. 人数が足りないチームは
+            // 最も参加人数が多いチームの人数を周回数とする. 人数が足りないチームは複数回出走する
             numberOfLaps.set(Math.max(c, numberOfLaps.get()));
             broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), c);
         });
@@ -614,7 +606,7 @@ public class RelayEventListener implements Listener {
         //TODO: バトンで殴ったかどうか確認するのが良さそう
 
         // 両者がバトンパス領域に入っているかどうか確かめる
-        BoundingBox box = getBatonPassingArea();
+        BoundingBox box = offset(kBatonPassingArea);
         Player from = (Player) damagerEntity;
         Player to = (Player) entity;
         if (!box.contains(from.getLocation().toVector()) || !box.contains(to.getLocation().toVector())) {
@@ -653,40 +645,8 @@ public class RelayEventListener implements Listener {
         broadcast("%s バトンタッチ！%sがスタート！", ToColoredString(teamColor), to.getName());
     }
 
-    private boolean isInField(Player player) {
-        Location location = player.getLocation();
-        if (!player.isOnline()) {
-            return false;
-        }
-        if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
-            return false;
-        }
-        BoundingBox box = getBounds();
-        return box.contains(location.getX(), location.getY(), location.getZ());
-    }
-
     private BoundingBox getBounds() {
-        return new BoundingBox(x(-2), y(-61), z(-241), x(82), y(384), z(-115));
-    }
-
-    private BoundingBox getBatonPassingArea() {
-        // 広めに. 進行方向手前 8 ブロック, 進行方向に 16 ブロック
-        return new BoundingBox(xd(36), yd(-61), zd(-179), xd(56), yd(-58), zd(-170));
-    }
-
-    private BoundingBox getFieldOuterArea() {
-        return new BoundingBox(xd(1), yd(-62), zd(-234), xd(73), yd(-54), zd(-170));
-    }
-
-    private BoundingBox getFieldInnerArea() {
-        return new BoundingBox(xd(10.5), yd(-62), zd(-224.5), xd(63.5), yd(-54), zd(-179.5));
-    }
-
-    private void useTeams(BiConsumer<TeamColor, Team> callback) {
-        TeamColors(color -> {
-            Team team = ensureTeam(color);
-            callback.accept(color, team);
-        });
+        return offset(kBounds);
     }
 
     private Optional<World> overworld() {
@@ -704,25 +664,6 @@ public class RelayEventListener implements Listener {
             default:
                 return "";
         }
-    }
-
-    static String ToString(TeamColor color) {
-        switch (color) {
-            case WHITE:
-                return "白組";
-            case RED:
-                return "赤組";
-            case YELLOW:
-                return "黄組";
-            default:
-                return "";
-        }
-    }
-
-    static void TeamColors(Consumer<TeamColor> callback) {
-        callback.accept(TeamColor.RED);
-        callback.accept(TeamColor.WHITE);
-        callback.accept(TeamColor.YELLOW);
     }
 
     private void broadcast(String msg, Object... args) {
@@ -743,6 +684,10 @@ public class RelayEventListener implements Listener {
     private String xyz(int x, int y, int z) {
         // 座標が間違っていたらここでオフセットする
         return String.format("%d %d %d", x, y, z);
+    }
+
+    private BoundingBox offset(BoundingBox box) {
+        return new BoundingBox(xd(box.getMinX()), yd(box.getMinY()), zd(box.getMinZ()), xd(box.getMaxX()), yd(box.getMaxY()), zd(box.getMaxZ()));
     }
 
     private Point3i offset(Point3i p) {
@@ -865,4 +810,20 @@ public class RelayEventListener implements Listener {
     private static final Point3i kButtonLeave = new Point3i(33, -60, -184);
 
     private static final String kItemTag = "hololive_sports_festival_2022_relay";
+
+    // アナウンス etc. を行う範囲
+    private static final BoundingBox kBounds = new BoundingBox(-2, -61, -241, 82, 384, -115);
+    // 広めに. 進行方向手前 8 ブロック, 進行方向に 16 ブロック
+    private static final BoundingBox kBatonPassingArea = new BoundingBox(36, -61, -179, 56, -58, -170);
+    // 競技場の外側の白線
+    private static final BoundingBox kFieldOuterArea = new BoundingBox(1, -62, -234, 73, -54, -170);
+    // 競技場の内側の白線
+    private static final BoundingBox kFieldInnerArea = new BoundingBox(10.5, -62, -224.5, 63.5, -54, -179.5);
+    // ゴール手前のチェックポイント. バトンパス領域から進行方向手前に 8 ブロック
+    private static final BoundingBox kPreGoalCheckPointArea = new BoundingBox(25, -61, -179, 33, -58, -170);
+    // ゴール判定を行う範囲. ゴールラインから進行方向に 8 ブロック
+    private static final BoundingBox kGoalArea = new BoundingBox(41, -61, -179, 49, -58, -170);
+    private static final BoundingBox kStartGateFirstLane = new BoundingBox(37.5, -60, -177.5, 38.5, -58, -175.5);
+    private static final BoundingBox kStartGateSecondLane = new BoundingBox(38.5, -60, -175.5, 39.5, -58, -173.5);
+    private static final BoundingBox kStartGateThirdLane = new BoundingBox(39.5, -60, -173.5, 40.5, -58, -171.5);
 }
