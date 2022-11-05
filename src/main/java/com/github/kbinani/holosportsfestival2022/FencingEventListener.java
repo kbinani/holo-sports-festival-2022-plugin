@@ -15,6 +15,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -434,7 +435,20 @@ public class FencingEventListener implements Listener {
         bossbarRight.setMax(3);
         bossbarRight.setValue(3);
         bossbarRight.setColor("green");
+    }
 
+    private boolean initialized = false;
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+        overworld().ifPresent(world -> {
+            Loader.LoadChunk(world, getBounds());
+        });
         clearField();
     }
 
