@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
@@ -21,11 +22,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class RelayEventListener implements Listener {
@@ -39,25 +41,53 @@ public class RelayEventListener implements Listener {
 
     static class Team {
         private final Set<Player> participants = new HashSet<>();
+        private final List<Player> order = new LinkedList<>();
 
         int getPlayerCount() {
             return (int) participants.stream().filter(Player::isOnline).count();
         }
 
-        void add(Player player) {
+        void add(@Nonnull Player player) {
             participants.add(player);
         }
 
-        void remove(Player player) {
+        void remove(@Nonnull Player player) {
             participants.removeIf(it -> it.getUniqueId().equals(player.getUniqueId()));
         }
 
-        boolean contains(Player player) {
+        boolean contains(@Nonnull Player player) {
             return participants.stream().anyMatch(it -> it.getUniqueId().equals(player.getUniqueId()));
+        }
+
+        void pushRunner(@Nonnull Player player) {
+            if (!contains(player)) {
+                return;
+            }
+            order.add(player);
+        }
+
+        @Nullable
+        Player getCurrentRunner() {
+            if (order.isEmpty()) {
+                return null;
+            }
+            return order.stream().skip(order.size() - 1).findFirst().orElse(null);
+        }
+
+        void clearOrder() {
+            order.clear();
         }
     }
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
+
+    static class Race {
+        final int numberOfLaps;
+
+        Race(int numberOfLaps) {
+            this.numberOfLaps = numberOfLaps;
+        }
+    }
 
     enum Status {
         IDLE,
@@ -67,6 +97,7 @@ public class RelayEventListener implements Listener {
     }
 
     private Status _status = Status.IDLE;
+    private @Nullable Race race;
 
     private void setStatus(Status s) {
         if (s == _status) {
@@ -77,6 +108,7 @@ public class RelayEventListener implements Listener {
             case IDLE:
                 resetField();
                 clearItems("@a");
+                race = null;
                 break;
             case AWAIT_START:
                 setEnableStartGate(true);
@@ -235,12 +267,11 @@ public class RelayEventListener implements Listener {
             return;
         }
         AtomicBoolean ok = new AtomicBoolean(true);
-        useTeams((team, color) -> {
+        teams.forEach((color, team) -> {
             if (team.contains(player)) {
                 broadcast("%sは%sにエントリー済みです", player.getName(), ToColoredString(color));
                 ok.set(false);
             }
-            return null;
         });
         if (!ok.get()) {
             return;
@@ -264,9 +295,8 @@ public class RelayEventListener implements Listener {
 
     private int getPlayerCount() {
         AtomicInteger count = new AtomicInteger(0);
-        useTeams((team, color) -> {
+        teams.forEach((color, team) -> {
             count.addAndGet(team.getPlayerCount());
-            return null;
         });
         return count.get();
     }
@@ -293,9 +323,18 @@ public class RelayEventListener implements Listener {
         if (_status != Status.AWAIT_START) {
             return;
         }
-
-        if (getPlayerCount() < 1) {
-            broadcastUnofficial(ChatColor.RED + "[リレー] 参加者が 0 人です");
+        AtomicBoolean canStart = new AtomicBoolean(false);
+        teams.forEach((color, team) -> {
+            int count = getPlayerCount();
+            if (count < 1) {
+                return;
+            } else if (count == 1) {
+                broadcastUnofficial(ChatColor.RED + "[リレー] 参加者が足りません");
+            } else {
+                canStart.set(true);
+            }
+        });
+        if (!canStart.get()) {
             return;
         }
 
@@ -333,30 +372,33 @@ public class RelayEventListener implements Listener {
             firstRunners.put(tc, player);
             lanes[i] = player;
         }
-        AtomicBoolean canStart = new AtomicBoolean(true);
-        useTeams((team, color) -> {
-            if (team.getPlayerCount() < 1) {
-                return null;
+        AtomicBoolean isReady = new AtomicBoolean(true);
+        teams.forEach((color, team) -> {
+            if (team.getPlayerCount() < 2) {
+                // リレーなので 1 回はバトンパスが必要, ということにする
+                return;
             }
             if (!firstRunners.containsKey(color)) {
                 broadcast("%sの第一走者はスタート位置についてください！", ToColoredString(color));
-                canStart.set(false);
+                isReady.set(false);
             }
-            return null;
         });
-        if (!canStart.get()) {
+        if (!isReady.get()) {
             return;
         }
 
         broadcast("");
         broadcast("-----------------------");
-        useTeams((team, color) -> {
+        AtomicInteger numberOfLaps = new AtomicInteger(0);
+        teams.forEach((color, team) -> {
             int c = team.getPlayerCount();
-            if (c < 1) {
-                return null;
+            if (c < 2) {
+                // リレーなので 1 回はバトンパスが必要, ということにする
+                return;
             }
+            // 最も参加人数が多いチームの人数を周回数とする. 人数が足りないチームは
+            numberOfLaps.set(Math.max(c, numberOfLaps.get()));
             broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), c);
-            return null;
         });
         broadcast("-----------------------");
         broadcast("");
@@ -384,9 +426,16 @@ public class RelayEventListener implements Listener {
                 setStatus(Status.AWAIT_START);
                 return false;
             }
+
+            race = new Race(numberOfLaps.get());
+            teams.forEach((color, team) -> {
+                team.clearOrder();
+            });
             firstRunners.forEach((teamColor, runner) -> {
                 execute("give %s blaze_rod{tag:{%s:1b},display:{Name:'[{\"text\":\"バトン\"}]'}}", runner.getName(), kItemTag);
                 broadcast("%s 第一走者 : %sがスタート！", ToColoredString(teamColor), runner.getName());
+                Team team = ensureTeam(teamColor);
+                team.pushRunner(runner);
             });
             setStatus(Status.RUN);
             return true;
@@ -395,24 +444,65 @@ public class RelayEventListener implements Listener {
 
     private TeamColor getCurrentTeam(@Nonnull Player player) {
         AtomicReference<TeamColor> color = new AtomicReference<>(null);
-        useTeams((team, teamColor) -> {
+        teams.forEach((teamColor, team) -> {
             if (team.contains(player)) {
                 color.set(teamColor);
             }
-            return null;
         });
         return color.get();
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
+        if (_status != Status.RUN) {
+            return;
+        }
+        Entity damagerEntity = e.getDamager();
+        Entity entity = e.getEntity();
+        if (!(damagerEntity instanceof Player) || !(entity instanceof Player)) {
+            return;
+        }
+        BoundingBox box = getBounds();
+        Player from = (Player) damagerEntity;
+        Player to = (Player) entity;
+        if (!isInField(from) || !isInField(to)) {
+            return;
+        }
+        TeamColor teamColor = getCurrentTeam(from);
+        if (teamColor == null) {
+            return;
+        }
+        {
+            TeamColor tc = getCurrentTeam(to);
+            if (tc == null || tc != teamColor) {
+                return;
+            }
+        }
+        //TODO: バトンで殴ったかどうか確認するのが良さそう
+
+    }
+
+    private boolean isInField(Player player) {
+        Location location = player.getLocation();
+        if (!player.isOnline()) {
+            return false;
+        }
+        if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
+            return false;
+        }
+        BoundingBox box = getBounds();
+        return box.contains(location.getX(), location.getY(), location.getZ());
+    }
 
     private BoundingBox getBounds() {
         return new BoundingBox(x(-2), y(-61), z(-241), x(82), y(384), z(-115));
     }
 
-    private void useTeams(BiFunction<Team, TeamColor, Void> callback) {
+    private void useTeams(BiConsumer<TeamColor, Team> callback) {
         TeamColors(color -> {
             Team team = ensureTeam(color);
-            callback.apply(team, color);
+            callback.accept(color, team);
         });
     }
 
