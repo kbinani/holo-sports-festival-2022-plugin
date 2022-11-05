@@ -457,9 +457,9 @@ public class RelayEventListener implements Listener {
         }
         AtomicBoolean canStart = new AtomicBoolean(false);
         teams.forEach((color, team) -> {
-            int count = getPlayerCount();
+            int count = team.getPlayerCount();
             if (count < 1) {
-                return;
+                // 不参加
             } else if (count == 1) {
                 broadcastUnofficial(ChatColor.RED + "[リレー] %sの参加者が足りません", ToColoredString(color));
             } else {
