@@ -15,9 +15,9 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -446,15 +446,6 @@ public class BoatRaceEventListener implements Listener {
 
     @EventHandler
     @SuppressWarnings("unused")
-    public void onServerLoad(ServerLoadEvent e) {
-        if (e.getType() != ServerLoadEvent.LoadType.STARTUP) {
-            return;
-        }
-        resetField();
-    }
-
-    @EventHandler
-    @SuppressWarnings("unused")
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player player = e.getPlayer();
         @Nullable Participation current = getCurrentParticipation(player);
@@ -462,6 +453,21 @@ public class BoatRaceEventListener implements Listener {
             return;
         }
         onClickLeave(player);
+    }
+
+    private boolean initialized = false;
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+        overworld().ifPresent(world -> {
+            Loader.LoadChunk(world, getBounds());
+        });
+        resetField();
     }
 
     @EventHandler
