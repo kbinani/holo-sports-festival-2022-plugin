@@ -77,6 +77,10 @@ public class RelayEventListener implements Listener {
         void clearOrder() {
             order.clear();
         }
+
+        int getOrderLength() {
+            return order.size();
+        }
     }
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
@@ -459,7 +463,7 @@ public class RelayEventListener implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
-        if (_status != Status.RUN) {
+        if (_status != Status.RUN || race == null) {
             return;
         }
         Entity damagerEntity = e.getDamager();
@@ -469,8 +473,6 @@ public class RelayEventListener implements Listener {
         }
 
         //TODO: バトンで殴ったかどうか確認するのが良さそう
-
-        //TODO: 最終走者だったらこの処理要らない
 
         // 両者がバトンパス領域に入っているかどうか確かめる
         BoundingBox box = getBatonPassingArea();
@@ -500,10 +502,16 @@ public class RelayEventListener implements Listener {
             return;
         }
 
+        if (team.getOrderLength() >= race.numberOfLaps) {
+            // 最終走者はバトンパスしない
+            return;
+        }
+
         // バトンパスする
         team.pushRunner(to);
         clearBatons(from.getName());
         giveBaton(to);
+        broadcast("%s バトンタッチ！%sがスタート！", ToColoredString(teamColor), to.getName());
     }
 
     private boolean isInField(Player player) {
