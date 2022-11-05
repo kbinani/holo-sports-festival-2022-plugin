@@ -44,6 +44,7 @@ public class RelayEventListener implements Listener {
     static class Team {
         private final Set<Player> participants = new HashSet<>();
         private final List<Player> order = new LinkedList<>();
+        private final List<Player> passedCheckPoint = new LinkedList<>();
 
         int getPlayerCount() {
             return (int) participants.stream().filter(Player::isOnline).count();
@@ -80,6 +81,17 @@ public class RelayEventListener implements Listener {
             return order.stream().skip(order.size() - 1).findFirst().orElse(null);
         }
 
+        void pushPassedCheckPoint(@Nonnull Player player) {
+            if (!contains(player)) {
+                return;
+            }
+            passedCheckPoint.add(player);
+        }
+
+        boolean isRunnerPassedCheckPoint(@Nonnull Player player) {
+            return passedCheckPoint.stream().anyMatch(it -> it.getUniqueId().equals(player.getUniqueId()));
+        }
+
         void clearOrder() {
             order.clear();
         }
@@ -87,15 +99,48 @@ public class RelayEventListener implements Listener {
         int getOrderLength() {
             return order.size();
         }
+
+        void clearPassedCheckPoint() {
+            passedCheckPoint.clear();
+        }
     }
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
 
     static class Race {
         final int numberOfLaps;
+        final List<TeamColor> order = new LinkedList<>();
+        final Set<TeamColor> participants = new HashSet<>();
 
         Race(int numberOfLaps) {
             this.numberOfLaps = numberOfLaps;
+        }
+
+        int getTeamCount() {
+            return participants.size();
+        }
+
+        void add(TeamColor color) {
+            participants.add(color);
+        }
+
+        boolean isActive(TeamColor color) {
+            return participants.contains(color);
+        }
+
+        void remove(TeamColor color) {
+            participants.remove(color);
+        }
+
+        void pushOrder(TeamColor teamColor) {
+            if (!participants.contains(teamColor)) {
+                return;
+            }
+            order.add(teamColor);
+        }
+
+        boolean isAlreadyFinished(TeamColor color) {
+            return order.contains(color);
         }
     }
 
@@ -226,12 +271,18 @@ public class RelayEventListener implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
-        if (_status != Status.RUN) {
+        if (_status != Status.RUN || race == null) {
             return;
         }
         Player player = e.getPlayer();
         TeamColor color = getCurrentTeam(player);
         if (color == null) {
+            return;
+        }
+        if (!race.isActive(color)) {
+            return;
+        }
+        if (race.isAlreadyFinished(color)) {
             return;
         }
         Team team = ensureTeam(color);
@@ -248,11 +299,58 @@ public class RelayEventListener implements Listener {
         if (!outer.contains(location) || inner.contains(location)) {
             broadcastUnofficial(ChatColor.RED + "%sの%sがコースから逸脱しました。失格とします", ToColoredString(color), player.getName());
             clearBatons(player.getName());
+            race.remove(color);
 
-            if (getPlayerCount() < 2) {
-                setStatus(Status.IDLE);
-            } else {
+            if (race.getTeamCount() == 0) {
+                // 唯一のチームが失格になった. 結果も表示できないので AWAIT_START に戻す
                 setStatus(Status.AWAIT_START);
+            }
+
+            return;
+        }
+
+        // バトンパス領域の手前 8 ブロック
+        BoundingBox checkPoint = new BoundingBox(xd(25), yd(-61), zd(-179), xd(33), yd(-58), zd(-170));
+
+        // ゴールラインから 8 ブロック
+        BoundingBox goal = new BoundingBox(xd(41), yd(-61), zd(-179), xd(49), yd(-58), zd(-170));
+
+        if (!team.isRunnerPassedCheckPoint(player) && checkPoint.contains(location)) {
+            team.pushPassedCheckPoint(player);
+        }
+
+        if (team.getOrderLength() >= race.numberOfLaps && team.isRunnerPassedCheckPoint(player) && goal.contains(location)) {
+            // チェックポイント通過済みの最終走者がゴールを通過した
+            race.pushOrder(color);
+            broadcast("%s GOAL !!", ToColoredString(color));
+
+            // 全てのチームがゴールしたら結果を表示して終了
+            AtomicBoolean allTeamsFinished = new AtomicBoolean(true);
+            teams.forEach((tc, c) -> {
+                if (!race.isActive(tc)) {
+                    return;
+                }
+                if (!race.isAlreadyFinished(tc)) {
+                    allTeamsFinished.set(false);
+                }
+            });
+            if (allTeamsFinished.get()) {
+                broadcast("");
+                broadcast("-----------------------");
+                broadcast("[結果発表]");
+                for (int i = 0; i < race.order.size(); i++) {
+                    TeamColor c = race.order.get(i);
+                    broadcast("%d位 : %s", i + 1, ToColoredString(c));
+                }
+                broadcast("-----------------------");
+                broadcast("");
+                race = null;
+                teams.forEach((tc, t) -> {
+                    t.clearParticipants();
+                    t.clearOrder();
+                    t.clearPassedCheckPoint();
+                });
+                setStatus(Status.IDLE);
             }
         }
     }
@@ -377,7 +475,7 @@ public class RelayEventListener implements Listener {
             if (count < 1) {
                 return;
             } else if (count == 1) {
-                broadcastUnofficial(ChatColor.RED + "[リレー] 参加者が足りません");
+                broadcastUnofficial(ChatColor.RED + "[リレー] %sの参加者が足りません", ToColoredString(color));
             } else {
                 canStart.set(true);
             }
@@ -484,6 +582,7 @@ public class RelayEventListener implements Listener {
                 broadcast("%s 第一走者 : %sがスタート！", ToColoredString(teamColor), runner.getName());
                 Team team = ensureTeam(teamColor);
                 team.pushRunner(runner);
+                race.add(teamColor);
             });
             setStatus(Status.RUN);
             return true;
