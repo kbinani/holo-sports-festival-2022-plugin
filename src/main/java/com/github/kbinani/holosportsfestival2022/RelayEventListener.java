@@ -16,10 +16,12 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,6 +55,10 @@ public class RelayEventListener implements Listener {
 
         void remove(@Nonnull Player player) {
             participants.removeIf(it -> it.getUniqueId().equals(player.getUniqueId()));
+        }
+
+        void clearParticipants() {
+            participants.clear();
         }
 
         boolean contains(@Nonnull Player player) {
@@ -214,6 +220,40 @@ public class RelayEventListener implements Listener {
             setStatus(Status.AWAIT_START);
         } else {
             setStatus(Status.IDLE);
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerMove(PlayerMoveEvent e) {
+        if (_status != Status.RUN) {
+            return;
+        }
+        Player player = e.getPlayer();
+        TeamColor color = getCurrentTeam(player);
+        if (color == null) {
+            return;
+        }
+        Team team = ensureTeam(color);
+        Player runner = team.getCurrentRunner();
+        if (runner == null) {
+            return;
+        }
+        if (!runner.getUniqueId().equals(player.getUniqueId())) {
+            return;
+        }
+        BoundingBox outer = getFieldOuterArea();
+        BoundingBox inner = getFieldInnerArea();
+        Vector location = player.getLocation().toVector();
+        if (!outer.contains(location) || inner.contains(location)) {
+            broadcastUnofficial(ChatColor.RED + "%sの%sがコースから逸脱しました。失格とします", ToColoredString(color), player.getName());
+            clearBatons(player.getName());
+
+            if (getPlayerCount() < 2) {
+                setStatus(Status.IDLE);
+            } else {
+                setStatus(Status.AWAIT_START);
+            }
         }
     }
 
@@ -533,6 +573,14 @@ public class RelayEventListener implements Listener {
     private BoundingBox getBatonPassingArea() {
         // 広めに. 進行方向手前 8 ブロック, 進行方向に 16 ブロック
         return new BoundingBox(xd(36), yd(-61), zd(-179), xd(56), yd(-58), zd(-170));
+    }
+
+    private BoundingBox getFieldOuterArea() {
+        return new BoundingBox(xd(1), yd(-62), zd(-234), xd(73), yd(-54), zd(-170));
+    }
+
+    private BoundingBox getFieldInnerArea() {
+        return new BoundingBox(xd(10.5), yd(-62), zd(-224.5), xd(63.5), yd(-54), zd(-179.5));
     }
 
     private void useTeams(BiConsumer<TeamColor, Team> callback) {
