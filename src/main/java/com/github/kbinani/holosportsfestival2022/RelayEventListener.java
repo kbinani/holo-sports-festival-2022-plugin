@@ -107,13 +107,13 @@ public class RelayEventListener implements Listener {
         switch (_status) {
             case IDLE:
                 resetField();
-                clearItems("@a");
+                clearBatons("@a");
                 race = null;
                 break;
             case AWAIT_START:
                 setEnableStartGate(true);
                 setEnableCornerFence(true);
-                clearItems("@a");
+                clearBatons("@a");
                 break;
             case COUNTDOWN:
                 break;
@@ -309,14 +309,18 @@ public class RelayEventListener implements Listener {
         Team team = ensureTeam(color);
         team.remove(player);
         broadcast("[リレー] %sがエントリー解除しました", player.getName());
-        clearItems(player.getName());
+        clearBatons(player.getName());
 
         // チーム競技なので人数が減ったら強制的にノーコンテストにする
         setStatus(Status.IDLE);
     }
 
-    private void clearItems(String selector) {
+    private void clearBatons(String selector) {
         execute("clear %s blaze_rod{tag:{%s:1b}}", selector, kItemTag);
+    }
+
+    private void giveBaton(Player player) {
+        execute("give %s blaze_rod{tag:{%s:1b},display:{Name:'[{\"text\":\"バトン\"}]'}}", player.getName(), kItemTag);
     }
 
     private void onClickStart() {
@@ -463,10 +467,16 @@ public class RelayEventListener implements Listener {
         if (!(damagerEntity instanceof Player) || !(entity instanceof Player)) {
             return;
         }
-        BoundingBox box = getBounds();
+
+        //TODO: バトンで殴ったかどうか確認するのが良さそう
+
+        //TODO: 最終走者だったらこの処理要らない
+
+        // 両者がバトンパス領域に入っているかどうか確かめる
+        BoundingBox box = getBatonPassingArea();
         Player from = (Player) damagerEntity;
         Player to = (Player) entity;
-        if (!isInField(from) || !isInField(to)) {
+        if (!box.contains(from.getLocation().toVector()) || !box.contains(to.getLocation().toVector())) {
             return;
         }
         TeamColor teamColor = getCurrentTeam(from);
@@ -479,8 +489,21 @@ public class RelayEventListener implements Listener {
                 return;
             }
         }
-        //TODO: バトンで殴ったかどうか確認するのが良さそう
 
+        // 殴った人がチームの現在の走者かどうかを確かめる
+        Team team = ensureTeam(teamColor);
+        Player currentRunner = team.getCurrentRunner();
+        if (currentRunner == null) {
+            return;
+        }
+        if (!currentRunner.getUniqueId().equals(from.getUniqueId())) {
+            return;
+        }
+
+        // バトンパスする
+        team.pushRunner(to);
+        clearBatons(from.getName());
+        giveBaton(to);
     }
 
     private boolean isInField(Player player) {
@@ -497,6 +520,11 @@ public class RelayEventListener implements Listener {
 
     private BoundingBox getBounds() {
         return new BoundingBox(x(-2), y(-61), z(-241), x(82), y(384), z(-115));
+    }
+
+    private BoundingBox getBatonPassingArea() {
+        // 広めに. 進行方向手前 8 ブロック, 進行方向に 16 ブロック
+        return new BoundingBox(xd(36), yd(-61), zd(-179), xd(56), yd(-58), zd(-170));
     }
 
     private void useTeams(BiConsumer<TeamColor, Team> callback) {
