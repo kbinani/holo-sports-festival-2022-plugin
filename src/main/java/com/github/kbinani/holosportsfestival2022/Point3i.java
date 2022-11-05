@@ -19,6 +19,12 @@ class Point3i {
         this.z = l.getBlockZ();
     }
 
+    Point3i(Point3i other) {
+        this.x = other.x;
+        this.y = other.y;
+        this.z = other.z;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null) {
