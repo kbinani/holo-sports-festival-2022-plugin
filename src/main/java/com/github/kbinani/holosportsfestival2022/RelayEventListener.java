@@ -284,8 +284,12 @@ public class RelayEventListener implements Listener {
         }
         BoundingBox outer = offset(kFieldOuterArea);
         BoundingBox inner = offset(kFieldInnerArea);
+        BoundingBox eastWhiteLine = offset(kFieldInnerPoolArea);
+        BoundingBox westWhiteLine = offset(kFieldOuterPoolArea);
+        BoundingBox northWhiteLine = offset(kFieldOuterJumpArea);
+        BoundingBox southWhiteLine = offset(kFieldInnerJumpArea);
         Vector location = player.getLocation().toVector();
-        if (!outer.contains(location) || inner.contains(location)) {
+        if (!outer.contains(location) || inner.contains(location) || eastWhiteLine.contains(location) || westWhiteLine.contains(location) || northWhiteLine.contains(location) || southWhiteLine.contains(location)) {
             broadcastUnofficial(ChatColor.RED + "%sの%sがコースから逸脱しました。失格とします", ToColoredString(color), player.getName());
             clearBatons(player.getName());
             race.remove(color);
@@ -823,8 +827,16 @@ public class RelayEventListener implements Listener {
     private static final BoundingBox kBatonPassingArea = new BoundingBox(36, -61, -179, 56, -58, -170);
     // 競技場の外側の白線
     private static final BoundingBox kFieldOuterArea = new BoundingBox(1, -62, -234, 73, -54, -170);
+    // 水槽の外側の白線(西). 侵入不可にする
+    private static final BoundingBox kFieldOuterPoolArea = new BoundingBox(1, -60, -201, 2, -58, -189);
     // 競技場の内側の白線
     private static final BoundingBox kFieldInnerArea = new BoundingBox(10.5, -62, -224.5, 63.5, -54, -179.5);
+    // 水槽の内側の白線(東). 侵入不可にする
+    private static final BoundingBox kFieldInnerPoolArea = new BoundingBox(9, -60, -201, 10, -58, -189);
+    // 水槽の外側の白線(北). 進入不可にする
+    private static final BoundingBox kFieldOuterJumpArea = new BoundingBox(12, -60, -234, 30, -54, -233);
+    // 水槽の外側の白線(南). 進入不可にする
+    private static final BoundingBox kFieldInnerJumpArea = new BoundingBox(12, -60, -226, 30, -54, -225);
     // ゴール手前のチェックポイント. バトンパス領域から進行方向手前に 8 ブロック
     private static final BoundingBox kPreGoalCheckPointArea = new BoundingBox(25, -61, -179, 33, -58, -170);
     // ゴール判定を行う範囲. ゴールラインから進行方向に 8 ブロック
