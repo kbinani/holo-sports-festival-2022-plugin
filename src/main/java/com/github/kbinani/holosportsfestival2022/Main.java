@@ -1,5 +1,6 @@
 package com.github.kbinani.holosportsfestival2022;
 
+import com.github.kbinani.holosportsfestival2022.mob.MobFightEventListener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 

@@ -3,11 +3,11 @@ package com.github.kbinani.holosportsfestival2022;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 
-class Loader {
+public class Loader {
     private Loader() {
     }
 
-    static void LoadChunk(World world, BoundingBox box) {
+    public static void LoadChunk(World world, BoundingBox box) {
         int cx0 = ((int) Math.floor(box.getMinX())) >> 4;
         int cz0 = ((int) Math.floor(box.getMinZ())) >> 4;
         int cx1 = ((int) Math.ceil(box.getMaxX())) >> 4;

@@ -2,24 +2,24 @@ package com.github.kbinani.holosportsfestival2022;
 
 import org.bukkit.Location;
 
-class Point3i {
-    int x;
-    int y;
-    int z;
+public class Point3i {
+    public int x;
+    public int y;
+    public int z;
 
-    Point3i(int x, int y, int z) {
+    public Point3i(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
-    Point3i(Location l) {
+    public Point3i(Location l) {
         this.x = l.getBlockX();
         this.y = l.getBlockY();
         this.z = l.getBlockZ();
     }
 
-    Point3i(Point3i other) {
+    public Point3i(Point3i other) {
         this.x = other.x;
         this.y = other.y;
         this.z = other.z;
