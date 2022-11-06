@@ -17,7 +17,7 @@ class OceanMonumentStage extends Stage {
     @Override
     public void setExitOpened(boolean opened) {
         fill(x(0), y(-59), z(-301), x(0), y(-58), z(-301), opened ? "warped_wall_sign[facing=east]" : "bedrock");
-        fill(x(1), y(-59), z(-301), x(0), y(-58), z(-301), opened ? "warped_wall_sign[facing=west]" : "bedrock");
+        fill(x(1), y(-59), z(-301), x(1), y(-58), z(-301), opened ? "warped_wall_sign[facing=west]" : "bedrock");
     }
 
     @Override
