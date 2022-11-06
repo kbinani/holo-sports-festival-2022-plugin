@@ -14,7 +14,7 @@ public class Countdown {
   private Countdown() {
   }
 
-  static void Then(BoundingBox box, JavaPlugin plugin, Predicate<Integer> countdown, Supplier<Boolean> task) {
+  public static void Then(BoundingBox box, JavaPlugin plugin, Predicate<Integer> countdown, Supplier<Boolean> task) {
     Server server = plugin.getServer();
     BukkitScheduler scheduler = server.getScheduler();
 

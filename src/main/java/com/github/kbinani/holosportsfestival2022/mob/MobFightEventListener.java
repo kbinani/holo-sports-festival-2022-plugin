@@ -1,5 +1,6 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
+import com.github.kbinani.holosportsfestival2022.Countdown;
 import com.github.kbinani.holosportsfestival2022.Loader;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.WallSign;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -45,8 +47,16 @@ public class MobFightEventListener implements Listener, StageDelegate {
             case IDLE:
                 resetField();
                 clearItem("@a");
+                for (Level level : levels.values()) {
+                    level.reset();
+                }
+                //TODO: ここでステージ内にいるプレイヤーを入り口に戻すのが良さそう
                 break;
             case AWAIT_COUNTDOWN:
+                for (Level level : levels.values()) {
+                    level.reset();
+                }
+                //TODO: ここでステージ内にいるプレイヤーを入り口に戻すのが良さそう
                 break;
             case COUNTDOWN:
                 break;
@@ -100,6 +110,19 @@ public class MobFightEventListener implements Listener, StageDelegate {
         }
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onBlockRedstoneEvent(BlockRedstoneEvent e) {
+        if (e.getOldCurrent() != 0 || e.getNewCurrent() <= 0) {
+            return;
+        }
+
+        Point3i location = new Point3i(e.getBlock().getLocation());
+        if (location.equals(offset(kButtonYellowStart)) || location.equals(offset(kButtonRedStart)) || location.equals(offset(kButtonWhiteStart))) {
+            onClickStart();
+        }
+    }
+
     void onClickJoin(Player player, TeamColor color, Role role) {
         if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
@@ -146,6 +169,50 @@ public class MobFightEventListener implements Listener, StageDelegate {
             setStatus(Status.IDLE);
         }
         broadcast("[MOB討伐レース] %sがエントリー解除しました", player.getName());
+    }
+
+    void onClickStart() {
+        if (_status != Status.AWAIT_COUNTDOWN) {
+            return;
+        }
+        if (getPlayerCount() < 1) {
+            // ここには来ないはず
+            broadcastUnofficial(ChatColor.RED + "参加者が見つかりません");
+            return;
+        }
+        broadcast("");
+        broadcast("-----------------------");
+        Race race = new Race();
+        for (Map.Entry<TeamColor, Team> it : teams.entrySet()) {
+            TeamColor color = it.getKey();
+            Team team = it.getValue();
+            int count = team.getPlayerCount();
+            if (count > 0) {
+                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count);
+                race.add(color);
+            } else {
+                broadcast("%sの参加者が見つかりません", ToString(color));
+            }
+        }
+        broadcast("-----------------------");
+        broadcast("");
+        broadcast("[MOB討伐レース] 競技を開始します！");
+        broadcast("");
+        setStatus(Status.COUNTDOWN);
+        Countdown.Then(offset(kAnnounceBounds), owner, (count) -> _status == Status.COUNTDOWN, () -> {
+            if (_status != Status.COUNTDOWN) {
+                return false;
+            }
+            this.race = race;
+            for (TeamColor color : race.participants) {
+                Level level = ensureLevel(color);
+                Stage stage = level.getStage(0);
+                stage.setEntranceOpened(true);
+                stage.setExitOpened(false);
+            }
+            setStatus(Status.RUN);
+            return true;
+        });
     }
 
     int getPlayerCount() {
@@ -196,7 +263,7 @@ public class MobFightEventListener implements Listener, StageDelegate {
 
     private void resetField() {
         overworld().ifPresent(world -> {
-            Loader.LoadChunk(world, offset(kBounds));
+            Loader.LoadChunk(world, offset(kAnnounceBounds));
         });
 
         WallSign.Place(offset(kButtonWhiteLeave), BlockFace.SOUTH, "エントリー解除");
@@ -281,6 +348,18 @@ public class MobFightEventListener implements Listener, StageDelegate {
         }
     }
 
+    static String ToString(TeamColor color) {
+        switch (color) {
+            case RED:
+                return "TEAM RED";
+            case WHITE:
+                return "TEAM WHITE";
+            case YELLOW:
+                return "TEAM YELLOW";
+        }
+        return "";
+    }
+
     static String ToColoredString(TeamColor color) {
         switch (color) {
             case RED:
@@ -305,7 +384,7 @@ public class MobFightEventListener implements Listener, StageDelegate {
 
     private static final String kItemTag = "hololive_sports_festival_2022_mob";
 
-    private static final BoundingBox kBounds = new BoundingBox(-26, -61, -424, 79, -19, -244);
+    private static final BoundingBox kAnnounceBounds = new BoundingBox(-26, -61, -424, 79, -19, -244);
 
     private static final TeamColor[] kColors = new TeamColor[]{TeamColor.RED, TeamColor.YELLOW, TeamColor.WHITE};
 
@@ -320,4 +399,8 @@ public class MobFightEventListener implements Listener, StageDelegate {
     private static final Point3i kButtonYellowLeave = new Point3i(-9, -59, -253);
     private static final Point3i kButtonYellowJoinArrow = new Point3i(-7, -59, -253);
     private static final Point3i kButtonYellowJoinSword = new Point3i(-5, -59, -253);
+
+    private static final Point3i kButtonYellowStart = new Point3i(-3, -58, -254);
+    private static final Point3i kButtonRedStart = new Point3i(28, -58, -254);
+    private static final Point3i kButtonWhiteStart = new Point3i(59, -58, -254);
 }

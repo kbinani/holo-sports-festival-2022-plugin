@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 class Race {
-    private final Set<TeamColor> participants = new HashSet<>();
+    final Set<TeamColor> participants = new HashSet<>();
 
     void add(TeamColor color) {
         participants.add(color);

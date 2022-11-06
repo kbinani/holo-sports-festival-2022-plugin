@@ -1,6 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import java.util.LinkedList;
@@ -8,6 +9,7 @@ import java.util.List;
 
 class Level {
     private final List<Stage> stages;
+    private final BoundingBox bounds;
 
     // エントリー解除看板が貼ってあるブロックの座標を原点としてステージ群を初期化する
     Level(Point3i origin, @Nonnull StageDelegate delegate) {
@@ -25,9 +27,28 @@ class Level {
         this.stages.add(new ShootingStage(new Point3i(origin.x, origin.y, origin.z - 122), delegate));
         // (-10, -60, -412)
         this.stages.add(new FinalStage(new Point3i(origin.x - 1, origin.y - 1, origin.z - 158), delegate));
+
+        this.bounds = new BoundingBox();
         for (Stage stage : stages) {
+            BoundingBox box = stage.getBounds();
+            this.bounds.union(box);
             stage.setEntranceOpened(false);
             stage.setExitOpened(false);
+        }
+    }
+
+    int getStageCount() {
+        return stages.size();
+    }
+
+    Stage getStage(int index) {
+        return stages.get(index);
+    }
+
+    void reset() {
+        for (Stage stage : stages) {
+            stage.setExitOpened(false);
+            stage.setEntranceOpened(false);
         }
     }
 }
