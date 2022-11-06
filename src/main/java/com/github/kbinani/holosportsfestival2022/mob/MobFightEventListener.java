@@ -8,15 +8,20 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class MobFightEventListener implements Listener, StageDelegate {
     private final JavaPlugin owner;
     private boolean initialized = false;
+    private final Map<TeamColor, Level> levels = new HashMap<>();
 
     public MobFightEventListener(JavaPlugin owner) {
         this.owner = owner;
@@ -30,6 +35,22 @@ public class MobFightEventListener implements Listener, StageDelegate {
         }
         initialized = true;
         resetField();
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onEntityDeathEvent(EntityDeathEvent e) {
+
+    }
+
+    @Nonnull
+    Level ensureLevel(TeamColor color) {
+        Level level = levels.get(color);
+        if (level == null) {
+            level = newLevel(color);
+            levels.put(color, level);
+        }
+        return level;
     }
 
     private void resetField() {
@@ -50,7 +71,7 @@ public class MobFightEventListener implements Listener, StageDelegate {
         WallSign.Place(offset(kButtonYellowJoinSword), BlockFace.SOUTH, "黃組", "エントリー", "（剣）");
 
         for (TeamColor tc : kColors) {
-            newLevel(tc);
+            ensureLevel(tc);
         }
     }
 
