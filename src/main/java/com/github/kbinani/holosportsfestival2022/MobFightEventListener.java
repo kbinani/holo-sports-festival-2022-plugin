@@ -28,7 +28,6 @@ public class MobFightEventListener implements Listener {
             return;
         }
         initialized = true;
-        //TODO: チャンクを読み込む処理
         resetField();
     }
 
@@ -50,7 +49,7 @@ public class MobFightEventListener implements Listener {
         WallSign.Place(offset(kButtonYellowJoinSword), BlockFace.SOUTH, "黃組", "エントリー", "（剣）");
 
         for (TeamColor tc : kColors) {
-            Level level = newLevel(tc);
+            newLevel(tc);
         }
     }
 
