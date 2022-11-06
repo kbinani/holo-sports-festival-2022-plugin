@@ -30,6 +30,7 @@ public class MobFightEventListener implements Listener, StageDelegate {
     private final Map<TeamColor, Level> levels = new HashMap<>();
     private Map<TeamColor, Team> teams = new HashMap<>();
     private Status _status = Status.IDLE;
+    private @Nullable Race race;
 
     public MobFightEventListener(JavaPlugin owner) {
         this.owner = owner;
