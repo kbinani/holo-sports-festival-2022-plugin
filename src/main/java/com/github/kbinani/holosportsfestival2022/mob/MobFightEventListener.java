@@ -20,7 +20,9 @@ import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class MobFightEventListener implements Listener, StageDelegate {
     private final JavaPlugin owner;
@@ -238,47 +240,6 @@ public class MobFightEventListener implements Listener, StageDelegate {
         }
     }
 
-    static class Team {
-        private final List<Player> arrow = new LinkedList<>();
-        private final List<Player> sword = new LinkedList<>();
-
-        void add(Player player, Role role) {
-            if (getCurrentRole(player) != null) {
-                return;
-            }
-            switch (role) {
-                case ARROW:
-                    if (arrow.size() > 0) {
-                        return;
-                    }
-                    arrow.add(player);
-                    break;
-                case SWORD:
-                    if (sword.size() > 2) {
-                        return;
-                    }
-                    sword.add(player);
-                    break;
-            }
-        }
-
-        void remove(Player player) {
-            arrow.remove(player);
-            sword.remove(player);
-        }
-
-        @Nullable
-        Role getCurrentRole(Player player) {
-            if (arrow.stream().anyMatch(it -> it.getUniqueId().equals(player.getUniqueId()))) {
-                return Role.ARROW;
-            }
-            if (sword.stream().anyMatch(it -> it.getUniqueId().equals(player.getUniqueId()))) {
-                return Role.SWORD;
-            }
-            return null;
-        }
-    }
-
     static String ToColoredString(TeamColor color) {
         switch (color) {
             case RED:
@@ -299,23 +260,6 @@ public class MobFightEventListener implements Listener, StageDelegate {
                 return "（剣）";
         }
         return "";
-    }
-
-    enum TeamColor {
-        RED,
-        YELLOW,
-        WHITE,
-    }
-
-    enum Role {
-        ARROW,
-        SWORD,
-    }
-
-    enum Status {
-        IDLE,
-        COUNTDOWN,
-        RUN,
     }
 
     private static final BoundingBox kBounds = new BoundingBox(-26, -61, -424, 79, -19, -244);
