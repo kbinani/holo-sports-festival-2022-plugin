@@ -301,6 +301,43 @@ public class MobFightEventListener implements Listener {
         }
     }
 
+    class FinalStage extends Stage {
+        FinalStage(Point3i origin) {
+            super(origin);
+        }
+
+        @Override
+        public void setEntranceOpened(boolean opened) {
+        }
+
+        @Override
+        public void setExitOpened(boolean opened) {
+            fill(x(-2), y(-59), z(-412), x(3), y(-57), z(-412), opened ? "air" : "iron_bars");
+        }
+
+        @Override
+        public Point3i getSize() {
+            return new Point3i(32, 21, 55);
+        }
+
+        // 黄色チーム用 final ステージの原点: (-10, -60, -412)
+
+        private int x(int x) {
+            // 黄色ステージの即値を使って実装するのでオフセットする.
+            return origin.x + (x - (-10));
+        }
+
+        private int y(int y) {
+            // 黄色ステージの即値を使って実装するのでオフセットする.
+            return origin.y + (y - (-60));
+        }
+
+        private int z(int z) {
+            // 黄色ステージの即値を使って実装するのでオフセットする.
+            return origin.z + (z - (-412));
+        }
+    }
+
     class Level {
         private final List<Stage> stages;
 
@@ -318,6 +355,8 @@ public class MobFightEventListener implements Listener {
             this.stages.add(new WoodlandMansionStage(new Point3i(origin.x, origin.y, origin.z - 97)));
             // (-9, -59, -376)
             this.stages.add(new ShootingStage(new Point3i(origin.x, origin.y, origin.z - 122)));
+            // (-10, -60, -412)
+            this.stages.add(new FinalStage(new Point3i(origin.x - 1, origin.y - 1, origin.z - 158)));
             for (Stage stage : stages) {
                 stage.setEntranceOpened(false);
                 stage.setExitOpened(false);
