@@ -10,12 +10,12 @@ class WoodlandMansionStage extends Stage {
     }
 
     @Override
-    public void setEntranceOpened(boolean opened) {
+    protected void onEntranceOpened(boolean opened) {
         fill(x(1), y(-59), z(-330), x(0), y(-58), z(-330), opened ? "air" : "bedrock");
     }
 
     @Override
-    public void setExitOpened(boolean opened) {
+    protected void onExitOpened(boolean opened) {
         fill(x(1), y(-59), z(-352), x(0), y(-58), z(-352), opened ? "air" : "bedrock");
     }
 

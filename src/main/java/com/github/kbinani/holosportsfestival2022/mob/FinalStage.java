@@ -10,11 +10,11 @@ class FinalStage extends Stage {
     }
 
     @Override
-    public void setEntranceOpened(boolean opened) {
+    protected void onEntranceOpened(boolean opened) {
     }
 
     @Override
-    public void setExitOpened(boolean opened) {
+    protected void onExitOpened(boolean opened) {
         fill(x(-2), y(-59), z(-412), x(3), y(-57), z(-412), opened ? "air" : "iron_bars");
     }
 

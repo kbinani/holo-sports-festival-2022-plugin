@@ -8,6 +8,8 @@ import javax.annotation.Nonnull;
 public abstract class Stage {
     protected final Point3i origin;
     protected final StageDelegate delegate;
+    private Boolean entranceOpened = null;
+    private Boolean exitOpened = null;
 
     // ステージ室内の北西下の角の座標を指定してステージを初期化する
     Stage(Point3i origin, @Nonnull StageDelegate delegate) {
@@ -15,11 +17,26 @@ public abstract class Stage {
         this.delegate = delegate;
     }
 
-    // 入り口を開閉する
-    abstract void setEntranceOpened(boolean opened);
+    void setEntranceOpened(boolean open) {
+        if (entranceOpened == null || entranceOpened != open) {
+            entranceOpened = open;
+            onEntranceOpened(open);
+        }
+    }
 
-    // 出口を開閉する
-    abstract void setExitOpened(boolean opened);
+    void setExitOpened(boolean open) {
+        if (exitOpened == null || exitOpened != open) {
+            exitOpened = open;
+            onExitOpened(open);
+        }
+    }
+
+
+    // 入り口が開閉された時の処理
+    protected abstract void onEntranceOpened(boolean opened);
+
+    // 出口が開閉された時の処理
+    protected abstract void onExitOpened(boolean opened);
 
     // ステージ室内の内法寸法を返す
     abstract Point3i getSize();

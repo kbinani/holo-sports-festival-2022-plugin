@@ -10,12 +10,12 @@ class NetherStage extends Stage {
     }
 
     @Override
-    public void setEntranceOpened(boolean opened) {
+    protected void onEntranceOpened(boolean opened) {
         fill(x(1), y(-59), z(-305), x(0), y(-58), z(-305), opened ? "air" : "bedrock");
     }
 
     @Override
-    public void setExitOpened(boolean opened) {
+    protected void onExitOpened(boolean opened) {
         fill(x(1), y(-59), z(-326), x(0), y(-58), z(-326), opened ? "air" : "bedrock");
     }
 

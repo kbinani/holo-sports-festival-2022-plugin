@@ -10,12 +10,12 @@ class PlainsStage extends Stage {
     }
 
     @Override
-    public void setEntranceOpened(boolean opened) {
+    protected void onEntranceOpened(boolean opened) {
         fill(x(0), y(-59), z(-255), x(1), y(-58), z(-255), opened ? "air" : "bedrock");
     }
 
     @Override
-    public void setExitOpened(boolean opened) {
+    protected void onExitOpened(boolean opened) {
         fill(x(1), y(-59), z(-276), x(0), y(-58), z(-276), opened ? "air" : "bedrock");
         fill(x(1), y(-48), z(-276), x(0), y(-47), z(-276), opened ? "air" : "bedrock");
     }
