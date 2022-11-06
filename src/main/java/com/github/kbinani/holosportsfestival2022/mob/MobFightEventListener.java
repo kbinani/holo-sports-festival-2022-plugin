@@ -3,28 +3,50 @@ package com.github.kbinani.holosportsfestival2022.mob;
 import com.github.kbinani.holosportsfestival2022.Loader;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.WallSign;
+import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import javax.annotation.Nullable;
+import java.util.*;
 
 public class MobFightEventListener implements Listener, StageDelegate {
     private final JavaPlugin owner;
     private boolean initialized = false;
     private final Map<TeamColor, Level> levels = new HashMap<>();
+    private Map<TeamColor, Team> teams = new HashMap<>();
+    private Status _status = Status.IDLE;
 
     public MobFightEventListener(JavaPlugin owner) {
         this.owner = owner;
+    }
+
+    void setStatus(Status s) {
+        if (_status == s) {
+            return;
+        }
+        _status = s;
+        switch (_status) {
+            case IDLE:
+                resetField();
+                break;
+            case COUNTDOWN:
+                break;
+            case RUN:
+                break;
+        }
     }
 
     @EventHandler
@@ -43,6 +65,60 @@ public class MobFightEventListener implements Listener, StageDelegate {
 
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerInteract(PlayerInteractEvent e) {
+        Player player = e.getPlayer();
+        Block block = e.getClickedBlock();
+        if (block == null) {
+            return;
+        }
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        Point3i location = new Point3i(block.getLocation());
+        if (location.equals(offset(kButtonYellowJoinArrow))) {
+            onClickJoin(player, TeamColor.YELLOW, Role.ARROW);
+        } else if (location.equals(offset(kButtonYellowJoinSword))) {
+            onClickJoin(player, TeamColor.YELLOW, Role.SWORD);
+        } else if (location.equals(offset(kButtonRedJoinArrow))) {
+            onClickJoin(player, TeamColor.RED, Role.ARROW);
+        } else if (location.equals(offset(kButtonRedJoinSword))) {
+            onClickJoin(player, TeamColor.RED, Role.SWORD);
+        } else if (location.equals(offset(kButtonWhiteJoinArrow))) {
+            onClickJoin(player, TeamColor.WHITE, Role.ARROW);
+        } else if (location.equals(offset(kButtonWhiteJoinSword))) {
+            onClickJoin(player, TeamColor.WHITE, Role.SWORD);
+        } else if (location.equals(offset(kButtonYellowLeave)) || location.equals(offset(kButtonRedLeave)) || location.equals(offset(kButtonWhiteLeave))) {
+            onClickLeave(player);
+        }
+    }
+
+    void onClickJoin(Player player, TeamColor color, Role role) {
+        if (_status != Status.IDLE) {
+            return;
+        }
+        Participation current = getCurrentParticipation(player);
+        if (current != null) {
+            broadcast("[MOB討伐レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(current.color));
+            return;
+        }
+        Team team = ensureTeam(color);
+        team.add(player, role);
+        broadcast("[MOB討伐レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role));
+    }
+
+    void onClickLeave(Player player) {
+        Participation current = getCurrentParticipation(player);
+        if (current == null) {
+            return;
+        }
+        Team team = ensureTeam(current.color);
+        team.remove(player);
+        broadcast("[MOB討伐レース] %sがエントリー解除しました", player.getName());
+        setStatus(Status.IDLE);
+    }
+
     @Nonnull
     Level ensureLevel(TeamColor color) {
         Level level = levels.get(color);
@@ -51,6 +127,28 @@ public class MobFightEventListener implements Listener, StageDelegate {
             levels.put(color, level);
         }
         return level;
+    }
+
+    @Nonnull
+    Team ensureTeam(TeamColor color) {
+        Team team = teams.get(color);
+        if (team == null) {
+            team = new Team();
+            teams.put(color, team);
+        }
+        return team;
+    }
+
+    @Nullable
+    Participation getCurrentParticipation(Player player) {
+        for (Map.Entry<TeamColor, Team> it : teams.entrySet()) {
+            Role role = it.getValue().getCurrentRole(player);
+            if (role == null) {
+                continue;
+            }
+            return new Participation(it.getKey(), role);
+        }
+        return null;
     }
 
     private void resetField() {
@@ -121,10 +219,103 @@ public class MobFightEventListener implements Listener, StageDelegate {
         server.dispatchCommand(server.getConsoleSender(), String.format(format, args));
     }
 
+    private void broadcast(String msg, Object... args) {
+        owner.getServer().broadcastMessage(String.format(msg, args));
+    }
+
+    // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
+    private void broadcastUnofficial(String msg, Object... args) {
+        broadcast(msg, args);
+    }
+
+    static class Participation {
+        final TeamColor color;
+        final Role role;
+
+        Participation(TeamColor color, Role role) {
+            this.color = color;
+            this.role = role;
+        }
+    }
+
+    static class Team {
+        private final List<Player> arrow = new LinkedList<>();
+        private final List<Player> sword = new LinkedList<>();
+
+        void add(Player player, Role role) {
+            if (getCurrentRole(player) != null) {
+                return;
+            }
+            switch (role) {
+                case ARROW:
+                    if (arrow.size() > 0) {
+                        return;
+                    }
+                    arrow.add(player);
+                    break;
+                case SWORD:
+                    if (sword.size() > 2) {
+                        return;
+                    }
+                    sword.add(player);
+                    break;
+            }
+        }
+
+        void remove(Player player) {
+            arrow.remove(player);
+            sword.remove(player);
+        }
+
+        @Nullable
+        Role getCurrentRole(Player player) {
+            if (arrow.stream().anyMatch(it -> it.getUniqueId().equals(player.getUniqueId()))) {
+                return Role.ARROW;
+            }
+            if (sword.stream().anyMatch(it -> it.getUniqueId().equals(player.getUniqueId()))) {
+                return Role.SWORD;
+            }
+            return null;
+        }
+    }
+
+    static String ToColoredString(TeamColor color) {
+        switch (color) {
+            case RED:
+                return ChatColor.RED + "TEAM RED" + ChatColor.RESET;
+            case WHITE:
+                return ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
+            case YELLOW:
+                return ChatColor.YELLOW + "TEAM YELLOW" + ChatColor.RESET;
+        }
+        return "";
+    }
+
+    static String ToString(Role role) {
+        switch (role) {
+            case ARROW:
+                return "（弓）";
+            case SWORD:
+                return "（剣）";
+        }
+        return "";
+    }
+
     enum TeamColor {
         RED,
         YELLOW,
         WHITE,
+    }
+
+    enum Role {
+        ARROW,
+        SWORD,
+    }
+
+    enum Status {
+        IDLE,
+        COUNTDOWN,
+        RUN,
     }
 
     private static final BoundingBox kBounds = new BoundingBox(-26, -61, -424, 79, -19, -244);
