@@ -45,5 +45,9 @@ class Team {
         }
         return null;
     }
+
+    int getPlayerCount() {
+        return arrow.size() + sword.size();
+    }
 }
 

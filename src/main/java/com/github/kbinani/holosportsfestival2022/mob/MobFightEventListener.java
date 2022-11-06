@@ -44,6 +44,9 @@ public class MobFightEventListener implements Listener, StageDelegate {
         switch (_status) {
             case IDLE:
                 resetField();
+                clearItem("@a");
+                break;
+            case AWAIT_COUNTDOWN:
                 break;
             case COUNTDOWN:
                 break;
@@ -98,7 +101,7 @@ public class MobFightEventListener implements Listener, StageDelegate {
     }
 
     void onClickJoin(Player player, TeamColor color, Role role) {
-        if (_status != Status.IDLE) {
+        if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
         }
         Participation current = getCurrentParticipation(player);
@@ -109,6 +112,23 @@ public class MobFightEventListener implements Listener, StageDelegate {
         Team team = ensureTeam(color);
         team.add(player, role);
         broadcast("[MOB討伐レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role));
+        execute("give %s iron_leggings{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
+        execute("give %s iron_chestplate{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
+        execute("give %s iron_helmet{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:respiration,lvl:3},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
+        execute("give %s iron_boots{tag:{%s:1b},Enchantments:[{id:depth_strider,lvl:3},{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
+        execute("give %s golden_apple{tag:{%s:1b}} 35", player.getName(), kItemTag);
+        execute("give %s cooked_beef{tag:{%s:1b}} 35", player.getName(), kItemTag);
+        switch (role) {
+            case ARROW:
+                execute("give %s bow{tag:{%s:1b},Enchantments:[{id:infinity,lvl:1},{id:power,lvl:5},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
+                execute("give %s arrow{tag:{%s:1b}}", player.getName(), kItemTag);
+                break;
+            case SWORD:
+                execute("give %s shield{tag:{%s:1b},Enchantments:[{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
+                execute("give %s iron_sword{tag:{%s:1b},Enchantments:[{id:knockback,lvl:1},{id:smite,lvl:5},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
+                break;
+        }
+        setStatus(Status.AWAIT_COUNTDOWN);
     }
 
     void onClickLeave(Player player) {
@@ -118,8 +138,28 @@ public class MobFightEventListener implements Listener, StageDelegate {
         }
         Team team = ensureTeam(current.color);
         team.remove(player);
+
+        if (getPlayerCount() > 0) {
+            clearItem(String.format("@p[name=\"%s\"]", player.getName()));
+            setStatus(Status.AWAIT_COUNTDOWN);
+        } else {
+            setStatus(Status.IDLE);
+        }
         broadcast("[MOB討伐レース] %sがエントリー解除しました", player.getName());
-        setStatus(Status.IDLE);
+    }
+
+    int getPlayerCount() {
+        int count = 0;
+        for (Map.Entry<TeamColor, Team> it : teams.entrySet()) {
+            count += it.getValue().getPlayerCount();
+        }
+        return count;
+    }
+
+    void clearItem(String selector) {
+        for (String item : new String[]{"iron_leggings", "iron_chestplate", "iron_helmet", "iron_boots", "golden_apple", "cooked_beef", "bow", "arrow", "shield", "iron_sword"}) {
+            execute("clear %s %s{tag:{%s:1b}}", selector, item, kItemTag);
+        }
     }
 
     @Nonnull
@@ -262,6 +302,8 @@ public class MobFightEventListener implements Listener, StageDelegate {
         }
         return "";
     }
+
+    private static final String kItemTag = "hololive_sports_festival_2022_mob";
 
     private static final BoundingBox kBounds = new BoundingBox(-26, -61, -424, 79, -19, -244);
 
