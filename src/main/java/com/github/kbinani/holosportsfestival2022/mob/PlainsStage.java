@@ -1,8 +1,11 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import org.bukkit.entity.Entity;
+import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 class PlainsStage extends Stage {
     PlainsStage(Point3i origin, @Nonnull StageDelegate delegate) {
@@ -23,6 +26,43 @@ class PlainsStage extends Stage {
     @Override
     public Point3i getSize() {
         return new Point3i(20, 20, 20);
+    }
+
+    @Override
+    protected int getStepCount() {
+        // 通常
+        // BOSS
+        return 2;
+    }
+
+    @Override
+    Optional<NextStep> consumeDeadMob(Entity entity) {
+        //TODO:
+        return Optional.empty();
+    }
+
+    @Override
+    void summonMobs(int step) {
+        BoundingBox box = getBounds();
+        switch (step) {
+            case 0:
+                // 1F
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(-8), y(-58), z(-264), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(-7), y(-59), z(-271), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(4), y(-59), z(-274), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(10), y(-56), z(-275), kEntityTag);
+                // 2F
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(-4), y(-48), z(-265), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],IsBaby:1b,Tags:[\"%s\"]}", x(-8), y(-48), z(-269), kEntityTag);
+                break;
+            case 1:
+                // 1F
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(0), y(-59), z(-274), kEntityTag);
+                // 2F
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(-8), y(-48), z(-268), kEntityTag);
+                execute("effect give @e[type=zombie,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+                break;
+        }
     }
 
     // 黄色チーム用 plains ステージの原点: (-9, -59, -275)

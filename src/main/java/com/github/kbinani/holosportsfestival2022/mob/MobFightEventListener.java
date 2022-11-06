@@ -209,6 +209,7 @@ public class MobFightEventListener implements Listener, StageDelegate {
                 Stage stage = level.getStage(0);
                 stage.setEntranceOpened(true);
                 stage.setExitOpened(false);
+                stage.summonMobs(0);
             }
             setStatus(Status.RUN);
             return true;
