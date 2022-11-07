@@ -54,7 +54,7 @@ class OceanMonumentStage extends Stage {
             case 1:
                 execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],Tags:[\"%s\"]}", x(-3), y(-59), z(-299), kEntityTag);
                 execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],Tags:[\"%s\"]}", x(5), y(-43), z(-297), kEntityTag);
-                execute("effect give @e[type=zombie,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+                execute("effect give @e[tag=%s,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", kEntityTag, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
                 break;
         }
     }

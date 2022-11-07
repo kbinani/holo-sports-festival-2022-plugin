@@ -57,7 +57,7 @@ class NetherStage extends Stage {
                 execute("summon ghast %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"]}", x(-5), y(-47), z(-312), kEntityTag);
 
                 BoundingBox box = getBounds();
-                execute("effect give @e[type=zombie,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+                execute("effect give @e[tag=%s,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", kEntityTag, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
                 break;
         }
     }

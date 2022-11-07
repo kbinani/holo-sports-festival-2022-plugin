@@ -73,11 +73,12 @@ class PlainsStage extends Stage {
                 execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],IsBaby:1b,Tags:[\"%s\"]}", x(-8), y(-48), z(-269), kEntityTag);
                 break;
             case 1:
+                //TODO: 移動速度と HP のバフが掛かっているはず
                 // 1F
                 execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(0), y(-59), z(-274), kEntityTag);
                 // 2F
                 execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(-8), y(-48), z(-268), kEntityTag);
-                execute("effect give @e[type=zombie,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+                execute("effect give @e[tag=%s,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", kEntityTag, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
                 break;
         }
     }
