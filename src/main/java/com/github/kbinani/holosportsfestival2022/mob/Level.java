@@ -10,29 +10,29 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-class Level {
+class Level implements StageDelegate {
     private final List<Stage> stages;
     private final BoundingBox bounds;
     private Progress progress = Progress.Zero();
-    private final StageDelegate delegate;
+    private final LevelDelegate delegate;
 
     // エントリー解除看板が貼ってあるブロックの座標を原点としてステージ群を初期化する
-    Level(Point3i origin, @Nonnull StageDelegate delegate) {
+    Level(Point3i origin, @Nonnull LevelDelegate delegate) {
         this.delegate = delegate;
         this.stages = new LinkedList<>();
         // origin = (-9, -59, -254) の時:
         // (-9, -59, -275)
-        this.stages.add(new PlainsStage(new Point3i(origin.x, origin.y, origin.z - 21), delegate));
+        this.stages.add(new PlainsStage(new Point3i(origin.x, origin.y, origin.z - 21), this));
 //        // (-9, -59, -300)
-//        this.stages.add(new OceanMonumentStage(new Point3i(origin.x, origin.y, origin.z - 46), delegate));
+//        this.stages.add(new OceanMonumentStage(new Point3i(origin.x, origin.y, origin.z - 46), this));
 //        // (-9, -59, -325)
-//        this.stages.add(new NetherStage(new Point3i(origin.x, origin.y, origin.z - 71), delegate));
+//        this.stages.add(new NetherStage(new Point3i(origin.x, origin.y, origin.z - 71), this));
 //        // (-9, -59, -351)
-//        this.stages.add(new WoodlandMansionStage(new Point3i(origin.x, origin.y, origin.z - 97), delegate));
+//        this.stages.add(new WoodlandMansionStage(new Point3i(origin.x, origin.y, origin.z - 97), this));
 //        // (-9, -59, -376)
-//        this.stages.add(new ShootingStage(new Point3i(origin.x, origin.y, origin.z - 122), delegate));
+//        this.stages.add(new ShootingStage(new Point3i(origin.x, origin.y, origin.z - 122), this));
 //        // (-10, -60, -412)
-//        this.stages.add(new FinalStage(new Point3i(origin.x - 1, origin.y - 1, origin.z - 158), delegate));
+//        this.stages.add(new FinalStage(new Point3i(origin.x - 1, origin.y - 1, origin.z - 158), this));
 
         this.bounds = new BoundingBox();
         for (Stage stage : stages) {
@@ -97,6 +97,11 @@ class Level {
     }
 
     void showTitle(String text, String color) {
-        delegate.execute("title %s title {\"text\": \"%s\", \"bold\": true, \"color\": \"%s\"}", getTargetSelector(), text, color);
+        execute("title %s title {\"text\": \"%s\", \"bold\": true, \"color\": \"%s\"}", getTargetSelector(), text, color);
+    }
+
+    @Override
+    public void execute(String format, Object ...args) {
+        delegate.execute(format, args);
     }
 }

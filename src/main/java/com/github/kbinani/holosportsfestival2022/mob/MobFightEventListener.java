@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class MobFightEventListener implements Listener, StageDelegate {
+public class MobFightEventListener implements Listener, LevelDelegate {
     private final JavaPlugin owner;
     private boolean initialized = false;
     private final Map<TeamColor, Level> levels = new HashMap<>();
