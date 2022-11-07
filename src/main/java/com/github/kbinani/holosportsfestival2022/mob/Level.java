@@ -23,8 +23,8 @@ class Level implements StageDelegate {
         // origin = (-9, -59, -254) の時:
         // (-9, -59, -275)
         this.stages.add(new PlainsStage(new Point3i(origin.x, origin.y, origin.z - 21), this));
-//        // (-9, -59, -300)
-//        this.stages.add(new OceanMonumentStage(new Point3i(origin.x, origin.y, origin.z - 46), this));
+        // (-9, -59, -300)
+        this.stages.add(new OceanMonumentStage(new Point3i(origin.x, origin.y, origin.z - 46), this));
 //        // (-9, -59, -325)
 //        this.stages.add(new NetherStage(new Point3i(origin.x, origin.y, origin.z - 71), this));
 //        // (-9, -59, -351)

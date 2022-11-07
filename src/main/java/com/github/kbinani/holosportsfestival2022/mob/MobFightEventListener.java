@@ -125,6 +125,8 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 level.showTitle("WAVE CLEAR !", "yellow");
                 Server server = owner.getServer();
                 server.getScheduler().runTaskLater(owner, () -> {
+                    stage.setExitOpened(true);
+                    nextStage.summonMobs(0);
                     nextStage.setEntranceOpened(true);
                 }, 20 * 3);
             }
