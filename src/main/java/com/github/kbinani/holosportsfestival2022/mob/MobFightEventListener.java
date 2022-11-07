@@ -9,6 +9,7 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,6 +20,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -78,7 +80,64 @@ public class MobFightEventListener implements Listener, StageDelegate {
     @EventHandler
     @SuppressWarnings("unused")
     public void onEntityDeathEvent(EntityDeathEvent e) {
+        if (_status != Status.RUN || race == null) {
+            return;
+        }
+        Entity entity = e.getEntity();
+        Vector location = entity.getLocation().toVector();
+        for (Map.Entry<TeamColor, Level> it : levels.entrySet()) {
+            Level level = it.getValue();
+            TeamColor color = it.getKey();
+            if (!race.getTeamColors().contains(color)) {
+                continue;
+            }
+            BoundingBox box = level.getBounds();
+            if (!box.contains(location)) {
+                continue;
+            }
+            Progress current = level.getProgress();
+            Stage stage = level.getStage(current.stage);
+            if (stage == null) {
+                System.out.println("MEFL.onEntityDeathEvent; stage is null");
+                continue;
+            }
+            Progress next = level.consumeDeadMob(entity);
+            if (current.equals(next)) {
+                System.out.println("MEFL.onEntityDeathEvent; progress not changed");
+                continue;
+            }
+            System.out.printf("MFEL.onEntityDeathEvent [%d, %d] => [%d, %d]%n", current.stage, current.step, next.stage, next.step);
+            Stage nextStage = level.getStage(next.stage);
+            if (nextStage == null) {
+                // 次のステージが無いのでゴール
+                broadcast("%s GAME CLEAR !!", ToColoredString(color));
+                level.showTitle("GAME CLEAR !!", "gold");
+                stage.setExitOpened(true);
+            } else if (current.stage == next.stage) {
+                // 同一 stage の次の step に
+                broadcast("%s WAVE%d CLEAR !", ToColoredString(color), current.step + 1);
+                Server server = owner.getServer();
+                server.getScheduler().runTaskLater(owner, () -> {
+                    stage.summonMobs(next.step);
+                }, 20 * 3);
+            } else {
+                // 次の stage へ
+                level.showTitle("WAVE CLEAR !", "yellow");
+                Server server = owner.getServer();
+                server.getScheduler().runTaskLater(owner, () -> {
+                    nextStage.setEntranceOpened(true);
+                }, 20 * 3);
+            }
+        }
+    }
 
+    void showTitle(String selector, String text, String color) {
+        execute("title %s title {\"text\": \"%s\", \"bold\": true, \"color\": \"%s\"}", selector, text, color);
+    }
+
+    String getTargetSelectorWithinAnnounceArea() {
+        BoundingBox box = offset(kAnnounceBounds);
+        return String.format("@a[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
     }
 
     @EventHandler
@@ -204,12 +263,12 @@ public class MobFightEventListener implements Listener, StageDelegate {
                 return false;
             }
             this.race = race;
-            for (TeamColor color : race.participants) {
+            for (TeamColor color : race.getTeamColors()) {
                 Level level = ensureLevel(color);
+                level.reset();
                 Stage stage = level.getStage(0);
-                stage.setEntranceOpened(true);
-                stage.setExitOpened(false);
                 stage.summonMobs(0);
+                stage.setEntranceOpened(true);
             }
             setStatus(Status.RUN);
             return true;

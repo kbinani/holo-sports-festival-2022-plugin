@@ -2,12 +2,15 @@ package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
 class PlainsStage extends Stage {
+    int remainingMobCount = 0;
+
     PlainsStage(Point3i origin, @Nonnull StageDelegate delegate) {
         super(origin, delegate);
     }
@@ -36,9 +39,23 @@ class PlainsStage extends Stage {
     }
 
     @Override
-    Optional<NextStep> consumeDeadMob(Entity entity) {
-        //TODO:
-        return Optional.empty();
+    Optional<Next> consumeDeadMob(Entity entity) {
+        if (entity.getType() != EntityType.ZOMBIE) {
+            return Optional.empty();
+        }
+        int before = remainingMobCount;
+        int after = Math.max(0, remainingMobCount - 1);
+        if (before == after) {
+            return Optional.empty();
+        }
+        remainingMobCount = after;
+        if (after == 2) {
+            return Optional.of(Next.Step());
+        } else if (after == 0) {
+            return Optional.of(Next.Stage());
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -63,6 +80,12 @@ class PlainsStage extends Stage {
                 execute("effect give @e[type=zombie,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
                 break;
         }
+    }
+
+
+    @Override
+    void onReset() {
+        remainingMobCount = 8;
     }
 
     // 黄色チーム用 plains ステージの原点: (-9, -59, -275)

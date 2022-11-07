@@ -48,12 +48,30 @@ public abstract class Stage {
 
     abstract void summonMobs(int step);
 
-    abstract Optional<NextStep> consumeDeadMob(Entity entity);
+    abstract Optional<Next> consumeDeadMob(Entity entity);
 
-    static class NextStep {
-        final int step;
+    void reset() {
+        setExitOpened(false);
+        setEntranceOpened(false);
+        onReset();
+    }
 
-        NextStep(int step) {
+    abstract void onReset();
+
+    static class Next {
+        final boolean step;
+        final boolean stage;
+
+        static Next Step() {
+            return new Next(false, true);
+        }
+
+        static Next Stage() {
+            return new Next(true, false);
+        }
+
+        private Next(boolean stage, boolean step) {
+            this.stage = stage;
             this.step = step;
         }
     }
@@ -67,7 +85,7 @@ public abstract class Stage {
         execute("fill %d %d %d %d %d %d %s", x1, y1, z1, x2, y2, z2, block);
     }
 
-    protected void execute(String format, Object ...args) {
+    protected void execute(String format, Object... args) {
         delegate.execute(format, args);
     }
 }

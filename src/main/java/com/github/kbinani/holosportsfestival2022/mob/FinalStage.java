@@ -15,6 +15,7 @@ package com.github.kbinani.holosportsfestival2022.mob;
 //
 //    @Override
 //    protected void onExitOpened(boolean opened) {
+//        //TODO: ここは後で消す. 全チームゴールしたら開けるなどしたいので Level で管理する
 //        fill(x(-2), y(-59), z(-412), x(3), y(-57), z(-412), opened ? "air" : "iron_bars");
 //    }
 //

@@ -1,18 +1,24 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 class Level {
     private final List<Stage> stages;
     private final BoundingBox bounds;
+    private Progress progress = Progress.Zero();
+    private final StageDelegate delegate;
 
     // エントリー解除看板が貼ってあるブロックの座標を原点としてステージ群を初期化する
     Level(Point3i origin, @Nonnull StageDelegate delegate) {
+        this.delegate = delegate;
         this.stages = new LinkedList<>();
         // origin = (-9, -59, -254) の時:
         // (-9, -59, -275)
@@ -41,14 +47,56 @@ class Level {
         return stages.size();
     }
 
+    @Nullable
     Stage getStage(int index) {
-        return stages.get(index);
+        if (index < stages.size()) {
+            return stages.get(index);
+        } else {
+            return null;
+        }
+    }
+
+    BoundingBox getBounds() {
+        return bounds.clone();
     }
 
     void reset() {
         for (Stage stage : stages) {
-            stage.setExitOpened(false);
-            stage.setEntranceOpened(false);
+            stage.reset();
         }
+        progress = Progress.Zero();
+    }
+
+    @Nonnull
+    Progress consumeDeadMob(Entity entity) {
+        Stage stage = stages.get(progress.stage);
+        Optional<Stage.Next> maybeNext = stage.consumeDeadMob(entity);
+        if (maybeNext.isEmpty()) {
+            return this.progress;
+        }
+        Stage.Next next = maybeNext.get();
+        if (next.stage) {
+            // 次の stage へ
+            this.progress = new Progress(progress.stage + 1, 0);
+            return this.progress;
+        } else if (next.step) {
+            // 同一 stage の次の step へ
+            this.progress = new Progress(progress.stage, progress.step + 1);
+            return progress;
+        } else {
+            return progress;
+        }
+    }
+
+    Progress getProgress() {
+        return new Progress(progress.stage, progress.step);
+    }
+
+    String getTargetSelector() {
+        return String.format("@a[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", bounds.getMinX(), bounds.getMinY(), bounds.getMinZ(), bounds.getWidthX(), bounds.getHeight(), bounds.getWidthZ());
+    }
+
+    void showTitle(String text, String color) {
+        delegate.execute("title %s title {\"text\": \"%s\", \"bold\": true, \"color\": \"%s\"}", getTargetSelector(), text, color);
     }
 }
