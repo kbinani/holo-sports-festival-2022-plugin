@@ -25,8 +25,8 @@ class Level implements StageDelegate {
         this.stages.add(new PlainsStage(new Point3i(origin.x, origin.y, origin.z - 21), this));
         // (-9, -59, -300)
         this.stages.add(new OceanMonumentStage(new Point3i(origin.x, origin.y, origin.z - 46), this));
-//        // (-9, -59, -325)
-//        this.stages.add(new NetherStage(new Point3i(origin.x, origin.y, origin.z - 71), this));
+        // (-9, -59, -325)
+        this.stages.add(new NetherStage(new Point3i(origin.x, origin.y, origin.z - 71), this));
 //        // (-9, -59, -351)
 //        this.stages.add(new WoodlandMansionStage(new Point3i(origin.x, origin.y, origin.z - 97), this));
 //        // (-9, -59, -376)
