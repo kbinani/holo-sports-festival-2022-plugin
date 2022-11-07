@@ -13,12 +13,14 @@ import java.util.Optional;
 class Level implements StageDelegate {
     private final Point3i origin;
     private final List<Stage> stages;
+    final FinalStage finalStage;
     private final BoundingBox bounds;
     private Progress progress = Progress.Zero();
     private final LevelDelegate delegate;
 
     // エントリー解除看板が貼ってあるブロックの座標を原点としてステージ群を初期化する
     Level(Point3i origin, @Nonnull LevelDelegate delegate) {
+        this.origin = origin;
         this.delegate = delegate;
         this.stages = new LinkedList<>();
         // origin = (-9, -59, -254) の時:
@@ -32,8 +34,9 @@ class Level implements StageDelegate {
         this.stages.add(new WoodlandMansionStage(new Point3i(origin.x, origin.y, origin.z - 97), this));
         // (-9, -59, -376)
         this.stages.add(new ShootingStage(new Point3i(origin.x, origin.y, origin.z - 122), this));
-//        // (-10, -60, -412)
-//        this.stages.add(new FinalStage(new Point3i(origin.x - 1, origin.y - 1, origin.z - 158), this));
+        // (-10, -60, -412)
+        finalStage = new FinalStage(new Point3i(origin.x - 1, origin.y - 1, origin.z - 158), this);
+        this.stages.add(finalStage);
 
         this.bounds = new BoundingBox();
         for (Stage stage : stages) {
@@ -65,7 +68,6 @@ class Level implements StageDelegate {
         for (Stage stage : stages) {
             stage.reset();
         }
-        setExitOpened(false);
         progress = Progress.Zero();
     }
 
@@ -108,7 +110,7 @@ class Level implements StageDelegate {
     }
 
     void setExitOpened(boolean opened) {
-        execute("fill %s %s %s %s", x(-2), y(-59), z(-412), x(3), y(-57), z(-412), opened ? "air" : "iron_bars");
+        execute("fill %s %s %s %s %s %s %s", x(-2), y(-59), z(-412), x(3), y(-57), z(-412), opened ? "air" : "iron_bars");
     }
 
     // 黄色チーム用 Level 原点: (-9, -59, -254)

@@ -18,6 +18,7 @@ import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -98,22 +99,17 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             Progress current = level.getProgress();
             Stage stage = level.getStage(current.stage);
             if (stage == null) {
-                System.out.println("MEFL.onEntityDeathEvent; stage is null");
                 continue;
             }
             Progress next = level.consumeDeadMob(entity);
             if (current.equals(next)) {
-                System.out.println("MEFL.onEntityDeathEvent; progress not changed");
                 continue;
             }
-            System.out.printf("MFEL.onEntityDeathEvent [%d, %d] => [%d, %d]%n", current.stage, current.step, next.stage, next.step);
             Stage nextStage = level.getStage(next.stage);
             if (nextStage == null) {
-                // 次のステージが無いのでゴール
-                broadcast("%s GAME CLEAR !!", ToColoredString(color));
-                level.showTitle("GAME CLEAR !!", "gold");
-                stage.setExitOpened(true);
-            } else if (current.stage == next.stage) {
+                continue;
+            }
+            if (current.stage == next.stage) {
                 // 同一 stage の次の step に
                 broadcast("%s WAVE%d CLEAR !", ToColoredString(color), current.step + 1);
                 Server server = owner.getServer();
@@ -181,6 +177,79 @@ public class MobFightEventListener implements Listener, LevelDelegate {
         Point3i location = new Point3i(e.getBlock().getLocation());
         if (location.equals(offset(kButtonYellowStart)) || location.equals(offset(kButtonRedStart)) || location.equals(offset(kButtonWhiteStart))) {
             onClickStart();
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerMove(PlayerMoveEvent e) {
+        if (_status != Status.RUN) {
+            return;
+        }
+        Player player = e.getPlayer();
+        Vector location = player.getLocation().toVector();
+        for (Map.Entry<TeamColor, Level> it : levels.entrySet()) {
+            TeamColor color = it.getKey();
+            Level level = it.getValue();
+            Progress progress = level.getProgress();
+            if (progress.stage != level.getStageCount() - 1) {
+                continue;
+            }
+            Team team = ensureTeam(color);
+            if (team.getCurrentRole(player) == null) {
+                continue;
+            }
+
+            FinalStage stage = level.finalStage;
+            if (!stage.isCreeperSpawned() && stage.getCreeperSpawnBounds().contains(location)) {
+                stage.summonCreepers();
+            }
+            if (!team.isPlayerFinished(player) && stage.getGoalDetectionBounds().contains(location)) {
+                int finishedPlayerCount = team.setFinished(player);
+                if (finishedPlayerCount == team.getPlayerCount()) {
+                    broadcast("%s GAME CLEAR !!", ToColoredString(color));
+                    level.showTitle("GAME CLEAR !!", "gold");
+                    stage.reset();
+                    race.pushOrder(color);
+
+                    boolean allTeamCleared = true;
+                    for (TeamColor tc : race.getTeamColors()) {
+                        if (tc == color) {
+                            continue;
+                        }
+                        Team t = ensureTeam(tc);
+                        if (!t.isCleared()) {
+                            allTeamCleared = false;
+                            break;
+                        }
+                    }
+                    if (allTeamCleared) {
+                        for (TeamColor tc : race.getTeamColors()) {
+                            Level l = levels.get(tc);
+                            if (l != null) {
+                                l.setExitOpened(true);
+                            }
+                        }
+
+                        broadcast("");
+                        broadcast("-----------------------");
+                        broadcast("[結果発表]");
+                        for (int i = 0; i < race.order.size(); i++) {
+                            TeamColor tc = race.order.get(i);
+                            broadcast("%d位 : %s", i + 1, ToColoredString(tc));
+                        }
+                        broadcast("-----------------------");
+                        broadcast("");
+                        for (TeamColor tc : race.getTeamColors()) {
+                            Team t = ensureTeam(tc);
+                            t.reset();
+                        }
+                        race = null;
+                        setStatus(Status.IDLE);
+                        return;
+                    }
+                }
+            }
         }
     }
 
@@ -268,6 +337,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             for (TeamColor color : race.getTeamColors()) {
                 Level level = ensureLevel(color);
                 level.reset();
+                level.setExitOpened(false);
                 Stage stage = level.getStage(0);
                 stage.summonMobs(0);
                 stage.setEntranceOpened(true);

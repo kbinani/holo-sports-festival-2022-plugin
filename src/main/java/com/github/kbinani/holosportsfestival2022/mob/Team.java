@@ -9,6 +9,7 @@ import java.util.List;
 class Team {
     private final List<Player> arrow = new LinkedList<>();
     private final List<Player> sword = new LinkedList<>();
+    private final List<Player> finished = new LinkedList<>();
 
     void add(Player player, Role role) {
         if (getCurrentRole(player) != null) {
@@ -33,6 +34,7 @@ class Team {
     void remove(Player player) {
         arrow.remove(player);
         sword.remove(player);
+        finished.remove(player);
     }
 
     @Nullable
@@ -49,5 +51,25 @@ class Team {
     int getPlayerCount() {
         return arrow.size() + sword.size();
     }
-}
 
+    int setFinished(Player player) {
+        if (finished.stream().noneMatch(it -> it.getUniqueId().equals(player.getUniqueId()))) {
+            finished.add(player);
+        }
+        return finished.size();
+    }
+
+    void reset() {
+        arrow.clear();
+        sword.clear();
+        finished.clear();
+    }
+
+    boolean isPlayerFinished(Player player) {
+        return finished.stream().anyMatch(it -> it.getUniqueId().equals(player.getUniqueId()));
+    }
+
+    boolean isCleared() {
+        return finished.size() == getPlayerCount();
+    }
+}

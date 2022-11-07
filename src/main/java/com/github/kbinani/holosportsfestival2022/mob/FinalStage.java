@@ -1,43 +1,101 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
-//import com.github.kbinani.holosportsfestival2022.Point3i;
-//
-//import javax.annotation.Nonnull;
-//
-//class FinalStage extends Stage {
-//    FinalStage(Point3i origin, @Nonnull StageDelegate delegate) {
-//        super(origin, delegate);
-//    }
-//
-//    @Override
-//    protected void onEntranceOpened(boolean opened) {
-//    }
-//
-//    @Override
-//    protected void onExitOpened(boolean opened) {
-//        //TODO: ここは後で消す. 全チームゴールしたら開けるなどしたいので Level で管理する
-//        fill(x(-2), y(-59), z(-412), x(3), y(-57), z(-412), opened ? "air" : "iron_bars");
-//    }
-//
-//    @Override
-//    public Point3i getSize() {
-//        return new Point3i(32, 21, 55);
-//    }
-//
-//    // 黄色チーム用 final ステージの原点: (-10, -60, -412)
-//
-//    private int x(int x) {
-//        // 黄色ステージの即値を使って実装するのでオフセットする.
-//        return origin.x + (x - (-10));
-//    }
-//
-//    private int y(int y) {
-//        // 黄色ステージの即値を使って実装するのでオフセットする.
-//        return origin.y + (y - (-60));
-//    }
-//
-//    private int z(int z) {
-//        // 黄色ステージの即値を使って実装するのでオフセットする.
-//        return origin.z + (z - (-412));
-//    }
-//}
+import com.github.kbinani.holosportsfestival2022.Point3i;
+import org.bukkit.entity.Entity;
+import org.bukkit.util.BoundingBox;
+
+import javax.annotation.Nonnull;
+import java.util.Optional;
+
+class FinalStage extends Stage {
+    private boolean isCreeperSpawned = false;
+
+    FinalStage(Point3i origin, @Nonnull StageDelegate delegate) {
+        super(origin, delegate);
+    }
+
+    @Override
+    protected void onEntranceOpened(boolean opened) {
+        // 入り口は無い
+    }
+
+    @Override
+    protected void onExitOpened(boolean opened) {
+        // ここでは何もしない. 全チームゴールした時に開けたいので Level で管理する
+    }
+
+    @Override
+    public Point3i getSize() {
+        return new Point3i(22, 21, 55);
+    }
+
+    @Override
+    protected int getStepCount() {
+        return 1;
+    }
+
+    @Override
+    void summonMobs(int step) {
+        // クリーパーは湧き場に最初のプレイヤーが侵入してから行う
+    }
+
+    void summonCreepers() {
+        summonCreeper(4, -59, -378);
+
+        summonCreeper(9, -59, -378);
+        summonCreeper(9, -59, -379);
+        summonCreeper(9, -59, -380);
+        summonCreeper(9, -59, -381);
+
+        summonCreeper(-3, -59, -378);
+
+        summonCreeper(-8, -59, -378);
+        summonCreeper(-8, -59, -379);
+        summonCreeper(-8, -59, -380);
+        summonCreeper(-8, -59, -381);
+        isCreeperSpawned = true;
+    }
+
+    BoundingBox getCreeperSpawnBounds() {
+        return new BoundingBox(x(-10), y(-59), z(-381), x(12), y(-55), z(-377));
+    }
+
+    BoundingBox getGoalDetectionBounds() {
+        return new BoundingBox(x(-3), y(-58), z(-412), x(5), y(-56), z(-404));
+    }
+
+    private void summonCreeper(int x, int y, int z) {
+        execute("summon creeper %d %d %d {Tags:[\"%s\"]}", x(x), y(y), z(z), kEntityTag);
+    }
+
+    @Override
+    Optional<Next> consumeDeadMob(Entity entity) {
+        return Optional.empty();
+    }
+
+    @Override
+    void onReset() {
+        isCreeperSpawned = false;
+    }
+
+    boolean isCreeperSpawned() {
+        return this.isCreeperSpawned;
+    }
+
+    // 黄色チーム用 final ステージの原点: (-10, -60, -412)
+
+    private int x(int x) {
+        // 黄色ステージの即値を使って実装するのでオフセットする.
+        return origin.x + (x - (-10));
+    }
+
+    private int y(int y) {
+        // 黄色ステージの即値を使って実装するのでオフセットする.
+        return origin.y + (y - (-60));
+    }
+
+    private int z(int z) {
+        // 黄色ステージの即値を使って実装するのでオフセットする.
+        return origin.z + (z - (-412));
+    }
+}
