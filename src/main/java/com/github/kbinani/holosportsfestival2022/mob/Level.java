@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 class Level implements StageDelegate {
+    private final Point3i origin;
     private final List<Stage> stages;
     private final BoundingBox bounds;
     private Progress progress = Progress.Zero();
@@ -64,6 +65,7 @@ class Level implements StageDelegate {
         for (Stage stage : stages) {
             stage.reset();
         }
+        setExitOpened(false);
         progress = Progress.Zero();
     }
 
@@ -103,5 +105,26 @@ class Level implements StageDelegate {
     @Override
     public void execute(String format, Object ...args) {
         delegate.execute(format, args);
+    }
+
+    void setExitOpened(boolean opened) {
+        execute("fill %s %s %s %s", x(-2), y(-59), z(-412), x(3), y(-57), z(-412), opened ? "air" : "iron_bars");
+    }
+
+    // 黄色チーム用 Level 原点: (-9, -59, -254)
+
+    private int x(int x) {
+        // 黄色ステージの即値を使って実装するのでオフセットする.
+        return origin.x + (x - (-9));
+    }
+
+    private int y(int y) {
+        // 黄色ステージの即値を使って実装するのでオフセットする.
+        return origin.y + (y - (-59));
+    }
+
+    private int z(int z) {
+        // 黄色ステージの即値を使って実装するのでオフセットする.
+        return origin.z + (z - (-254));
     }
 }
