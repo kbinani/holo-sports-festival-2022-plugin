@@ -12,7 +12,7 @@ public abstract class Stage {
     protected final StageDelegate delegate;
     private Boolean entranceOpened = null;
     private Boolean exitOpened = null;
-    protected static final String kEntityTag = "foo";// "hololive_sports_festival_2022_enemy";
+    protected static final String kEntityTag = "hololive_sports_festival_2022_enemy";
 
     // ステージ室内の北西下の角の座標を指定してステージを初期化する
     Stage(Point3i origin, @Nonnull StageDelegate delegate) {
