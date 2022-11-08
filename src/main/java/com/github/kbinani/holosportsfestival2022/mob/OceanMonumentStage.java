@@ -84,6 +84,21 @@ class OceanMonumentStage extends Stage {
         remainingMobCount = 10;
     }
 
+
+    @Override
+    BossbarValue getBossbarValue() {
+        if (remainingMobCount <= 2) {
+            return new BossbarValue(remainingMobCount, 2, "WAVE 2 BOSS");
+        } else {
+            return new BossbarValue(remainingMobCount - 2, 8, "WAVE 2");
+        }
+    }
+
+    @Override
+    String getMessageDisplayString() {
+        return "WAVE2";
+    }
+
     // 黄色チーム用 ocean monument ステージの原点: (-9, -59, -300)
 
     private int x(int x) {

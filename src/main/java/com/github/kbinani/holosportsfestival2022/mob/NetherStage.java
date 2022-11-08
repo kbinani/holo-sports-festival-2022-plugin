@@ -106,6 +106,20 @@ class NetherStage extends Stage {
         remainingMobCount = 11;
     }
 
+    @Override
+    BossbarValue getBossbarValue() {
+        if (remainingMobCount <= 3) {
+            return new BossbarValue(remainingMobCount, 3, "WAVE 3 BOSS");
+        } else {
+            return new BossbarValue(remainingMobCount - 3, 8, "WAVE 3");
+        }
+    }
+
+    @Override
+    String getMessageDisplayString() {
+        return "WAVE3";
+    }
+
     // 黄色チーム用 nether ステージの原点: (-9, -59, -325)
 
     private int x(int x) {

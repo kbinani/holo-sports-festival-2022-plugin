@@ -101,6 +101,20 @@ class WoodlandMansionStage extends Stage {
         remainingMobCount = 9;
     }
 
+    @Override
+    BossbarValue getBossbarValue() {
+        if (remainingMobCount <= 1) {
+            return new BossbarValue(remainingMobCount, 1, "WAVE 4 BOSS");
+        } else {
+            return new BossbarValue(remainingMobCount - 1, 8, "WAVE 4");
+        }
+    }
+
+    @Override
+    String getMessageDisplayString() {
+        return "WAVE4";
+    }
+
     // 黄色チーム用 woodland mansion ステージの原点: (-9, -59, -351)
 
     private int x(int x) {

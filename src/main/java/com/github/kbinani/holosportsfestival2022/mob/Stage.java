@@ -50,6 +50,12 @@ public abstract class Stage {
 
     abstract Optional<Next> consumeDeadMob(Entity entity);
 
+    // bossbar の表示パラメータ
+    abstract BossbarValue getBossbarValue();
+
+    // チャット欄に表示する stage 名
+    abstract String getMessageDisplayString();
+
     void reset() {
         setExitOpened(false);
         setEntranceOpened(false);

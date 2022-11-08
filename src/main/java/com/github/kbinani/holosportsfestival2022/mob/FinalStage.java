@@ -78,6 +78,17 @@ class FinalStage extends Stage {
         isCreeperSpawned = false;
     }
 
+    @Override
+    BossbarValue getBossbarValue() {
+        // final stage の bossbar は event listener 側で制御する. ここで返しているのは初期値
+        return new BossbarValue(0, 3, "GO TO GOAL !!");
+    }
+
+    @Override
+    String getMessageDisplayString() {
+        return "";
+    }
+
     boolean isCreeperSpawned() {
         return this.isCreeperSpawned;
     }

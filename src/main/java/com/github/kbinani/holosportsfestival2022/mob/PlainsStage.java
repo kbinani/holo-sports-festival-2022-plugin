@@ -89,6 +89,20 @@ class PlainsStage extends Stage {
         remainingMobCount = 8;
     }
 
+    @Override
+    BossbarValue getBossbarValue() {
+        if (remainingMobCount <= 2) {
+            return new BossbarValue(remainingMobCount, 2, "WAVE 1 BOSS");
+        } else {
+            return new BossbarValue(remainingMobCount - 2, 6, "WAVE 1");
+        }
+    }
+
+    @Override
+    String getMessageDisplayString() {
+        return "WAVE1";
+    }
+
     // 黄色チーム用 plains ステージの原点: (-9, -59, -275)
 
     private int x(int x) {

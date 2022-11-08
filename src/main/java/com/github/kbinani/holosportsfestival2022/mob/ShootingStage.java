@@ -96,6 +96,16 @@ class ShootingStage extends Stage {
         remainingMobCount = 16;
     }
 
+    @Override
+    BossbarValue getBossbarValue() {
+        return new BossbarValue(remainingMobCount, 16, "WAVE FINAL");
+    }
+
+    @Override
+    String getMessageDisplayString() {
+        return "WAVE FINAL";
+    }
+
     // 黄色チーム用 shooting ステージの原点: (-9, -59, -376)
 
     private int x(int x) {

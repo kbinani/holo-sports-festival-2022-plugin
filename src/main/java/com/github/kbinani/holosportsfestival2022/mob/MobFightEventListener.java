@@ -1,9 +1,6 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
-import com.github.kbinani.holosportsfestival2022.Countdown;
-import com.github.kbinani.holosportsfestival2022.Loader;
-import com.github.kbinani.holosportsfestival2022.Point3i;
-import com.github.kbinani.holosportsfestival2022.WallSign;
+import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.World;
@@ -36,6 +33,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     private Map<TeamColor, Team> teams = new HashMap<>();
     private Status _status = Status.IDLE;
     private @Nullable Race race;
+    private Map<TeamColor, Bossbar> bossbars = new HashMap<>();
 
     public MobFightEventListener(JavaPlugin owner) {
         this.owner = owner;
@@ -53,11 +51,17 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 for (Level level : levels.values()) {
                     level.reset();
                 }
+                for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
+                    it.getValue().setVisible(false);
+                }
                 //TODO: ここでステージ内にいるプレイヤーを入り口に戻すのが良さそう
                 break;
             case AWAIT_COUNTDOWN:
                 for (Level level : levels.values()) {
                     level.reset();
+                }
+                for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
+                    it.getValue().setVisible(false);
                 }
                 //TODO: ここでステージ内にいるプレイヤーを入り口に戻すのが良さそう
                 break;
@@ -75,6 +79,16 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             return;
         }
         initialized = true;
+        BoundingBox box = offset(kAnnounceBounds);
+        Bossbar red = new Bossbar(owner, kBossbarRed, "", box);
+        red.setColor("red");
+        Bossbar yellow = new Bossbar(owner, kBossbarYellow, "", box);
+        yellow.setColor("yellow");
+        Bossbar white = new Bossbar(owner, kBossbarWhite, "", box);
+        white.setColor("white");
+        bossbars.put(TeamColor.RED, red);
+        bossbars.put(TeamColor.YELLOW, yellow);
+        bossbars.put(TeamColor.WHITE, white);
         resetField();
     }
 
@@ -92,16 +106,17 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             if (!race.getTeamColors().contains(color)) {
                 continue;
             }
-            BoundingBox box = level.getBounds();
-            if (!box.contains(location)) {
-                continue;
-            }
             Progress current = level.getProgress();
             Stage stage = level.getStage(current.stage);
             if (stage == null) {
                 continue;
             }
+            BoundingBox box = stage.getBounds();
+            if (!box.contains(location)) {
+                continue;
+            }
             Progress next = level.consumeDeadMob(entity);
+            applyBossbarValue(color, stage.getBossbarValue());
             if (current.equals(next)) {
                 continue;
             }
@@ -111,7 +126,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             }
             if (current.stage == next.stage) {
                 // 同一 stage の次の step に
-                broadcast("%s WAVE%d CLEAR !", ToColoredString(color), current.step + 1);
+                broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString());
                 Server server = owner.getServer();
                 server.getScheduler().runTaskLater(owner, () -> {
                     stage.summonMobs(next.step);
@@ -124,6 +139,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                     stage.setExitOpened(true);
                     nextStage.summonMobs(0);
                     nextStage.setEntranceOpened(true);
+                    applyBossbarValue(color, nextStage.getBossbarValue());
                 }, 20 * 3);
             }
         }
@@ -202,6 +218,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
 
             FinalStage stage = level.finalStage;
             if (!stage.isCreeperSpawned() && stage.getCreeperSpawnBounds().contains(location)) {
+                applyBossbarValue(color, new BossbarValue(0, team.getPlayerCount(), "GO TO GOAL !!"));
                 stage.summonCreepers();
             }
             if (!team.isPlayerFinished(player) && stage.getGoalDetectionBounds().contains(location)) {
@@ -209,7 +226,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 if (finishedPlayerCount == team.getPlayerCount()) {
                     broadcast("%s GAME CLEAR !!", ToColoredString(color));
                     level.showTitle("GAME CLEAR !!", "gold");
-                    stage.reset();
+                    applyBossbarValue(color, new BossbarValue(team.getPlayerCount(), team.getPlayerCount(), "GAME CLEAR !!"));
                     race.pushOrder(color);
 
                     boolean allTeamCleared = true;
@@ -248,9 +265,29 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                         setStatus(Status.IDLE);
                         return;
                     }
+                } else {
+                    applyBossbarValue(color, new BossbarValue(finishedPlayerCount, team.getPlayerCount(), "GO TO GOAL !!"));
                 }
             }
         }
+    }
+
+    void applyBossbarValue(TeamColor color, BossbarValue value) {
+        Bossbar bar = bossbars.get(color);
+        if (bar == null) {
+            return;
+        }
+        bar.setMax(value.max);
+        bar.setValue(value.value);
+        bar.setName(String.format("%s : %s", ToColoredString(color), value.title));
+    }
+
+    void setBossbarVisible(TeamColor color, boolean visible) {
+        Bossbar bar = bossbars.get(color);
+        if (bar == null) {
+            return;
+        }
+        bar.setVisible(visible);
     }
 
     void onClickJoin(Player player, TeamColor color, Role role) {
@@ -339,8 +376,11 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 level.reset();
                 level.setExitOpened(false);
                 Stage stage = level.getStage(0);
+                assert stage != null;
                 stage.summonMobs(0);
                 stage.setEntranceOpened(true);
+                applyBossbarValue(color, stage.getBossbarValue());
+                setBossbarVisible(color, true);
             }
             setStatus(Status.RUN);
             return true;
@@ -535,4 +575,8 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     private static final Point3i kButtonYellowStart = new Point3i(-3, -58, -254);
     private static final Point3i kButtonRedStart = new Point3i(28, -58, -254);
     private static final Point3i kButtonWhiteStart = new Point3i(59, -58, -254);
+
+    private static final String kBossbarRed = "hololive_sports_festival_2022_bossbar_red";
+    private static final String kBossbarWhite = "hololive_sports_festival_2022_bossbar_white";
+    private static final String kBossbarYellow = "hololive_sports_festival_2022_bossbar_yellow";
 }
