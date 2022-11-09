@@ -53,21 +53,23 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 resetField();
                 clearItem("@a");
                 for (Level level : levels.values()) {
+                    Point3i safe = level.getSafeSpawnLocation();
+                    execute("tp %s %d %d %d", level.getTargetSelector(), safe.x, safe.y, safe.z);
                     level.reset();
                 }
                 for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
                     it.getValue().setVisible(false);
                 }
-                //TODO: ここでステージ内にいるプレイヤーを入り口に戻すのが良さそう
                 break;
             case AWAIT_COUNTDOWN:
                 for (Level level : levels.values()) {
+                    Point3i safe = level.getSafeSpawnLocation();
+                    execute("tp %s %d %d %d", level.getTargetSelector(), safe.x, safe.y, safe.z);
                     level.reset();
                 }
                 for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
                     it.getValue().setVisible(false);
                 }
-                //TODO: ここでステージ内にいるプレイヤーを入り口に戻すのが良さそう
                 break;
             case COUNTDOWN:
                 break;
@@ -79,21 +81,29 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerJoin(PlayerJoinEvent e) {
-        if (initialized) {
-            return;
+        if (!initialized) {
+            initialized = true;
+            BoundingBox box = offset(kAnnounceBounds);
+            Bossbar red = new Bossbar(owner, kBossbarRed, "", box);
+            red.setColor("red");
+            Bossbar yellow = new Bossbar(owner, kBossbarYellow, "", box);
+            yellow.setColor("yellow");
+            Bossbar white = new Bossbar(owner, kBossbarWhite, "", box);
+            white.setColor("white");
+            bossbars.put(TeamColor.RED, red);
+            bossbars.put(TeamColor.YELLOW, yellow);
+            bossbars.put(TeamColor.WHITE, white);
+            resetField();
         }
-        initialized = true;
-        BoundingBox box = offset(kAnnounceBounds);
-        Bossbar red = new Bossbar(owner, kBossbarRed, "", box);
-        red.setColor("red");
-        Bossbar yellow = new Bossbar(owner, kBossbarYellow, "", box);
-        yellow.setColor("yellow");
-        Bossbar white = new Bossbar(owner, kBossbarWhite, "", box);
-        white.setColor("white");
-        bossbars.put(TeamColor.RED, red);
-        bossbars.put(TeamColor.YELLOW, yellow);
-        bossbars.put(TeamColor.WHITE, white);
-        resetField();
+        Player player = e.getPlayer();
+        if (_status != Status.RUN || getCurrentParticipation(player) == null) {
+            for (Level level : levels.values()) {
+                if (level.getBounds().contains(player.getLocation().toVector())) {
+                    Point3i safe = level.getSafeSpawnLocation();
+                    execute("tp %s %d %d %d", player.getName(), safe.x, safe.y, safe.z);
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -291,7 +301,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player player = e.getPlayer();
         onClickLeave(player);
-        //TODO: 参加中の player だった場合はここで入り口に戻したほうがいい
     }
 
     void applyBossbarValue(TeamColor color, BossbarValue value) {
@@ -403,6 +412,10 @@ public class MobFightEventListener implements Listener, LevelDelegate {
         broadcast("[MOB討伐レース] 競技を開始します！");
         broadcast("");
         setStatus(Status.COUNTDOWN);
+        for (Level level : levels.values()) {
+            Point3i safe = level.getSafeSpawnLocation();
+            execute("tp %s %d %d %d", level.getTargetSelector(), safe.x, safe.y, safe.z);
+        }
         Countdown.Then(offset(kAnnounceBounds), owner, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;

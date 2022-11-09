@@ -38,13 +38,18 @@ class Level implements StageDelegate {
         finalStage = new FinalStage(new Point3i(origin.x - 1, origin.y - 1, origin.z - 158), this);
         this.stages.add(finalStage);
 
-        this.bounds = new BoundingBox();
+        BoundingBox bounds = null;
         for (Stage stage : stages) {
             BoundingBox box = stage.getBounds();
-            this.bounds.union(box);
+            if (bounds == null) {
+                bounds = box;
+            } else {
+                bounds.union(box);
+            }
             stage.setEntranceOpened(false);
             stage.setExitOpened(false);
         }
+        this.bounds = bounds == null ? new BoundingBox() : bounds;
     }
 
     int getStageCount() {
@@ -111,6 +116,10 @@ class Level implements StageDelegate {
 
     void setExitOpened(boolean opened) {
         execute("fill %s %s %s %s %s %s %s", x(-2), y(-59), z(-412), x(3), y(-57), z(-412), opened ? "air" : "iron_bars");
+    }
+
+    Point3i getSafeSpawnLocation() {
+        return new Point3i(x(1), y(-59), z(-251));
     }
 
     // 黄色チーム用 Level 原点: (-9, -59, -254)
