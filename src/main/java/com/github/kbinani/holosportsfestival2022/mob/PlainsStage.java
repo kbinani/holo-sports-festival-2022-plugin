@@ -64,25 +64,64 @@ class PlainsStage extends Stage {
         switch (step) {
             case 0:
                 // 1F
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(-8), y(-58), z(-264), kEntityTag);
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(-7), y(-59), z(-271), kEntityTag);
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(4), y(-59), z(-274), kEntityTag);
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(10), y(-56), z(-275), kEntityTag);
+                summonZombie(-8, -58, -264, false);
+                summonZombie(-7, -59, -271, false);
+                summonZombie(4, -59, -274, false);
+                summonZombie(10, -56, -275, false);
                 // 2F
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(-4), y(-48), z(-265), kEntityTag);
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],IsBaby:1b,Tags:[\"%s\"]}", x(-8), y(-48), z(-269), kEntityTag);
+                summonZombie(-4, -48, -265, false);
+                summonZombie(-8, -48, -269, true);
                 break;
             case 1:
                 //TODO: 移動速度と HP のバフが掛かっているはず
                 // 1F
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(0), y(-59), z(-274), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}]}", x(0), y(-59), z(-274), kEntityTag);
                 // 2F
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"]}", x(-8), y(-48), z(-268), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}]}", x(-8), y(-48), z(-268), kEntityTag);
                 execute("effect give @e[tag=%s,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", kEntityTag, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+                // BOSS 戦の様子 (60fps)
+                // https://www.youtube.com/watch?v=TiSgN3lvfrM
+                // ==================================================
+                // BOSS 1/2
+                // --------------------------------------------------
+                // frame    critical    note    tick from last attack
+                // --------------------------------------------------
+                // 2428     false
+                // 2525     false               32.3
+                // 2584     false               19.7
+                // 2641     false               19
+                // 2692     false               17
+                // 2824     false               44
+                // 2888     false               21.3
+                // 2923     false               11.7
+                // 2971     false               16
+                // 3022     false               17
+                // 3082     false       killed  20
+                // =======================
+                // BOSS 2/2
+                // -----------------------
+                // frame  critical  note
+                // -----------------------
+                // 3670   false
+                // 3703   false
+                // 3738   false
+                // 3772   false
+                // 3808   N/A       fall from high place
+                // 4585   false
+                // 4660   false
+                // 4732   false
+                // 4789   false
+                // 4897   false
+                // 4993   false
+                // 5044   false
+                // 5092   false     killed
                 break;
         }
     }
 
+    private void summonZombie(int x, int y, int z, boolean baby) {
+        execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],IsBaby:%db,Tags:[\"%s\"]}", x(x), y(y), z(z), baby ? 1 : 0, kEntityTag);
+    }
 
     @Override
     void onReset() {
