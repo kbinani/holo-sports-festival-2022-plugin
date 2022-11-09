@@ -52,8 +52,8 @@ class OceanMonumentStage extends Stage {
                 execute("summon guardian %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"]}", x(9), y(-57), z(-294), kEntityTag);
                 break;
             case 1:
-                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],Tags:[\"%s\"]}", x(-3), y(-59), z(-299), kEntityTag);
-                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],Tags:[\"%s\"]}", x(5), y(-43), z(-297), kEntityTag);
+                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}]}", x(-3), y(-59), z(-299), kEntityTag);
+                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}]}", x(5), y(-43), z(-297), kEntityTag);
                 execute("effect give @e[tag=%s,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", kEntityTag, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
                 break;
         }
