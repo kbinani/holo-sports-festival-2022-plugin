@@ -68,6 +68,8 @@ class PlainsStage extends Stage {
                 summonZombie(-7, -59, -271, false);
                 summonZombie(4, -59, -274, false);
                 summonZombie(10, -56, -275, false);
+                summonZombie(9, -59, -261, true);
+                summonZombie(7, -58, -267, false);
                 // 2F
                 summonZombie(-4, -48, -265, false);
                 summonZombie(-8, -48, -269, true);
@@ -125,7 +127,7 @@ class PlainsStage extends Stage {
 
     @Override
     void onReset() {
-        remainingMobCount = 8;
+        remainingMobCount = 10;
     }
 
     @Override
@@ -133,7 +135,7 @@ class PlainsStage extends Stage {
         if (remainingMobCount <= 2) {
             return new BossbarValue(remainingMobCount, 2, "WAVE 1 BOSS");
         } else {
-            return new BossbarValue(remainingMobCount - 2, 6, "WAVE 1");
+            return new BossbarValue(remainingMobCount - 2, 8, "WAVE 1");
         }
     }
 
