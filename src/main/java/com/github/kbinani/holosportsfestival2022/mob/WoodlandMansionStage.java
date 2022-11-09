@@ -115,6 +115,11 @@ class WoodlandMansionStage extends Stage {
         return "WAVE4";
     }
 
+    @Override
+    Point3i getRespawnLocation() {
+        return new Point3i(x(1), y(-59), z(-331));
+    }
+
     // 黄色チーム用 woodland mansion ステージの原点: (-9, -59, -351)
 
     private int x(int x) {

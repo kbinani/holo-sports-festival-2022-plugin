@@ -120,6 +120,11 @@ class NetherStage extends Stage {
         return "WAVE3";
     }
 
+    @Override
+    Point3i getRespawnLocation() {
+        return new Point3i(x(1), y(-59), z(-306));
+    }
+
     // 黄色チーム用 nether ステージの原点: (-9, -59, -325)
 
     private int x(int x) {

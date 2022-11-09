@@ -106,6 +106,11 @@ class ShootingStage extends Stage {
         return "WAVE FINAL";
     }
 
+    @Override
+    Point3i getRespawnLocation() {
+        return new Point3i(x(1), y(-59), z(-357));
+    }
+
     // 黄色チーム用 shooting ステージの原点: (-9, -59, -376)
 
     private int x(int x) {

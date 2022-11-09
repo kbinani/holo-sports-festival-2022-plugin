@@ -56,6 +56,9 @@ public abstract class Stage {
     // チャット欄に表示する stage 名
     abstract String getMessageDisplayString();
 
+    // 死んだ時のリスポーン位置
+    abstract Point3i getRespawnLocation();
+
     void reset() {
         setExitOpened(false);
         setEntranceOpened(false);

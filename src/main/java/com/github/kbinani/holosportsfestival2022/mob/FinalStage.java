@@ -89,6 +89,12 @@ class FinalStage extends Stage {
         return "";
     }
 
+    @Override
+    Point3i getRespawnLocation() {
+        // shooting ステージと同じ
+        return new Point3i(x(1), y(-59), z(-357));
+    }
+
     boolean isCreeperSpawned() {
         return this.isCreeperSpawned;
     }

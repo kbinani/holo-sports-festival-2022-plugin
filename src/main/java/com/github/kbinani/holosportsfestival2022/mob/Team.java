@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 class Team {
     private final List<Player> arrow = new LinkedList<>();
@@ -71,5 +72,14 @@ class Team {
 
     boolean isCleared() {
         return finished.size() == getPlayerCount();
+    }
+
+    void usePlayers(Consumer<Player> callback) {
+        for (Player p : arrow) {
+            callback.accept(p);
+        }
+        for (Player p : sword) {
+            callback.accept(p);
+        }
     }
 }

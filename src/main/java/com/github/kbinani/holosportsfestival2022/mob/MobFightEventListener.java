@@ -2,6 +2,7 @@ package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -16,6 +17,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -25,6 +27,7 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public class MobFightEventListener implements Listener, LevelDelegate {
     private final JavaPlugin owner;
@@ -34,6 +37,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     private Status _status = Status.IDLE;
     private @Nullable Race race;
     private Map<TeamColor, Bossbar> bossbars = new HashMap<>();
+    private final Map<UUID, Location> respawnLocations = new HashMap<>();
 
     public MobFightEventListener(JavaPlugin owner) {
         this.owner = owner;
@@ -136,6 +140,15 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 level.showTitle("WAVE CLEAR !", "yellow");
                 Server server = owner.getServer();
                 server.getScheduler().runTaskLater(owner, () -> {
+                    Point3i respawn = nextStage.getRespawnLocation();
+                    Team team = ensureTeam(color);
+                    team.usePlayers(player -> {
+                        Location l = player.getLocation();
+                        l.setX(respawn.x);
+                        l.setY(respawn.y);
+                        l.setZ(respawn.z);
+                        player.setBedSpawnLocation(l, true);
+                    });
                     stage.setExitOpened(true);
                     nextStage.summonMobs(0);
                     nextStage.setEntranceOpened(true);
@@ -259,6 +272,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                         broadcast("");
                         for (TeamColor tc : race.getTeamColors()) {
                             Team t = ensureTeam(tc);
+                            t.usePlayers(this::recoverRespawnLocation);
                             t.reset();
                         }
                         race = null;
@@ -270,6 +284,14 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 }
             }
         }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerQuit(PlayerQuitEvent e) {
+        Player player = e.getPlayer();
+        onClickLeave(player);
+        //TODO: 参加中の player だった場合はここで入り口に戻したほうがいい
     }
 
     void applyBossbarValue(TeamColor color, BossbarValue value) {
@@ -288,6 +310,18 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             return;
         }
         bar.setVisible(visible);
+    }
+
+    void memoRespawnLocation(Player player) {
+        respawnLocations.put(player.getUniqueId(), player.getBedSpawnLocation());
+    }
+
+    void recoverRespawnLocation(Player player) {
+        Location location = respawnLocations.get(player.getUniqueId());
+        if (location != null) {
+            player.setBedSpawnLocation(location, true);
+            respawnLocations.remove(player.getUniqueId());
+        }
     }
 
     void onClickJoin(Player player, TeamColor color, Role role) {
@@ -328,6 +362,9 @@ public class MobFightEventListener implements Listener, LevelDelegate {
         }
         Team team = ensureTeam(current.color);
         team.remove(player);
+
+        // 試合中に入場せず棄権した場合のためにここでもリスポーン位置を元に戻す
+        recoverRespawnLocation(player);
 
         if (getPlayerCount() > 0) {
             clearItem(String.format("@p[name=\"%s\"]", player.getName()));
@@ -377,6 +414,16 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 level.setExitOpened(false);
                 Stage stage = level.getStage(0);
                 assert stage != null;
+                Point3i respawn = stage.getRespawnLocation();
+                Team team = ensureTeam(color);
+                team.usePlayers((player) -> {
+                    memoRespawnLocation(player);
+                    Location location = player.getLocation();
+                    location.setX(respawn.x);
+                    location.setY(respawn.y);
+                    location.setZ(respawn.z);
+                    player.setBedSpawnLocation(location, true);
+                });
                 stage.summonMobs(0);
                 stage.setEntranceOpened(true);
                 applyBossbarValue(color, stage.getBossbarValue());

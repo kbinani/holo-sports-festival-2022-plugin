@@ -99,6 +99,11 @@ class OceanMonumentStage extends Stage {
         return "WAVE2";
     }
 
+    @Override
+    Point3i getRespawnLocation() {
+        return new Point3i(x(1), y(-59), z(-281));
+    }
+
     // 黄色チーム用 ocean monument ステージの原点: (-9, -59, -300)
 
     private int x(int x) {

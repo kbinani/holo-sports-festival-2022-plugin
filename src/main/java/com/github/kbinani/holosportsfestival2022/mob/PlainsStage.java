@@ -144,6 +144,11 @@ class PlainsStage extends Stage {
         return "WAVE1";
     }
 
+    @Override
+    Point3i getRespawnLocation() {
+        return new Point3i(x(1), y(-59), z(-256));
+    }
+
     // 黄色チーム用 plains ステージの原点: (-9, -59, -275)
 
     private int x(int x) {
