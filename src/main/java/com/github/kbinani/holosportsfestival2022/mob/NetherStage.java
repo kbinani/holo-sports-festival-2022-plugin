@@ -53,7 +53,6 @@ class NetherStage extends Stage {
                 summonWitherSkeleton(8, -49, -314);
                 summonWitherSkeleton(9, -55, -318);
 
-                //TODO: ghast の攻撃でステージが破壊されないようにする
                 execute("summon ghast %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"]}", x(-5), y(-47), z(-312), kEntityTag);
 
                 BoundingBox box = getBounds();
