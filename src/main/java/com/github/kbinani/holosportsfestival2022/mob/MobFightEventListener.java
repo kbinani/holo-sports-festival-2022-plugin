@@ -135,7 +135,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             }
             if (current.stage == next.stage) {
                 // 同一 stage の次の step に
-                broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString());
                 Server server = owner.getServer();
                 server.getScheduler().runTaskLater(owner, () -> {
                     stage.summonMobs(next.step);
@@ -143,6 +142,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             } else {
                 // 次の stage へ
                 level.showTitle("WAVE CLEAR !", "yellow");
+                broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString());
                 Server server = owner.getServer();
                 server.getScheduler().runTaskLater(owner, () -> {
                     Point3i respawn = nextStage.getRespawnLocation();
