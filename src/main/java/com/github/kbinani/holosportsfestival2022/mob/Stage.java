@@ -2,9 +2,11 @@ package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Optional;
 
 public abstract class Stage {
@@ -58,6 +60,8 @@ public abstract class Stage {
 
     // 死んだ時のリスポーン位置
     abstract Point3i getRespawnLocation();
+
+    void onStart(List<Player> players) {}
 
     void reset() {
         setExitOpened(false);

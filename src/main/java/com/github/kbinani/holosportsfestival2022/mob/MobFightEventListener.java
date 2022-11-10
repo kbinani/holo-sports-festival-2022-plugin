@@ -24,10 +24,7 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class MobFightEventListener implements Listener, LevelDelegate {
     private final JavaPlugin owner;
@@ -150,14 +147,17 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 server.getScheduler().runTaskLater(owner, () -> {
                     Point3i respawn = nextStage.getRespawnLocation();
                     Team team = ensureTeam(color);
+                    List<Player> players = new ArrayList<>();
                     team.usePlayers(player -> {
                         Location l = player.getLocation();
                         l.setX(respawn.x);
                         l.setY(respawn.y);
                         l.setZ(respawn.z);
                         player.setBedSpawnLocation(l, true);
+                        players.add(player);
                     });
                     stage.setExitOpened(true);
+                    nextStage.onStart(players);
                     nextStage.summonMobs(0);
                     nextStage.setEntranceOpened(true);
                     applyBossbarValue(color, nextStage.getBossbarValue());
@@ -427,6 +427,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 assert stage != null;
                 Point3i respawn = stage.getRespawnLocation();
                 Team team = ensureTeam(color);
+                ArrayList<Player> players = new ArrayList<>();
                 team.usePlayers((player) -> {
                     memoRespawnLocation(player);
                     Location location = player.getLocation();
@@ -434,7 +435,9 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                     location.setY(respawn.y);
                     location.setZ(respawn.z);
                     player.setBedSpawnLocation(location, true);
+                    players.add(player);
                 });
+                stage.onStart(players);
                 stage.summonMobs(0);
                 stage.setEntranceOpened(true);
                 applyBossbarValue(color, stage.getBossbarValue());
@@ -612,7 +615,7 @@ public class MobFightEventListener implements Listener, LevelDelegate {
         return "";
     }
 
-    private static final String kItemTag = "hololive_sports_festival_2022_mob";
+    static final String kItemTag = "hololive_sports_festival_2022_mob";
 
     private static final BoundingBox kAnnounceBounds = new BoundingBox(-26, -61, -424, 79, -19, -244);
 

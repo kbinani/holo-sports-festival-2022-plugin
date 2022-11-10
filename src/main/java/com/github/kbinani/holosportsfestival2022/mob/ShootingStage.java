@@ -2,8 +2,10 @@ package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Optional;
 
 class ShootingStage extends Stage {
@@ -109,6 +111,14 @@ class ShootingStage extends Stage {
     @Override
     Point3i getRespawnLocation() {
         return new Point3i(x(1), y(-59), z(-357));
+    }
+
+    @Override
+    void onStart(List<Player> players) {
+        for (Player player : players) {
+            execute("give %s arrow{tag:{%s:1b}}", player.getName(), MobFightEventListener.kItemTag);
+            execute("give %s bow{tag:{%s:1b},Enchantments:[{id:unbreaking,lvl:3},{id:infinity,lvl:1}]}", player.getName(), MobFightEventListener.kItemTag);
+        }
     }
 
     // 黄色チーム用 shooting ステージの原点: (-9, -59, -376)
