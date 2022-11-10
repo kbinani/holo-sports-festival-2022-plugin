@@ -75,11 +75,10 @@ class PlainsStage extends Stage {
                 summonZombie(-8, -48, -269, true);
                 break;
             case 1:
-                //TODO: 移動速度と HP のバフが掛かっているはず
                 // 1F
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}]}", x(0), y(-59), z(-274), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:diamond_helmet,Count:1}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}]}", x(0), y(-59), z(-274), kEntityTag);
                 // 2F
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}]}", x(-8), y(-48), z(-268), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:diamond_helmet,Count:1}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}]}", x(-8), y(-48), z(-268), kEntityTag);
                 execute("effect give @e[tag=%s,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", kEntityTag, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
                 // BOSS 戦の様子 (60fps)
                 // https://www.youtube.com/watch?v=TiSgN3lvfrM
