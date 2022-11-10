@@ -53,8 +53,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 resetField();
                 clearItem("@a");
                 for (Level level : levels.values()) {
-                    Point3i safe = level.getSafeSpawnLocation();
-                    execute("tp %s %d %d %d", level.getTargetSelector(), safe.x, safe.y, safe.z);
                     level.reset();
                 }
                 for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
