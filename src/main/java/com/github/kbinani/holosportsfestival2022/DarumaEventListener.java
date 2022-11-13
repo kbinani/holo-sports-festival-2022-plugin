@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 
@@ -53,6 +54,10 @@ public class DarumaEventListener implements Listener {
         void remove(Player player) {
             players.remove(player.getUniqueId());
         }
+
+        int getPlayerCount() {
+            return players.size();
+        }
     }
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
@@ -67,6 +72,17 @@ public class DarumaEventListener implements Listener {
         if (!initialized) {
             initialized = true;
             resetField();
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerQuit(PlayerQuitEvent e) {
+        Player player = e.getPlayer();
+        onClickLeave(player);
+        if (getPlayerCount() < 1) {
+            // 参加者の最後の一人がログアウトした. 会場をリセットする
+            setStatus(Status.IDLE);
         }
     }
 
@@ -90,6 +106,12 @@ public class DarumaEventListener implements Listener {
             onClickJoin(player, TeamColor.WHITE);
         } else if (location.equals(offset(kButtonLeave))) {
             onClickLeave(player);
+        } else if (location.equals(offset(kButtonStartFinal))) {
+            // 決勝. 各チームの人数が一緒になっているか検証してからスタートするモードなのかも
+            onClickStart(player);
+        } else if (location.equals(offset(kButtonStartPreliminary))) {
+            // 予選
+            onClickStart(player);
         }
     }
 
@@ -129,6 +151,67 @@ public class DarumaEventListener implements Listener {
         }
     }
 
+    //TODO: 予選と決勝で処理を分ける
+    private void onClickStart(Player player) {
+        if (!player.isOp()) {
+            return;
+        }
+        if (_status != Status.IDLE) {
+            return;
+        }
+        int total = getPlayerCount();
+        if (total < 1) {
+            broadcastUnofficial("[だるまさんがころんだ] 参加者が見つかりません");
+            return;
+        }
+        broadcast("");
+        broadcast("-----------------------");
+        for (Map.Entry<TeamColor, Team> it : teams.entrySet()) {
+            Team team = it.getValue();
+            TeamColor color = it.getKey();
+            int count = team.getPlayerCount();
+            if (count < 1) {
+                broadcast("%sの参加者が見つかりません", ToString(color));
+            } else {
+                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count);
+            }
+        }
+        broadcast("-----------------------");
+        broadcast("");
+        setStatus(Status.COUNTDOWN);
+        Countdown.Then(getAnnounceBounds(), owner, (count) -> _status == Status.COUNTDOWN, () -> {
+            if (_status != Status.COUNTDOWN) {
+                return false;
+            }
+            setStatus(Status.RUN_MANUAL);
+            return true;
+        });
+    }
+
+    private int getPlayerCount() {
+        int total = 0;
+        for (Team team : teams.values()) {
+            total += team.getPlayerCount();
+        }
+        return total;
+    }
+
+    private BoundingBox getAnnounceBounds() {
+        return offset(kAnnounceBounds);
+    }
+
+    static String ToString(TeamColor color) {
+        switch (color) {
+            case RED:
+                return "TEAM RED";
+            case WHITE:
+                return "TEAM WHITE";
+            case YELLOW:
+                return "TEAM YELLOW";
+        }
+        return "";
+    }
+
     static String ToColoredString(TeamColor color) {
         switch (color) {
             case RED:
@@ -143,7 +226,7 @@ public class DarumaEventListener implements Listener {
 
     private void broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBounds)), msg);
+        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(getAnnounceBounds()), msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
@@ -238,6 +321,10 @@ public class DarumaEventListener implements Listener {
     private static final Point3i kButtonRedJoin = new Point3i(107, -60, -121);
     private static final Point3i kButtonWhiteJoin = new Point3i(109, -60, -121);
     private static final Point3i kButtonYellowJoin = new Point3i(111, -60, -121);
+    // デバッグ用. 本家ではボタン押す形式だけど, ボタンだと誰でも押せてしまう. 誰でもスタートできるとマズいので看板右クリックの形式にする.
+    private static final Point3i kButtonStartPreliminary = new Point3i(128, -53, -229);
+    // デバッグ用. 本家ではボタン押す形式だけど, ボタンだと誰でも押せてしまう. 誰でもスタートできるとマズいので看板右クリックの形式にする.
+    private static final Point3i kButtonStartFinal = new Point3i(126, -53, -229);
 
     private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
 }
