@@ -11,6 +11,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,7 +27,10 @@ public class DarumaEventListener implements Listener {
     enum Status {
         IDLE,
         COUNTDOWN,
-        RUN,
+        // 手動で「だるまさんが...」ボタン, 「ころんだ!!!」ボタンをそれぞれ押すモードで競技が進行中
+        RUN_MANUAL,
+        // プラグイン側が自動で進行させるモードで競技が進行中
+        RUN_AUTOMATIC,
     }
 
     enum TeamColor {
@@ -103,7 +107,8 @@ public class DarumaEventListener implements Listener {
                 setEntranceOpened(false);
                 setStartGateOpened(false);
                 break;
-            case RUN:
+            case RUN_MANUAL:
+            case RUN_AUTOMATIC:
                 setEntranceOpened(false);
                 setStartGateOpened(true);
                 break;
@@ -136,8 +141,9 @@ public class DarumaEventListener implements Listener {
         return "";
     }
 
-    private void broadcast(String msg, Object... args) {
-        owner.getServer().broadcastMessage(String.format(msg, args));
+    private void broadcast(String format, Object... args) {
+        String msg = String.format(format, args);
+        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBounds)), msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
@@ -209,8 +215,29 @@ public class DarumaEventListener implements Listener {
         return new Point3i(p.x, p.y, p.z);
     }
 
+    private double xd(double x) {
+        // 座標が間違っていたらここでオフセットする
+        return x;
+    }
+
+    private double yd(double y) {
+        // 座標が間違っていたらここでオフセットする
+        return y;
+    }
+
+    private double zd(double z) {
+        // 座標が間違っていたらここでオフセットする
+        return z;
+    }
+
+    private BoundingBox offset(BoundingBox box) {
+        return new BoundingBox(xd(box.getMinX()), yd(box.getMinY()), zd(box.getMinZ()), xd(box.getMaxX()), yd(box.getMaxY()), zd(box.getMaxZ()));
+    }
+
     private static final Point3i kButtonLeave = new Point3i(105, -60, -121);
     private static final Point3i kButtonRedJoin = new Point3i(107, -60, -121);
     private static final Point3i kButtonWhiteJoin = new Point3i(109, -60, -121);
     private static final Point3i kButtonYellowJoin = new Point3i(111, -60, -121);
+
+    private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
 }
