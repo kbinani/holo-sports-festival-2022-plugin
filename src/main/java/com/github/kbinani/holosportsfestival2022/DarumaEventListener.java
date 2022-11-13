@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+//TODO: 金リンゴをコレクションできないように対策する
+
 public class DarumaEventListener implements Listener {
     private final JavaPlugin owner;
     private boolean initialized = false;
@@ -124,6 +126,7 @@ public class DarumaEventListener implements Listener {
             case IDLE:
                 setEntranceOpened(true);
                 setStartGateOpened(false);
+                clearItem("@a");
                 break;
             case COUNTDOWN:
                 setEntranceOpened(false);
@@ -145,6 +148,7 @@ public class DarumaEventListener implements Listener {
         if (current == null) {
             Team team = ensureTeam(color);
             team.add(player);
+            giveItem(player);
             broadcast("[だるまさんがころんだ] %sが%sにエントリーしました", player.getName(), ToColoredString(color));
         } else {
             broadcast("[だるまさんがころんだ] %sは%sにエントリー済みです", player.getName(), ToColoredString(current));
@@ -260,7 +264,16 @@ public class DarumaEventListener implements Listener {
         }
         Team team = ensureTeam(current);
         team.remove(player);
+        clearItem(String.format("@p[name=\"%s\"]", player.getName()));
         broadcast("[だるまさんがころんだ] %sがエントリー解除しました", player.getName());
+    }
+
+    private void clearItem(String selector) {
+        execute("clear %s golden_apple{tag:{%s:1b}}", selector, kItemTag);
+    }
+
+    private void giveItem(Player player) {
+        execute("give @p[name=\"%s\"] golden_apple{tag:{%s:1b}}", player.getName(), kItemTag);
     }
 
     private void resetField() {
@@ -327,4 +340,5 @@ public class DarumaEventListener implements Listener {
     private static final Point3i kButtonStartFinal = new Point3i(126, -53, -229);
 
     private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
+    private static final String kItemTag = "hololive_sports_festival_2022_daruma";
 }

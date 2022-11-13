@@ -31,6 +31,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 //TODO: アイテム使った時の処理
+//TODO: 妨害用アイテムをコレクションできないように対策する
 
 public class BoatRaceEventListener implements Listener {
     private final JavaPlugin owner;
