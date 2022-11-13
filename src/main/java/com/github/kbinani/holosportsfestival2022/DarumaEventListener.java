@@ -71,9 +71,6 @@ public class DarumaEventListener implements Listener, Announcer {
         }
     }
 
-    static interface Foo {
-    }
-
     static class Race {
         static class Goal {
             final Player player;
