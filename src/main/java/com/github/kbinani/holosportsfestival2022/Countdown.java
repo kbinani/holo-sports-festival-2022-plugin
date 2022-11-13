@@ -23,7 +23,7 @@ public class Countdown {
       return box.contains(location.getX(), location.getY(), location.getZ()) && player.getWorld().getEnvironment() == World.Environment.NORMAL;
     };
 
-    String selector = String.format("@p[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+    String selector = String.format("@a[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
 
     if (!countdown.test(3)) {
       return;
