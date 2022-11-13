@@ -62,7 +62,7 @@ class WoodlandMansionStage extends Stage {
     }
 
     private void summonWitch(int x, int y, int z) {
-        execute("summon witch %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
+        execute("summon witch %d %d %d {ArmorItems:[{},{},{},{}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
     }
 
     private void summonPillager(int x, int y, int z) {
