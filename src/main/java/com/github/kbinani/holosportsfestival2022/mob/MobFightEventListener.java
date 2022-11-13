@@ -55,6 +55,9 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
                     it.getValue().setVisible(false);
                 }
+                for (Team team : teams.values()) {
+                    team.usePlayers(this::recoverRespawnLocation);
+                }
                 break;
             case AWAIT_COUNTDOWN:
                 for (Level level : levels.values()) {
@@ -64,6 +67,9 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 }
                 for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
                     it.getValue().setVisible(false);
+                }
+                for (Team team : teams.values()) {
+                    team.usePlayers(this::recoverRespawnLocation);
                 }
                 break;
             case COUNTDOWN:
