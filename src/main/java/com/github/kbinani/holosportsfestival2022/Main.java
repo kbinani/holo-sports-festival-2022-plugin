@@ -18,6 +18,7 @@ public class Main extends JavaPlugin implements Listener {
     private FencingEventListener fencingEventListener;
     private BoatRaceEventListener boatRaceEventListener;
     private RelayEventListener relayEventListener;
+    private DarumaEventListener darumaEventListener;
 
     public Main() {
     }
@@ -44,17 +45,22 @@ public class Main extends JavaPlugin implements Listener {
         this.fencingEventListener = new FencingEventListener(this);
         this.boatRaceEventListener = new BoatRaceEventListener(this);
         this.relayEventListener = new RelayEventListener(this);
+        this.darumaEventListener = new DarumaEventListener(this);
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(this.mobFightEventListener, this);
         pluginManager.registerEvents(this.fencingEventListener, this);
         pluginManager.registerEvents(this.boatRaceEventListener, this);
         pluginManager.registerEvents(this.relayEventListener, this);
+        pluginManager.registerEvents(this.darumaEventListener, this);
         pluginManager.registerEvents(this, this);
     }
 
     @EventHandler
     @SuppressWarnings("unused")
     public void onCreatureSpawn(CreatureSpawnEvent e) {
+        if (e.isCancelled()) {
+            return;
+        }
         switch (e.getSpawnReason()) {
             case NATURAL:
             case VILLAGE_INVASION:
