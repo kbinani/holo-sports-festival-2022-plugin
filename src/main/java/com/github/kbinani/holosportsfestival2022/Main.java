@@ -28,8 +28,12 @@ public class Main extends JavaPlugin implements Listener {
         List<String> reasons = new ArrayList<>();
         overworld().ifPresent(world -> {
             Boolean mobGriefing = world.getGameRuleValue(GameRule.MOB_GRIEFING);
+            Boolean keepInventory = world.getGameRuleValue(GameRule.KEEP_INVENTORY);
             if (mobGriefing != null && mobGriefing) {
                 reasons.add("mobGriefing gamerule is set to true");
+            }
+            if (keepInventory != null && !keepInventory) {
+                reasons.add("keepInventory gamerule is set to false");
             }
         });
         if (!reasons.isEmpty()) {
