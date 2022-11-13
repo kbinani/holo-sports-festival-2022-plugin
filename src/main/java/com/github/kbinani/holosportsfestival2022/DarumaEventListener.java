@@ -234,19 +234,20 @@ public class DarumaEventListener implements Listener, Announcer {
         if (!race.isRunning(player)) {
             return;
         }
+
+        Location to = e.getTo();
+        if (to == null) {
+            to = player.getLocation();
+        }
         BoundingBox box = offset(kGoalDetectionBox);
-        if (!box.contains(player.getLocation().toVector())) {
+        if (!box.contains(to.toVector())) {
             return;
         }
 
         // ゴールラインを超えた時刻を計算する.
         double z = box.getMaxZ();
         double fromZ = e.getFrom().getZ();
-        @Nullable Location to = e.getTo();
-        double toZ = to == null ? player.getLocation().getZ() : to.getZ();
-        if (toZ > zd(kGoalLineZ)) {
-            return;
-        }
+        double toZ = to.getZ();
         double tick = world.getFullTime();
         if (fromZ != toZ) {
             tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
@@ -502,9 +503,7 @@ public class DarumaEventListener implements Listener, Announcer {
     private static final Point3i kButtonStartFinal = new Point3i(126, -53, -229);
 
     private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
-    // ゴール判定を行う領域. ゴールラインより 1 ブロック手前に広く設定しないと, ゴールラインをちょうど超えた tick での PlayerMoveEvent が取れない.
-    private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -222);
-    private static final double kGoalLineZ = -223;
+    private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -223);
 
     private static final String kItemTag = "hololive_sports_festival_2022_daruma";
 }
