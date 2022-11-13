@@ -1,6 +1,7 @@
 package com.github.kbinani.holosportsfestival2022;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -221,6 +222,7 @@ public class DarumaEventListener implements Listener, Announcer {
         if (race == null) {
             return;
         }
+        final Race race = this.race;
         if (_status != Status.RUN_AUTOMATIC && _status != Status.RUN_MANUAL) {
             return;
         }
@@ -233,32 +235,38 @@ public class DarumaEventListener implements Listener, Announcer {
             return;
         }
         BoundingBox box = offset(kGoalDetectionBox);
-        if (box.contains(player.getLocation().toVector())) {
-            // ゴールラインを超えた時刻を計算する.
-            double z = box.getMaxZ();
-            double fromZ = e.getFrom().getZ();
-            double toZ = player.getLocation().getZ();
-            double tick = world.getFullTime();
-            if (fromZ != toZ) {
-                tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
-            }
-            race.goal(player, tick);
-
-            // 同一 tick で box に侵入したという判定になったとしても,
-            // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
-            // 1 tick 待ってから順位を発表する.
-            BukkitScheduler scheduler = owner.getServer().getScheduler();
-            scheduler.runTask(owner, () -> {
-                if (race == null) {
-                    return;
-                }
-                race.announceOrder(this, player);
-                if (race.getRunningPlayerCount() < 1) {
-                    race.announceOrders(this);
-                    setStatus(Status.IDLE);
-                }
-            });
+        if (!box.contains(player.getLocation().toVector())) {
+            return;
         }
+
+        // ゴールラインを超えた時刻を計算する.
+        double z = box.getMaxZ();
+        double fromZ = e.getFrom().getZ();
+        @Nullable Location to = e.getTo();
+        double toZ = to == null ? player.getLocation().getZ() : to.getZ();
+        if (toZ > zd(kGoalLineZ)) {
+            return;
+        }
+        double tick = world.getFullTime();
+        if (fromZ != toZ) {
+            tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
+        }
+        race.goal(player, tick);
+
+        // 同一 tick で box に侵入したという判定になったとしても,
+        // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
+        // 1 tick 待ってから順位を発表する.
+        BukkitScheduler scheduler = owner.getServer().getScheduler();
+        scheduler.runTask(owner, () -> {
+            if (this.race == null) {
+                return;
+            }
+            this.race.announceOrder(this, player);
+            if (this.race.getRunningPlayerCount() < 1) {
+                this.race.announceOrders(this);
+                setStatus(Status.IDLE);
+            }
+        });
     }
 
     private void setStatus(Status status) {
@@ -494,7 +502,9 @@ public class DarumaEventListener implements Listener, Announcer {
     private static final Point3i kButtonStartFinal = new Point3i(126, -53, -229);
 
     private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
-    private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -223);
+    // ゴール判定を行う領域. ゴールラインより 1 ブロック手前に広く設定しないと, ゴールラインをちょうど超えた tick での PlayerMoveEvent が取れない.
+    private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -222);
+    private static final double kGoalLineZ = -223;
 
     private static final String kItemTag = "hololive_sports_festival_2022_daruma";
 }
