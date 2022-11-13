@@ -58,7 +58,7 @@ class WoodlandMansionStage extends Stage {
     }
 
     private void summonVindicator(int x, int y, int z) {
-        execute("summon vindicator %d %d %d {HandItems:[{id:iron_axe,Count:1}],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
+        execute("summon vindicator %d %d %d {HandItems:[{id:iron_axe,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
     }
 
     private void summonWitch(int x, int y, int z) {
@@ -66,7 +66,7 @@ class WoodlandMansionStage extends Stage {
     }
 
     private void summonPillager(int x, int y, int z) {
-        execute("summon pillager %d %d %d {HandItems:[{id:crossbow,Count:1}],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
+        execute("summon pillager %d %d %d {HandItems:[{id:crossbow,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
     }
 
     @Override

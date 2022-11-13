@@ -62,7 +62,7 @@ class NetherStage extends Stage {
     }
 
     private void summonWitherSkeleton(int x, int y, int z) {
-        execute("summon wither_skeleton %d %d %d {HandItems:[{id:stone_sword,Count:1}],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", this.x(x), this.y(y), this.z(z), kEntityTag);
+        execute("summon wither_skeleton %d %d %d {HandItems:[{id:stone_sword,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", this.x(x), this.y(y), this.z(z), kEntityTag);
     }
 
     private void summonBlaze(int x, int y, int z) {
@@ -70,7 +70,7 @@ class NetherStage extends Stage {
     }
 
     private void summonZombifiedPiglin(int x, int y, int z) {
-        execute("summon zombified_piglin %d %d %d {HandItems:[{id:golden_sword,Count:1}],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", this.x(x), this.y(y), this.z(z), kEntityTag);
+        execute("summon zombified_piglin %d %d %d {HandItems:[{id:golden_sword,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", this.x(x), this.y(y), this.z(z), kEntityTag);
     }
 
     @Override
