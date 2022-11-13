@@ -53,7 +53,7 @@ class NetherStage extends Stage {
                 summonWitherSkeleton(8, -49, -314);
                 summonWitherSkeleton(9, -55, -318);
 
-                execute("summon ghast %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"]}", x(-5), y(-47), z(-312), kEntityTag);
+                execute("summon ghast %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(-5), y(-47), z(-312), kEntityTag);
 
                 BoundingBox box = getBounds();
                 execute("effect give @e[tag=%s,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", kEntityTag, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
@@ -62,15 +62,15 @@ class NetherStage extends Stage {
     }
 
     private void summonWitherSkeleton(int x, int y, int z) {
-        execute("summon wither_skeleton %d %d %d {HandItems:[{id:stone_sword,Count:1}],ArmorItems:[{},{},{},{}],Tags:[\"%s\"]}", this.x(x), this.y(y), this.z(z), kEntityTag);
+        execute("summon wither_skeleton %d %d %d {HandItems:[{id:stone_sword,Count:1}],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", this.x(x), this.y(y), this.z(z), kEntityTag);
     }
 
     private void summonBlaze(int x, int y, int z) {
-        execute("summon blaze %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"]}", this.x(x), this.y(y), this.z(z), kEntityTag);
+        execute("summon blaze %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", this.x(x), this.y(y), this.z(z), kEntityTag);
     }
 
     private void summonZombifiedPiglin(int x, int y, int z) {
-        execute("summon zombified_piglin %d %d %d {HandItems:[{id:golden_sword,Count:1}],ArmorItems:[{},{},{},{}],Tags:[\"%s\"]}", this.x(x), this.y(y), this.z(z), kEntityTag);
+        execute("summon zombified_piglin %d %d %d {HandItems:[{id:golden_sword,Count:1}],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", this.x(x), this.y(y), this.z(z), kEntityTag);
     }
 
     @Override

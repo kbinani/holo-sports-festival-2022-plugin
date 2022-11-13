@@ -64,11 +64,11 @@ class ShootingStage extends Stage {
     }
 
     private void summonSkeleton(int x, int y, int z) {
-        execute("summon minecart %d %d %d {Passengers:[{id:skeleton,Tags:[\"%s\"],HandItems:[{id:bow,Count:1}],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"_ookamimio\"}}]}],Tags:[\"%s\"]}", x(x), y(y), z(z), kEntityTag, kEntityTag);
+        execute("summon minecart %d %d %d {Passengers:[{id:skeleton,Tags:[\"%s\"],HandItems:[{id:bow,Count:1}],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"_ookamimio\"}}],DeathLootTable:\"minecraft:empty\"}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag, kEntityTag);
     }
 
     private void summonZombie(int x, int y, int z) {
-        execute("summon minecart %d %d %d {Passengers:[{id:zombie,Tags:[\"%s\"],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"sakuramiko35\"}}]}],Tags:[\"%s\"]}", x(x), y(y), z(z), kEntityTag, kEntityTag);
+        execute("summon minecart %d %d %d {Passengers:[{id:zombie,Tags:[\"%s\"],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"sakuramiko35\"}}],DeathLootTable:\"minecraft:empty\"}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag, kEntityTag);
     }
 
     @Override

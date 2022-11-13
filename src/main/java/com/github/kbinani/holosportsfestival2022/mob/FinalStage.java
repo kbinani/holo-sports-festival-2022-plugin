@@ -65,7 +65,7 @@ class FinalStage extends Stage {
     }
 
     private void summonCreeper(int x, int y, int z) {
-        execute("summon creeper %d %d %d {Tags:[\"%s\"]}", x(x), y(y), z(z), kEntityTag);
+        execute("summon creeper %d %d %d {Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
     }
 
     @Override
