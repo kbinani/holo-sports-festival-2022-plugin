@@ -1,5 +1,6 @@
-package com.github.kbinani.holosportsfestival2022;
+package com.github.kbinani.holosportsfestival2022.fencing;
 
+import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -52,7 +53,7 @@ public class FencingEventListener implements Listener {
     static final int kFieldDz = 4;
     static final int kWeaponKnockbackLevel = 10;
 
-    FencingEventListener(JavaPlugin owner) {
+    public FencingEventListener(JavaPlugin owner) {
         this.owner = owner;
         overworld().ifPresent(world -> {
             this.showDeathMessage = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
