@@ -99,24 +99,24 @@ public class FencingEventListener implements Listener {
                 });
 
                 // 左ゲート構築
-                execute("fill %s %s white_concrete", xyz(165, -16, -268), xyz(165, -18, -264));
-                execute("fill %s %s glass", xyz(165, -17, -267), xyz(165, -18, -265));
-                execute("setblock %s iron_door[facing=west,half=upper,hinge=left]", xyz(164, -17, -266));
-                execute("setblock %s iron_door[facing=west,half=lower,hinge=left]", xyz(164, -18, -266));
-                execute("setblock %s air", xyz(165, -17, -266));
-                execute("setblock %s heavy_weighted_pressure_plate", xyz(165, -18, -266));
+                fill(new Point3i(165, -16, -268), new Point3i(165, -18, -264), "white_concrete");
+                fill(new Point3i(165, -17, -267), new Point3i(165, -18, -265), "glass");
+                setBlock(new Point3i(164, -17, -266), "iron_door[facing=west,half=upper,hinge=left]");
+                setBlock(new Point3i(164, -18, -266), "iron_door[facing=west,half=lower,hinge=left]");
+                setBlock(new Point3i(165, -17, -266), "air");
+                setBlock(new Point3i(165, -18, -266), "heavy_weighted_pressure_plate");
 
                 // 右ゲート構築
-                execute("fill %s %s white_concrete", xyz(103, -16, -264), xyz(103, -18, -268));
-                execute("fill %s %s glass", xyz(103, -17, -265), xyz(103, -18, -267));
-                execute("setblock %s iron_door[facing=east,half=upper,hinge=left]", xyz(104, -17, -266));
-                execute("setblock %s iron_door[facing=east,half=lower,hinge=left]", xyz(104, -18, -266));
-                execute("setblock %s air", xyz(103, -17, -266));
-                execute("setblock %s heavy_weighted_pressure_plate", xyz(103, -18, -266));
+                fill(new Point3i(103, -16, -264), new Point3i(103, -18, -268), "white_concrete");
+                fill(new Point3i(103, -17, -265), new Point3i(103, -18, -267), "glass");
+                setBlock(new Point3i(104, -17, -266), "iron_door[facing=east,half=upper,hinge=left]");
+                setBlock(new Point3i(104, -18, -266), "iron_door[facing=east,half=lower,hinge=left]");
+                setBlock(new Point3i(103, -17, -266), "air");
+                setBlock(new Point3i(103, -18, -266), "heavy_weighted_pressure_plate");
 
                 // バリアブロックの柵
-                execute("fill %s %s barrier", xyz(165, -17, -269), xyz(103, -17, -269));
-                execute("fill %s %s barrier", xyz(104, -17, -263), xyz(165, -17, -263));
+                fill(new Point3i(165, -17, -269), new Point3i(103, -17, -269), "barrier");
+                fill(new Point3i(104, -17, -263), new Point3i(165, -17, -263), "barrier");
 
                 break;
             case COUNTDOWN:
@@ -141,13 +141,16 @@ public class FencingEventListener implements Listener {
         }
     }
 
-    private Optional<World> overworld() {
-        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
+    private void fill(Point3i from, Point3i to, String block) {
+        Editor.Fill(offset(from), offset(to), block);
     }
 
-    private String xyz(int x, int y, int z) {
-        // 座標が間違っていたらここでオフセットする
-        return String.format("%d %d %d", x, y, z);
+    private void setBlock(Point3i p, String block) {
+        Editor.SetBlock(offset(p), block);
+    }
+
+    private Optional<World> overworld() {
+        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     }
 
     @EventHandler
@@ -317,7 +320,7 @@ public class FencingEventListener implements Listener {
     }
 
     private void clearField() {
-        execute("fill %s %s air", xyz(102, -16, -269), xyz(165, -18, -264));
+        fill(new Point3i(102, -16, -269), new Point3i(165, -18, -264), "air");
         bossbarLeft.setVisible(false);
         bossbarRight.setVisible(false);
         execute("clear @a iron_sword{tag:{%s:1b}}", kWeaponCustomTag);

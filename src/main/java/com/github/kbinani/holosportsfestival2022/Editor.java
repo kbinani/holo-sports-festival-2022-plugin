@@ -19,7 +19,23 @@ public class Editor {
     private Editor() {
     }
 
-    public void Stroke(String block, Point3i... points) {
+    public static void SetBlock(Point3i p, String block) {
+        World world = Overworld();
+        if (world == null) {
+            return;
+        }
+        int cx = p.x >> 4;
+        int cz = p.z >> 4;
+        boolean loaded = world.isChunkLoaded(cx, cz);
+        world.loadChunk(cx, cz);
+        Server server = Bukkit.getServer();
+        server.dispatchCommand(server.getConsoleSender(), String.format("setblock %d %d %d %s", p.x, p.y, p.z, block));
+        if (!loaded) {
+            world.unloadChunk(cx, cz);
+        }
+    }
+
+    public static void Stroke(String block, Point3i... points) {
         for (int i = 0; i < points.length - 1; i++) {
             Point3i from = points[i];
             Point3i to = points[i + 1];
