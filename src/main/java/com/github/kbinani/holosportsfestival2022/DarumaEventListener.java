@@ -243,8 +243,7 @@ public class DarumaEventListener implements Listener, Announcer {
             to = player.getLocation();
         }
         BoundingBox box = offset(kGoalDetectionBox);
-        if ((_status == Status.GREEN || _status == Status.START) && box.contains(to.toVector())) {
-
+        if ((_status == Status.GREEN || _status == Status.START || _status == Status.COUNTDOWN_RED) && box.contains(to.toVector())) {
             // ゴールラインを超えた時刻を計算する.
             double z = box.getMaxZ();
             double fromZ = from.getZ();
