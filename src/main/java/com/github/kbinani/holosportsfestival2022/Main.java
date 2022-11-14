@@ -5,6 +5,7 @@ import com.github.kbinani.holosportsfestival2022.daruma.DarumaEventListener;
 import com.github.kbinani.holosportsfestival2022.fencing.FencingEventListener;
 import com.github.kbinani.holosportsfestival2022.mob.MobFightEventListener;
 import com.github.kbinani.holosportsfestival2022.relay.RelayEventListener;
+import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
@@ -16,6 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 
 public class Main extends JavaPlugin implements Listener {
     private MobFightEventListener mobFightEventListener;
@@ -30,23 +32,40 @@ public class Main extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         List<String> reasons = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
         overworld().ifPresent(world -> {
             Boolean mobGriefing = world.getGameRuleValue(GameRule.MOB_GRIEFING);
             Boolean keepInventory = world.getGameRuleValue(GameRule.KEEP_INVENTORY);
+            Boolean showDeathMessages = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
+            Boolean announceAdvancements = world.getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
             if (mobGriefing != null && mobGriefing) {
                 reasons.add("mobGriefing gamerule is set to true");
             }
             if (keepInventory != null && !keepInventory) {
                 reasons.add("keepInventory gamerule is set to false");
             }
+            if (showDeathMessages != null && showDeathMessages) {
+                warnings.add("showDeathMessages gamerule is set to true");
+            }
+            if (announceAdvancements != null && announceAdvancements) {
+                warnings.add("announceAdvancements gamerule is set to true");
+            }
+            if (world.getDifficulty() == Difficulty.PEACEFUL) {
+                reasons.add("the \"mob\" mini game is not playable as the difficulty is set to peaceful");
+            }
         });
         if (!reasons.isEmpty()) {
-            getLogger().warning("Disabling the plugin because:");
+            getLogger().log(Level.SEVERE, "Disabling the plugin because:");
             for (String reason : reasons) {
-                getLogger().warning("  " + reason);
+                getLogger().log(Level.SEVERE, "  " + reason);
             }
             setEnabled(false);
             return;
+        }
+        if (!warnings.isEmpty()) {
+            for (String warning : warnings) {
+                getLogger().warning(warning);
+            }
         }
 
         this.mobFightEventListener = new MobFightEventListener(this);
