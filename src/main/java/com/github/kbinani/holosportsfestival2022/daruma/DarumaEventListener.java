@@ -519,10 +519,10 @@ public class DarumaEventListener implements Listener, Announcer {
     }
 
     private void resetField() {
-        WallSign.Place(offset(kButtonLeave), BlockFace.SOUTH, "エントリー解除");
-        WallSign.Place(offset(kButtonRedJoin), BlockFace.SOUTH, "赤組", "エントリー");
-        WallSign.Place(offset(kButtonWhiteJoin), BlockFace.SOUTH, "白組", "エントリー");
-        WallSign.Place(offset(kButtonYellowJoin), BlockFace.SOUTH, "黃組", "エントリー");
+        Editor.WallSign(offset(kButtonLeave), BlockFace.SOUTH, "エントリー解除");
+        Editor.WallSign(offset(kButtonRedJoin), BlockFace.SOUTH, "赤組", "エントリー");
+        Editor.WallSign(offset(kButtonWhiteJoin), BlockFace.SOUTH, "白組", "エントリー");
+        Editor.WallSign(offset(kButtonYellowJoin), BlockFace.SOUTH, "黃組", "エントリー");
         setStartGateOpened(false);
         setEntranceOpened(true);
     }

@@ -321,10 +321,10 @@ public class FencingEventListener implements Listener {
         bossbarLeft.setVisible(false);
         bossbarRight.setVisible(false);
         execute("clear @a iron_sword{tag:{%s:1b}}", kWeaponCustomTag);
-        WallSign.Place(offset(new Point3i(101, -19, -265)), BlockFace.NORTH, "右側エントリー");
-        WallSign.Place(offset(new Point3i(99, -19, -265)), BlockFace.NORTH, "エントリー解除");
-        WallSign.Place(offset(new Point3i(167, -19, -265)), BlockFace.NORTH, "左側エントリー");
-        WallSign.Place(offset(new Point3i(169, -19, -265)), BlockFace.NORTH, "エントリー解除");
+        Editor.WallSign(offset(new Point3i(101, -19, -265)), BlockFace.NORTH, "右側エントリー");
+        Editor.WallSign(offset(new Point3i(99, -19, -265)), BlockFace.NORTH, "エントリー解除");
+        Editor.WallSign(offset(new Point3i(167, -19, -265)), BlockFace.NORTH, "左側エントリー");
+        Editor.WallSign(offset(new Point3i(169, -19, -265)), BlockFace.NORTH, "エントリー解除");
     }
 
     @EventHandler

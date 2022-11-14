@@ -105,13 +105,13 @@ public class BoatRaceEventListener implements Listener {
 
     private void resetField() {
         // 操作用の看板を設置
-        WallSign.Place(offset(kYellowEntryShooter), BlockFace.WEST, "黄組", "エントリー", ToString(Role.SHOOTER));
-        WallSign.Place(offset(kYellowEntryDriver), BlockFace.WEST, "黄組", "エントリー", ToString(Role.DRIVER));
-        WallSign.Place(offset(kWhiteEntryShooter), BlockFace.WEST, "白組", "エントリー", ToString(Role.SHOOTER));
-        WallSign.Place(offset(kWhiteEntryDriver), BlockFace.WEST, "白組", "エントリー", ToString(Role.DRIVER));
-        WallSign.Place(offset(kRedEntryShooter), BlockFace.WEST, "赤組", "エントリー", ToString(Role.SHOOTER));
-        WallSign.Place(offset(kRedEntryDriver), BlockFace.WEST, "赤組", "エントリー", ToString(Role.DRIVER));
-        WallSign.Place(offset(kLeaveButton), BlockFace.WEST, "エントリー解除");
+        Editor.WallSign(offset(kYellowEntryShooter), BlockFace.WEST, "黄組", "エントリー", ToString(Role.SHOOTER));
+        Editor.WallSign(offset(kYellowEntryDriver), BlockFace.WEST, "黄組", "エントリー", ToString(Role.DRIVER));
+        Editor.WallSign(offset(kWhiteEntryShooter), BlockFace.WEST, "白組", "エントリー", ToString(Role.SHOOTER));
+        Editor.WallSign(offset(kWhiteEntryDriver), BlockFace.WEST, "白組", "エントリー", ToString(Role.DRIVER));
+        Editor.WallSign(offset(kRedEntryShooter), BlockFace.WEST, "赤組", "エントリー", ToString(Role.SHOOTER));
+        Editor.WallSign(offset(kRedEntryDriver), BlockFace.WEST, "赤組", "エントリー", ToString(Role.DRIVER));
+        Editor.WallSign(offset(kLeaveButton), BlockFace.WEST, "エントリー解除");
 
         // ゴールラインの柵を撤去
         execute("fill %s %s air", xyz(-52, -58, -196), xyz(-25, -58, -196));

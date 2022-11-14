@@ -10,11 +10,11 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
 
-public class WallSign {
-    private WallSign() {
+public class Editor {
+    private Editor() {
     }
 
-    public static void Place(Point3i p, BlockFace facing, String line1, String line2, String line3) {
+    public static void WallSign(Point3i p, BlockFace facing, String line1, String line2, String line3) {
         Server server = Bukkit.getServer();
         World world = server.getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst().orElse(null);
         if (world == null) {
@@ -48,11 +48,11 @@ public class WallSign {
         }
     }
 
-    public static void Place(Point3i p, BlockFace facing, String line1) {
-        Place(p, facing, line1, "", "");
+    public static void WallSign(Point3i p, BlockFace facing, String line1) {
+        WallSign(p, facing, line1, "", "");
     }
 
-    public static void Place(Point3i p, BlockFace facing, String line1, String line2) {
-        Place(p, facing, line1, line2, "");
+    public static void WallSign(Point3i p, BlockFace facing, String line1, String line2) {
+        WallSign(p, facing, line1, line2, "");
     }
 }

@@ -1,9 +1,9 @@
 package com.github.kbinani.holosportsfestival2022.relay;
 
 import com.github.kbinani.holosportsfestival2022.Countdown;
+import com.github.kbinani.holosportsfestival2022.Editor;
 import com.github.kbinani.holosportsfestival2022.Loader;
 import com.github.kbinani.holosportsfestival2022.Point3i;
-import com.github.kbinani.holosportsfestival2022.WallSign;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Server;
@@ -350,10 +350,10 @@ public class RelayEventListener implements Listener {
     }
 
     private void resetField() {
-        WallSign.Place(offset(kButtonEntryRed), BlockFace.NORTH, "赤組", "エントリー");
-        WallSign.Place(offset(kButtonEntryWhite), BlockFace.NORTH, "白組", "エントリー");
-        WallSign.Place(offset(kButtonEntryYellow), BlockFace.NORTH, "黃組", "エントリー");
-        WallSign.Place(offset(kButtonLeave), BlockFace.NORTH, "エントリー解除");
+        Editor.WallSign(offset(kButtonEntryRed), BlockFace.NORTH, "赤組", "エントリー");
+        Editor.WallSign(offset(kButtonEntryWhite), BlockFace.NORTH, "白組", "エントリー");
+        Editor.WallSign(offset(kButtonEntryYellow), BlockFace.NORTH, "黃組", "エントリー");
+        Editor.WallSign(offset(kButtonLeave), BlockFace.NORTH, "エントリー解除");
 
         setEnableStartGate(false);
         setEnableCornerFence(false);

@@ -482,17 +482,17 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             Loader.LoadChunk(world, offset(kAnnounceBounds));
         });
 
-        WallSign.Place(offset(kButtonWhiteLeave), BlockFace.SOUTH, "エントリー解除");
-        WallSign.Place(offset(kButtonWhiteJoinArrow), BlockFace.SOUTH, "白組", "エントリー", "（弓）");
-        WallSign.Place(offset(kButtonWhiteJoinSword), BlockFace.SOUTH, "白組", "エントリー", "（剣）");
+        Editor.WallSign(offset(kButtonWhiteLeave), BlockFace.SOUTH, "エントリー解除");
+        Editor.WallSign(offset(kButtonWhiteJoinArrow), BlockFace.SOUTH, "白組", "エントリー", "（弓）");
+        Editor.WallSign(offset(kButtonWhiteJoinSword), BlockFace.SOUTH, "白組", "エントリー", "（剣）");
 
-        WallSign.Place(offset(kButtonRedLeave), BlockFace.SOUTH, "エントリー解除");
-        WallSign.Place(offset(kButtonRedJoinArrow), BlockFace.SOUTH, "赤組", "エントリー", "（弓）");
-        WallSign.Place(offset(kButtonRedJoinSword), BlockFace.SOUTH, "赤組", "エントリー", "（剣）");
+        Editor.WallSign(offset(kButtonRedLeave), BlockFace.SOUTH, "エントリー解除");
+        Editor.WallSign(offset(kButtonRedJoinArrow), BlockFace.SOUTH, "赤組", "エントリー", "（弓）");
+        Editor.WallSign(offset(kButtonRedJoinSword), BlockFace.SOUTH, "赤組", "エントリー", "（剣）");
 
-        WallSign.Place(offset(kButtonYellowLeave), BlockFace.SOUTH, "エントリー解除");
-        WallSign.Place(offset(kButtonYellowJoinArrow), BlockFace.SOUTH, "黃組", "エントリー", "（弓）");
-        WallSign.Place(offset(kButtonYellowJoinSword), BlockFace.SOUTH, "黃組", "エントリー", "（剣）");
+        Editor.WallSign(offset(kButtonYellowLeave), BlockFace.SOUTH, "エントリー解除");
+        Editor.WallSign(offset(kButtonYellowJoinArrow), BlockFace.SOUTH, "黃組", "エントリー", "（弓）");
+        Editor.WallSign(offset(kButtonYellowJoinSword), BlockFace.SOUTH, "黃組", "エントリー", "（剣）");
 
         for (TeamColor tc : kColors) {
             ensureLevel(tc);
