@@ -76,23 +76,19 @@ public class BoatRaceEventListener implements Listener {
                 break;
             case AWAIT_START:
                 // ゴールラインに柵を設置
-                execute("fill %s %s bedrock", xyz(-52, -58, -196), xyz(-25, -58, -196));
+                setGoalGateOpened(false);
 
                 // スタートラインに柵を設置
-                execute("fill %s %s bedrock", xyz(-26, -58, -186), xyz(-36, -58, -186));
-                execute("fill %s %s bedrock", xyz(-37, -58, -187), xyz(-44, -58, -187));
-                execute("fill %s %s bedrock", xyz(-45, -58, -188), xyz(-52, -58, -188));
+                setStartGateOpened(false);
                 break;
             case COUNTDOWN:
                 break;
             case RUN:
                 // ゴールラインの柵を撤去
-                execute("fill %s %s air", xyz(-52, -58, -196), xyz(-25, -58, -196));
+                setGoalGateOpened(true);
 
                 // スタートラインの柵を撤去
-                execute("fill %s %s air", xyz(-26, -58, -186), xyz(-36, -58, -186));
-                execute("fill %s %s air", xyz(-37, -58, -187), xyz(-44, -58, -187));
-                execute("fill %s %s air", xyz(-45, -58, -188), xyz(-52, -58, -188));
+                setStartGateOpened(true);
 
                 // 妨害装置を起動
                 //TODO: 同時起動だと妨害装置が同期するので適当にずらす
@@ -101,6 +97,21 @@ public class BoatRaceEventListener implements Listener {
                 }
                 break;
         }
+    }
+
+    private void setStartGateOpened(boolean opened) {
+        String block = opened ? "air" : "bedrock";
+        fill(new Point3i(-26, -58, -186), new Point3i(-36, -58, -186), block);
+        fill(new Point3i(-37, -58, -187), new Point3i(-44, -58, -187), block);
+        fill(new Point3i(-45, -58, -188), new Point3i(-52, -58, -188), block);
+    }
+
+    private void setGoalGateOpened(boolean opened) {
+        fill(new Point3i(-52, -58, -196), new Point3i(-25, -58, -196), opened ? "air" : "bedrock");
+    }
+
+    private void fill(Point3i from, Point3i to, String block) {
+        Editor.Fill(offset(from), offset(to), block);
     }
 
     private void resetField() {
@@ -114,12 +125,10 @@ public class BoatRaceEventListener implements Listener {
         Editor.WallSign(offset(kLeaveButton), BlockFace.WEST, "エントリー解除");
 
         // ゴールラインの柵を撤去
-        execute("fill %s %s air", xyz(-52, -58, -196), xyz(-25, -58, -196));
+        setGoalGateOpened(true);
 
         // スタートラインの柵を撤去
-        execute("fill %s %s air", xyz(-26, -58, -186), xyz(-36, -58, -186));
-        execute("fill %s %s air", xyz(-37, -58, -187), xyz(-44, -58, -187));
-        execute("fill %s %s air", xyz(-45, -58, -188), xyz(-52, -58, -188));
+        setStartGateOpened(true);
 
         // 妨害装置を停止
         for (Point3i p : kJammingBlockStarterBlocks) {
@@ -655,17 +664,6 @@ public class BoatRaceEventListener implements Listener {
             setStatus(Status.RUN);
             return true;
         });
-    }
-
-    private String xyz(Point3i p) {
-        // 座標が間違っていてもここはオフセットしなくていい
-        Point3i o = offset(p);
-        return String.format("%d %d %d", o.x, o.y, o.z);
-    }
-
-    private String xyz(int x, int y, int z) {
-        // 座標が間違っていたらここでオフセットする
-        return String.format("%d %d %d", x, y, z);
     }
 
     private Point3i offset(Point3i p) {
