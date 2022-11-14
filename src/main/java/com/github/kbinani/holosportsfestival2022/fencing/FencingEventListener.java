@@ -39,7 +39,6 @@ public class FencingEventListener implements Listener {
     private @Nullable UUID playerRight;
     private int hitpointLeft = 3;
     private int hitpointRight = 3;
-    private @Nullable Boolean showDeathMessage = null;
     private Bossbar bossbarLeft;
     private Bossbar bossbarRight;
 
@@ -55,9 +54,6 @@ public class FencingEventListener implements Listener {
 
     public FencingEventListener(JavaPlugin owner) {
         this.owner = owner;
-        overworld().ifPresent(world -> {
-            this.showDeathMessage = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
-        });
     }
 
     enum Status {
@@ -87,11 +83,6 @@ public class FencingEventListener implements Listener {
                 playerRight = null;
                 hitpointRight = 3;
                 hitpointLeft = 3;
-                overworld().ifPresent(world -> {
-                    if (showDeathMessage != null) {
-                        world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, showDeathMessage);
-                    }
-                });
                 break;
             case AWAIT_COUNTDOWN:
                 // 範囲内に居るプレイヤーを観客席側に排除する
@@ -149,13 +140,6 @@ public class FencingEventListener implements Listener {
             case RUN:
                 break;
             case AWAIT_DEATH:
-                overworld().ifPresent(world -> {
-                    Boolean value = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
-                    if (value != null) {
-                        this.showDeathMessage = value;
-                    }
-                    world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
-                });
                 clearField();
                 break;
         }
