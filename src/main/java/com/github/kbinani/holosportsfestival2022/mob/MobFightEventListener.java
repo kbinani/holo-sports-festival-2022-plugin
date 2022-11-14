@@ -130,7 +130,11 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             if (!box.contains(location)) {
                 continue;
             }
-            Progress next = level.consumeDeadMob(entity);
+            boolean consumed = level.consumeDeadMob(entity);
+            if (consumed) {
+                e.setDroppedExp(0);
+            }
+            Progress next = level.getProgress();
             applyBossbarValue(color, stage.getBossbarValue());
             if (current.equals(next)) {
                 continue;

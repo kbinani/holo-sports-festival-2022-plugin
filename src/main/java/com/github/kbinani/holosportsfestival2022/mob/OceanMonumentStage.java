@@ -68,7 +68,7 @@ class OceanMonumentStage extends Stage {
     }
 
     @Override
-    Optional<Next> consumeDeadMob(Entity entity) {
+    Optional<Result> consumeDeadMob(Entity entity) {
         EntityType type = entity.getType();
         if (type != EntityType.DROWNED && type != EntityType.GUARDIAN) {
             return Optional.empty();
@@ -76,15 +76,15 @@ class OceanMonumentStage extends Stage {
         int before = remainingMobCount;
         int after = Math.max(0, remainingMobCount - 1);
         if (before == after) {
-            return Optional.empty();
+            return Optional.of(Result.Empty());
         }
         remainingMobCount = after;
         if (after == 0) {
-            return Optional.of(Next.Stage());
+            return Optional.of(Result.Stage());
         } else if (after == 2) {
-            return Optional.of(Next.Step());
+            return Optional.of(Result.Step());
         }
-        return Optional.empty();
+        return Optional.of(Result.Empty());
     }
 
     @Override

@@ -74,7 +74,7 @@ class NetherStage extends Stage {
     }
 
     @Override
-    Optional<Next> consumeDeadMob(Entity entity) {
+    Optional<Result> consumeDeadMob(Entity entity) {
         EntityType type = entity.getType();
         switch (type) {
             case ZOMBIFIED_PIGLIN:
@@ -88,15 +88,15 @@ class NetherStage extends Stage {
         int before = remainingMobCount;
         int after = Math.max(0, remainingMobCount - 1);
         if (before == after) {
-            return Optional.empty();
+            return Optional.of(Result.Empty());
         }
         remainingMobCount = after;
         if (after == 0) {
-            return Optional.of(Next.Stage());
+            return Optional.of(Result.Stage());
         } else if (after == 3) {
-            return Optional.of(Next.Step());
+            return Optional.of(Result.Step());
         } else {
-            return Optional.empty();
+            return Optional.of(Result.Empty());
         }
     }
 

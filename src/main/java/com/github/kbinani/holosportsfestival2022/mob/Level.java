@@ -76,24 +76,23 @@ class Level implements StageDelegate {
         progress = Progress.Zero();
     }
 
-    @Nonnull
-    Progress consumeDeadMob(Entity entity) {
+    boolean consumeDeadMob(Entity entity) {
         Stage stage = stages.get(progress.stage);
-        Optional<Stage.Next> maybeNext = stage.consumeDeadMob(entity);
+        Optional<Stage.Result> maybeNext = stage.consumeDeadMob(entity);
         if (maybeNext.isEmpty()) {
-            return this.progress;
+            return false;
         }
-        Stage.Next next = maybeNext.get();
+        Stage.Result next = maybeNext.get();
         if (next.stage) {
             // 次の stage へ
             this.progress = new Progress(progress.stage + 1, 0);
-            return this.progress;
+            return true;
         } else if (next.step) {
             // 同一 stage の次の step へ
             this.progress = new Progress(progress.stage, progress.step + 1);
-            return progress;
+            return true;
         } else {
-            return progress;
+            return true;
         }
     }
 
@@ -110,7 +109,7 @@ class Level implements StageDelegate {
     }
 
     @Override
-    public void execute(String format, Object ...args) {
+    public void execute(String format, Object... args) {
         delegate.execute(format, args);
     }
 

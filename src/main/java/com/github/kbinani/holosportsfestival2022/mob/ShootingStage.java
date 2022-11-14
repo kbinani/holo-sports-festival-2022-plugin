@@ -72,7 +72,7 @@ class ShootingStage extends Stage {
     }
 
     @Override
-    Optional<Next> consumeDeadMob(Entity entity) {
+    Optional<Result> consumeDeadMob(Entity entity) {
         switch (entity.getType()) {
             case ZOMBIE:
             case SKELETON:
@@ -83,13 +83,13 @@ class ShootingStage extends Stage {
         int before = remainingMobCount;
         int after = Math.max(0, remainingMobCount - 1);
         if (before == after) {
-            return Optional.empty();
+            return Optional.of(Result.Empty());
         }
         remainingMobCount = after;
         if (after == 0) {
-            return Optional.of(Next.Stage());
+            return Optional.of(Result.Stage());
         } else {
-            return Optional.empty();
+            return Optional.of(Result.Empty());
         }
     }
 

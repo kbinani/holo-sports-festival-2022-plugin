@@ -50,7 +50,7 @@ public abstract class Stage {
 
     abstract void summonMobs(int step);
 
-    abstract Optional<Next> consumeDeadMob(Entity entity);
+    abstract Optional<Result> consumeDeadMob(Entity entity);
 
     // bossbar の表示パラメータ
     abstract BossbarValue getBossbarValue();
@@ -72,19 +72,23 @@ public abstract class Stage {
 
     abstract void onReset();
 
-    static class Next {
+    static class Result {
         final boolean step;
         final boolean stage;
 
-        static Next Step() {
-            return new Next(false, true);
+        static Result Step() {
+            return new Result(false, true);
         }
 
-        static Next Stage() {
-            return new Next(true, false);
+        static Result Stage() {
+            return new Result(true, false);
         }
 
-        private Next(boolean stage, boolean step) {
+        static Result Empty() {
+            return new Result(false, false);
+        }
+
+        private Result(boolean stage, boolean step) {
             this.stage = stage;
             this.step = step;
         }

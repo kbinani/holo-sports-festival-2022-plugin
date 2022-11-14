@@ -39,22 +39,22 @@ class PlainsStage extends Stage {
     }
 
     @Override
-    Optional<Next> consumeDeadMob(Entity entity) {
+    Optional<Result> consumeDeadMob(Entity entity) {
         if (entity.getType() != EntityType.ZOMBIE) {
             return Optional.empty();
         }
         int before = remainingMobCount;
         int after = Math.max(0, remainingMobCount - 1);
         if (before == after) {
-            return Optional.empty();
+            return Optional.of(Result.Empty());
         }
         remainingMobCount = after;
         if (after == 2) {
-            return Optional.of(Next.Step());
+            return Optional.of(Result.Step());
         } else if (after == 0) {
-            return Optional.of(Next.Stage());
+            return Optional.of(Result.Stage());
         } else {
-            return Optional.empty();
+            return Optional.of(Result.Empty());
         }
     }
 

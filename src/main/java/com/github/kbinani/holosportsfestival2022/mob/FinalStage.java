@@ -69,8 +69,8 @@ class FinalStage extends Stage {
     }
 
     @Override
-    Optional<Next> consumeDeadMob(Entity entity) {
-        return Optional.empty();
+    Optional<Result> consumeDeadMob(Entity entity) {
+        return Optional.of(Result.Empty());
     }
 
     @Override
