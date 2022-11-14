@@ -1,6 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 
@@ -101,7 +102,7 @@ class Level implements StageDelegate {
     }
 
     String getTargetSelector() {
-        return String.format("@a[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", bounds.getMinX(), bounds.getMinY(), bounds.getMinZ(), bounds.getWidthX(), bounds.getHeight(), bounds.getWidthZ());
+        return String.format("@a[%s]", TargetSelector.Of(bounds));
     }
 
     void showTitle(String text, String color) {

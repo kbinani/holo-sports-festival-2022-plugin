@@ -152,8 +152,7 @@ public class DarumaEventListener implements Listener, Announcer {
         private void enumerateInOrder(BiConsumer<Integer, Player> action) {
             double prevTick = -1;
             int currentOrder = 0;
-            for (int i = 0; i < order.size(); i++) {
-                Goal goal = order.get(i);
+            for (Goal goal : order) {
                 if (prevTick < goal.tick) {
                     currentOrder++;
                 }

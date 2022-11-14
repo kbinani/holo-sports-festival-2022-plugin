@@ -1,9 +1,6 @@
 package com.github.kbinani.holosportsfestival2022.boatrace;
 
-import com.github.kbinani.holosportsfestival2022.Countdown;
-import com.github.kbinani.holosportsfestival2022.Loader;
-import com.github.kbinani.holosportsfestival2022.Point3i;
-import com.github.kbinani.holosportsfestival2022.WallSign;
+import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -130,7 +127,7 @@ public class BoatRaceEventListener implements Listener {
         }
 
         // 競技用のエンティティを削除する. 競技場内に居るアイテム化したボート.
-        execute("kill @e[tag=%s,%s]", kItemTag, getTargetSelectorArguments());
+        execute("kill @e[tag=%s,%s]", kItemTag, TargetSelector.Of(getBounds()));
     }
 
     private void setLeverPowered(Point3i pos, boolean powered) {
@@ -647,7 +644,7 @@ public class BoatRaceEventListener implements Listener {
         setStatus(Status.COUNTDOWN);
 
         // 場内に居るボートに tag を付ける. 競技終了した時このタグが付いているボートを kill する.
-        execute("tag @e[type=boat,%s] add %s", getTargetSelectorArguments(), kItemTag);
+        execute("tag @e[type=boat,%s] add %s", TargetSelector.Of(getBounds()), kItemTag);
 
         Countdown.Then(getBounds(), owner, (count) -> {
             return _status == Status.COUNTDOWN;
@@ -695,10 +692,5 @@ public class BoatRaceEventListener implements Listener {
         Server server = owner.getServer();
         CommandSender sender = server.getConsoleSender();
         server.dispatchCommand(sender, String.format(format, args));
-    }
-
-    private String getTargetSelectorArguments() {
-        BoundingBox box = getBounds();
-        return String.format("x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
     }
 }

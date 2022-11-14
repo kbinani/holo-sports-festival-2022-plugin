@@ -1,6 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -61,12 +62,13 @@ public abstract class Stage {
     // 死んだ時のリスポーン位置
     abstract Point3i getRespawnLocation();
 
-    void onStart(List<Player> players) {}
+    void onStart(List<Player> players) {
+    }
 
     void reset() {
         setExitOpened(false);
         setEntranceOpened(false);
-        execute("kill @e[tag=%s,%s]", kEntityTag, getTargetSelectorArguments());
+        execute("kill @e[tag=%s,%s]", kEntityTag, TargetSelector.Of(getBounds()));
         onReset();
     }
 
@@ -97,11 +99,6 @@ public abstract class Stage {
     BoundingBox getBounds() {
         Point3i size = getSize();
         return new BoundingBox(origin.x, origin.y, origin.z, origin.x + size.x, origin.y + size.y, origin.z + size.z);
-    }
-
-    protected String getTargetSelectorArguments() {
-        BoundingBox box = getBounds();
-        return String.format("x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
     }
 
     protected void fill(int x1, int y1, int z1, int x2, int y2, int z2, String block) {

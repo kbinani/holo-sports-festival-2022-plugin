@@ -1,6 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
@@ -52,7 +53,7 @@ class WoodlandMansionStage extends Stage {
             case 1:
                 execute("summon ravager %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(-1), y(-59), z(-349), kEntityTag);
                 BoundingBox box = getBounds();
-                execute("effect give @e[tag=%s,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", kEntityTag, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+                execute("effect give @e[tag=%s,%s] glowing 86400 1 true", kEntityTag, TargetSelector.Of(box));
                 break;
         }
     }

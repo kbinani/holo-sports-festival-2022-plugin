@@ -1,6 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
@@ -79,7 +80,7 @@ class PlainsStage extends Stage {
                 execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:diamond_helmet,Count:1}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}],DeathLootTable:\"minecraft:empty\"}", x(0), y(-59), z(-274), kEntityTag);
                 // 2F
                 execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:diamond_helmet,Count:1}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}],DeathLootTable:\"minecraft:empty\"}", x(-8), y(-48), z(-268), kEntityTag);
-                execute("effect give @e[tag=%s,x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f] glowing 86400 1 true", kEntityTag, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+                execute("effect give @e[tag=%s,%s] glowing 86400 1 true", kEntityTag, TargetSelector.Of(box));
                 // BOSS 戦の様子 (60fps)
                 // https://www.youtube.com/watch?v=TiSgN3lvfrM
                 // ==================================================

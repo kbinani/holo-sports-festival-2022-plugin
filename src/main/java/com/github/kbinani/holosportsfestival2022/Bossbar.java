@@ -36,7 +36,7 @@ public class Bossbar {
     public void dispose() {
         clear(id);
         if (timer != null) {
-            timer.cancel();;
+            timer.cancel();
             timer = null;
         }
     }
@@ -118,7 +118,7 @@ public class Bossbar {
         if (!players.equals(this.players)) {
             this.players = players;
             // set players が同じだとコンソールにエラーが出てうるさいので変わった時だけ set players する
-            execute(String.format("bossbar set %s players @a[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", id, box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ()));
+            execute(String.format("bossbar set %s players @a[%s]", id, TargetSelector.Of(box)));
         }
     }
 

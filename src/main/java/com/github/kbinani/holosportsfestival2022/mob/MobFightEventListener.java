@@ -176,15 +176,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
         }
     }
 
-    void showTitle(String selector, String text, String color) {
-        execute("title %s title {\"text\": \"%s\", \"bold\": true, \"color\": \"%s\"}", selector, text, color);
-    }
-
-    String getTargetSelectorWithinAnnounceArea() {
-        BoundingBox box = offset(kAnnounceBounds);
-        return String.format("@a[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
-    }
-
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerInteract(PlayerInteractEvent e) {

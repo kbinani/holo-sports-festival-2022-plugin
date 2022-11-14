@@ -20,7 +20,7 @@ public class Countdown {
         Server server = plugin.getServer();
         BukkitScheduler scheduler = server.getScheduler();
 
-        String selector = String.format("@a[x=%f,y=%f,z=%f,dx=%f,dy=%f,dz=%f]", box.getMinX(), box.getMinY(), box.getMinZ(), box.getWidthX(), box.getHeight(), box.getWidthZ());
+        String selector = String.format("@a[%s]", TargetSelector.Of(box));
 
         if (!countdown.test(3)) {
             return;
