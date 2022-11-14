@@ -21,6 +21,7 @@ import org.bukkit.util.BoundingBox;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -31,14 +32,15 @@ public class DarumaEventListener implements Listener, Announcer {
     private boolean initialized = false;
     private Status _status = Status.IDLE;
     private @Nullable Race race;
+    private boolean manual = true;
 
     enum Status {
         IDLE,
-        COUNTDOWN,
-        // 手動で「だるまさんが...」ボタン, 「ころんだ!!!」ボタンをそれぞれ押すモードで競技が進行中
-        RUN_MANUAL,
-        // プラグイン側が自動で進行させるモードで競技が進行中
-        RUN_AUTOMATIC,
+        COUNTDOWN_START,
+        START,
+        GREEN,
+        COUNTDOWN_RED,
+        RED,
     }
 
     enum TeamColor {
@@ -136,9 +138,14 @@ public class DarumaEventListener implements Listener, Announcer {
                 announcer.broadcast("");
                 announcer.broadcast("-----------------------");
                 announcer.broadcast("[試合終了]");
+                AtomicBoolean anyoneFinished = new AtomicBoolean(false);
                 enumerateInOrder((order, player) -> {
                     announcer.broadcast("%d位 : %s", order, player.getName());
+                    anyoneFinished.set(true);
                 });
+                if (!anyoneFinished.get()) {
+                    announcer.broadcastUnofficial("全員失格");
+                }
                 announcer.broadcast("-----------------------");
                 announcer.broadcast("");
             }
@@ -210,6 +217,10 @@ public class DarumaEventListener implements Listener, Announcer {
         } else if (location.equals(offset(kButtonStartPreliminary))) {
             // 予選
             onClickStart(player);
+        } else if (location.equals(offset(kButtonGreen))) {
+            onClickGreen(player);
+        } else if (location.equals(offset(kButtonTriggerRed))) {
+            onClickTriggerRed(player);
         }
     }
 
@@ -220,9 +231,6 @@ public class DarumaEventListener implements Listener, Announcer {
             return;
         }
         final Race race = this.race;
-        if (_status != Status.RUN_AUTOMATIC && _status != Status.RUN_MANUAL) {
-            return;
-        }
         Player player = e.getPlayer();
         World world = player.getWorld();
         if (world.getEnvironment() != World.Environment.NORMAL) {
@@ -232,39 +240,54 @@ public class DarumaEventListener implements Listener, Announcer {
             return;
         }
 
+        Location from = e.getFrom();
         Location to = e.getTo();
         if (to == null) {
             to = player.getLocation();
         }
         BoundingBox box = offset(kGoalDetectionBox);
-        if (!box.contains(to.toVector())) {
-            return;
-        }
+        if ((_status == Status.GREEN || _status == Status.START) && box.contains(to.toVector())) {
 
-        // ゴールラインを超えた時刻を計算する.
-        double z = box.getMaxZ();
-        double fromZ = e.getFrom().getZ();
-        double toZ = to.getZ();
-        double tick = world.getFullTime();
-        if (fromZ != toZ) {
-            tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
-        }
-        race.goal(player, tick);
+            // ゴールラインを超えた時刻を計算する.
+            double z = box.getMaxZ();
+            double fromZ = from.getZ();
+            double toZ = to.getZ();
+            double tick = world.getFullTime();
+            if (fromZ != toZ) {
+                tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
+            }
+            race.goal(player, tick);
+            teams.forEach((color, team) -> team.remove(player));
 
-        // 同一 tick で box に侵入したという判定になったとしても,
-        // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
-        // 1 tick 待ってから順位を発表する.
-        BukkitScheduler scheduler = owner.getServer().getScheduler();
-        scheduler.runTask(owner, () -> {
-            if (this.race == null) {
-                return;
+            // 同一 tick で box に侵入したという判定になったとしても,
+            // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
+            // 1 tick 待ってから順位を発表する.
+            BukkitScheduler scheduler = owner.getServer().getScheduler();
+            scheduler.runTask(owner, () -> {
+                if (this.race == null) {
+                    return;
+                }
+                this.race.announceOrder(this, player);
+                if (this.race.getRunningPlayerCount() < 1) {
+                    this.race.announceOrders(this);
+                    setStatus(Status.IDLE);
+                }
+            });
+        } else if (_status == Status.RED) {
+            double dx = to.getX() - from.getX();
+            double dz = to.getZ() - from.getZ();
+            if (dx != 0 || dz != 0) {
+                //TODO: kill する処理
+                race.withdraw(player);
+                teams.forEach((color, team) -> team.remove(player));
+                broadcast("%s失格！", player.getName());
+                if (race.getRunningPlayerCount() == 0) {
+                    // 最後の走者が失格になったので試合終了
+                    race.announceOrders(this);
+                    setStatus(Status.IDLE);
+                }
             }
-            this.race.announceOrder(this, player);
-            if (this.race.getRunningPlayerCount() < 1) {
-                this.race.announceOrders(this);
-                setStatus(Status.IDLE);
-            }
-        });
+        }
     }
 
     private void setStatus(Status status) {
@@ -279,14 +302,17 @@ public class DarumaEventListener implements Listener, Announcer {
                 clearItem("@a");
                 race = null;
                 break;
-            case COUNTDOWN:
+            case COUNTDOWN_START:
                 setEntranceOpened(false);
                 setStartGateOpened(false);
                 break;
-            case RUN_MANUAL:
-            case RUN_AUTOMATIC:
+            case START:
                 setEntranceOpened(false);
                 setStartGateOpened(true);
+                break;
+            case GREEN:
+            case COUNTDOWN_RED:
+            case RED:
                 break;
         }
     }
@@ -333,9 +359,9 @@ public class DarumaEventListener implements Listener, Announcer {
         }
         broadcast("-----------------------");
         broadcast("");
-        setStatus(Status.COUNTDOWN);
-        Countdown.Then(getAnnounceBounds(), owner, (count) -> _status == Status.COUNTDOWN, () -> {
-            if (_status != Status.COUNTDOWN) {
+        setStatus(Status.COUNTDOWN_START);
+        Countdown.Then(getAnnounceBounds(), owner, (count) -> _status == Status.COUNTDOWN_START, () -> {
+            if (_status != Status.COUNTDOWN_START) {
                 return false;
             }
             final Race race = new Race();
@@ -343,9 +369,49 @@ public class DarumaEventListener implements Listener, Announcer {
                 team.eachPlayer(race::participate);
             }
             this.race = race;
-            setStatus(Status.RUN_MANUAL);
+            setStatus(Status.START);
             return true;
         });
+    }
+
+    private void onClickGreen(Player player) {
+        if (!player.isOp()) {
+            return;
+        }
+        if (_status != Status.RED && _status != Status.START) {
+            return;
+        }
+        setTitle("だるまさんが...", "Green light...");
+        setStatus(Status.GREEN);
+    }
+
+    private void setTitle(@Nullable String title, @Nullable String subtitle) {
+        String selector = TargetSelector.Of(getAnnounceBounds());
+        execute("title @a[%s] clear", selector);
+        if (title != null) {
+            execute("title @a[%s] title \"%s\"", selector, title);
+        }
+        if (subtitle != null) {
+            execute("title @a[%s] subtitle \"%s\"", selector, subtitle);
+        }
+    }
+
+    private void onClickTriggerRed(Player player) {
+        if (!player.isOp()) {
+            return;
+        }
+        if (_status != Status.GREEN) {
+            return;
+        }
+        setStatus(Status.COUNTDOWN_RED);
+        Countdown.Then(getAnnounceBounds(), owner, (count) -> _status == Status.COUNTDOWN_RED, () -> {
+            if (_status != Status.COUNTDOWN_RED) {
+                return false;
+            }
+            setTitle("ころんだ！！！", "Red light!!!");
+            setStatus(Status.RED);
+            return true;
+        }, 15);
     }
 
     private int getPlayerCount() {
@@ -498,6 +564,10 @@ public class DarumaEventListener implements Listener, Announcer {
     private static final Point3i kButtonStartPreliminary = new Point3i(128, -53, -229);
     // デバッグ用. 本家ではボタン押す形式だけど, ボタンだと誰でも押せてしまう. 誰でもスタートできるとマズいので看板右クリックの形式にする.
     private static final Point3i kButtonStartFinal = new Point3i(126, -53, -229);
+    // デバッグ用. 本家ではボタン押す形式だけど, ボタンだと誰でも押せてしまう. 誰でもスタートできるとマズいので看板右クリックの形式にする.
+    private static final Point3i kButtonGreen = new Point3i(124, -53, -229);
+    // デバッグ用. 本家ではボタン押す形式だけど, ボタンだと誰でも押せてしまう. 誰でもスタートできるとマズいので看板右クリックの形式にする.
+    private static final Point3i kButtonTriggerRed = new Point3i(122, -53, -229);
 
     private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
     private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -223);

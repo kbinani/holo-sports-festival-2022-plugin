@@ -14,7 +14,7 @@ public class Countdown {
   private Countdown() {
   }
 
-  public static void Then(BoundingBox box, JavaPlugin plugin, Predicate<Integer> countdown, Supplier<Boolean> task) {
+  public static void Then(BoundingBox box, JavaPlugin plugin, Predicate<Integer> countdown, Supplier<Boolean> task, long delay) {
     Server server = plugin.getServer();
     BukkitScheduler scheduler = server.getScheduler();
 
@@ -50,9 +50,13 @@ public class Countdown {
           }
           PlaySound(server, contains, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1, 1);
           server.dispatchCommand(server.getConsoleSender(), String.format("title %s title \"START!!!\"", selector));
-        }, 20);
-      }, 20);
-    }, 20);
+        }, delay);
+      }, delay);
+    }, delay);
+  }
+
+  public static void Then(BoundingBox box, JavaPlugin plugin, Predicate<Integer> countdown, Supplier<Boolean> task) {
+    Then(box, plugin, countdown, task, 20);
   }
 
   private static void PlayNote(Server server, Predicate<Player> predicate, Instrument instrument, Note note) {
