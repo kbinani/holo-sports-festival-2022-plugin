@@ -14,10 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -34,7 +31,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     private Status _status = Status.IDLE;
     private @Nullable Race race;
     private Map<TeamColor, Bossbar> bossbars = new HashMap<>();
-    private final Map<UUID, Location> respawnLocations = new HashMap<>();
 
     public MobFightEventListener(JavaPlugin owner) {
         this.owner = owner;
@@ -55,9 +51,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
                     it.getValue().setVisible(false);
                 }
-                for (Team team : teams.values()) {
-                    team.usePlayers(this::recoverRespawnLocation);
-                }
                 break;
             case AWAIT_COUNTDOWN:
                 for (Level level : levels.values()) {
@@ -67,9 +60,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 }
                 for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
                     it.getValue().setVisible(false);
-                }
-                for (Team team : teams.values()) {
-                    team.usePlayers(this::recoverRespawnLocation);
                 }
                 break;
             case COUNTDOWN:
@@ -155,17 +145,9 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString());
                 Server server = owner.getServer();
                 server.getScheduler().runTaskLater(owner, () -> {
-                    Point3i respawn = nextStage.getRespawnLocation();
                     Team team = ensureTeam(color);
                     List<Player> players = new ArrayList<>();
-                    team.usePlayers(player -> {
-                        Location l = player.getLocation();
-                        l.setX(respawn.x);
-                        l.setY(respawn.y);
-                        l.setZ(respawn.z);
-                        player.setBedSpawnLocation(l, true);
-                        players.add(player);
-                    });
+                    team.usePlayers(players::add);
                     stage.setExitOpened(true);
                     nextStage.onStart(players);
                     nextStage.summonMobs(0);
@@ -281,7 +263,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                         broadcast("");
                         for (TeamColor tc : race.getTeamColors()) {
                             Team t = ensureTeam(tc);
-                            t.usePlayers(this::recoverRespawnLocation);
                             t.reset();
                         }
                         race = null;
@@ -302,6 +283,31 @@ public class MobFightEventListener implements Listener, LevelDelegate {
         onClickLeave(player);
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerRespawn(PlayerRespawnEvent e) {
+        if (_status != Status.RUN) {
+            return;
+        }
+        Player player = e.getPlayer();
+        Participation participation = getCurrentParticipation(player);
+        if (participation == null) {
+            return;
+        }
+        Level level = ensureLevel(participation.color);
+        Progress progress = level.getProgress();
+        Stage stage = level.getStage(progress.stage);
+        Point3i respawn = level.getSafeSpawnLocation();
+        if (stage != null) {
+            respawn = stage.getRespawnLocation();
+        }
+        Location location = player.getLocation();
+        location.setX(respawn.x);
+        location.setY(respawn.y);
+        location.setZ(respawn.z);
+        e.setRespawnLocation(location);
+    }
+
     void applyBossbarValue(TeamColor color, BossbarValue value) {
         Bossbar bar = bossbars.get(color);
         if (bar == null) {
@@ -318,18 +324,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
             return;
         }
         bar.setVisible(visible);
-    }
-
-    void memoRespawnLocation(Player player) {
-        respawnLocations.put(player.getUniqueId(), player.getBedSpawnLocation());
-    }
-
-    void recoverRespawnLocation(Player player) {
-        Location location = respawnLocations.get(player.getUniqueId());
-        if (location != null) {
-            player.setBedSpawnLocation(location, true);
-            respawnLocations.remove(player.getUniqueId());
-        }
     }
 
     void onClickJoin(Player player, TeamColor color, Role role) {
@@ -370,9 +364,6 @@ public class MobFightEventListener implements Listener, LevelDelegate {
         }
         Team team = ensureTeam(current.color);
         team.remove(player);
-
-        // 試合中に入場せず棄権した場合のためにここでもリスポーン位置を元に戻す
-        recoverRespawnLocation(player);
 
         if (getPlayerCount() > 0) {
             clearItem(String.format("@p[name=\"%s\"]", player.getName()));
@@ -426,18 +417,9 @@ public class MobFightEventListener implements Listener, LevelDelegate {
                 level.setExitOpened(false);
                 Stage stage = level.getStage(0);
                 assert stage != null;
-                Point3i respawn = stage.getRespawnLocation();
                 Team team = ensureTeam(color);
                 ArrayList<Player> players = new ArrayList<>();
-                team.usePlayers((player) -> {
-                    memoRespawnLocation(player);
-                    Location location = player.getLocation();
-                    location.setX(respawn.x);
-                    location.setY(respawn.y);
-                    location.setZ(respawn.z);
-                    player.setBedSpawnLocation(location, true);
-                    players.add(player);
-                });
+                team.usePlayers(players::add);
                 stage.onStart(players);
                 stage.summonMobs(0);
                 stage.setEntranceOpened(true);
