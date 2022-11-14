@@ -545,8 +545,9 @@ public class MobFightEventListener implements Listener, LevelDelegate {
         server.dispatchCommand(server.getConsoleSender(), String.format(format, args));
     }
 
-    private void broadcast(String msg, Object... args) {
-        owner.getServer().broadcastMessage(String.format(msg, args));
+    private void broadcast(String format, Object... args) {
+        String msg = String.format(format, args);
+        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBounds)), msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
