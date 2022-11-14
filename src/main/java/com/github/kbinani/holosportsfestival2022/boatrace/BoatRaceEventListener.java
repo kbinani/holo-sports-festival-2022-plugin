@@ -1,5 +1,9 @@
-package com.github.kbinani.holosportsfestival2022;
+package com.github.kbinani.holosportsfestival2022.boatrace;
 
+import com.github.kbinani.holosportsfestival2022.Countdown;
+import com.github.kbinani.holosportsfestival2022.Loader;
+import com.github.kbinani.holosportsfestival2022.Point3i;
+import com.github.kbinani.holosportsfestival2022.WallSign;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -319,7 +323,7 @@ public class BoatRaceEventListener implements Listener {
     private static final Point3i kFieldNorthWest = new Point3i(-106, -60, -294);
     private static final Point3i kFieldSouthEast = new Point3i(-24, -30, -127);
 
-    BoatRaceEventListener(JavaPlugin owner) {
+    public BoatRaceEventListener(JavaPlugin owner) {
         this.owner = owner;
     }
 

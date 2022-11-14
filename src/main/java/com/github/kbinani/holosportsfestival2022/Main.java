@@ -1,5 +1,6 @@
 package com.github.kbinani.holosportsfestival2022;
 
+import com.github.kbinani.holosportsfestival2022.boatrace.BoatRaceEventListener;
 import com.github.kbinani.holosportsfestival2022.daruma.DarumaEventListener;
 import com.github.kbinani.holosportsfestival2022.mob.MobFightEventListener;
 import org.bukkit.GameRule;
