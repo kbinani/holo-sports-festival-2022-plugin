@@ -48,11 +48,6 @@ public class FencingEventListener implements Listener {
     static final String kBossbarLeft = "sports_festival_2022_bossbar_left";
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
     static final String kWeaponCustomTag = "hololive_sports_festival_2022_fencing";
-    static final int kFieldX = 104;
-    static final int kFieldY = -18;
-    static final int kFieldZ = -268;
-    static final int kFieldDx = 61;
-    static final int kFieldDz = 4;
     static final int kWeaponKnockbackLevel = 10;
 
     public FencingEventListener(JavaPlugin owner) {
@@ -90,15 +85,13 @@ public class FencingEventListener implements Listener {
             case AWAIT_COUNTDOWN:
                 // 範囲内に居るプレイヤーを観客席側に排除する
                 Server server = owner.getServer();
+                BoundingBox box = offset(kFieldBounds);
                 server.getOnlinePlayers().forEach(player -> {
                     Location loc = player.getLocation();
                     if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
                         return;
                     }
-                    int bx = loc.getBlockX();
-                    int by = loc.getBlockY();
-                    int bz = loc.getBlockZ();
-                    if (x(kFieldX) <= bx && bx <= x(kFieldX) + kFieldDx && y(kFieldY) <= by && by <= y(kFieldY) + 5 && z(kFieldZ) <= bz && bz <= z(kFieldZ) + kFieldDz) {
+                    if (box.contains(loc.toVector())) {
                         loc.setZ(z(-273));
                         loc.setY(y(-19));
                         player.teleport(loc);
@@ -157,21 +150,6 @@ public class FencingEventListener implements Listener {
         return String.format("%d %d %d", x, y, z);
     }
 
-    private int x(int x) {
-        // 座標が間違っていたらここでオフセットする
-        return x;
-    }
-
-    private int y(int y) {
-        // 座標が間違っていたらここでオフセットする
-        return y;
-    }
-
-    private int z(int z) {
-        // 座標が間違っていたらここでオフセットする
-        return z;
-    }
-
     @EventHandler
     @SuppressWarnings("unused")
     public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
@@ -203,12 +181,9 @@ public class FencingEventListener implements Listener {
         Server server = owner.getServer();
         World world = entity.getWorld();
 
-        Location location = offence.getLocation();
-        int bx = location.getBlockX();
-        int by = location.getBlockY();
-        int bz = location.getBlockZ();
+        BoundingBox box = offset(kFieldBounds);
         //NOTE: 攻撃側がフィールド内に居るかどうかだけ判定する.
-        if (bx < x(kFieldX) || x(kFieldX) + kFieldDx < bx || by < y(kFieldY) || bz < z(kFieldZ) || z(kFieldZ) + kFieldDz < bz) {
+        if (!box.contains(offence.getLocation().toVector())) {
             return;
         }
         EntityEquipment equipment = offence.getEquipment();
@@ -346,10 +321,10 @@ public class FencingEventListener implements Listener {
         bossbarLeft.setVisible(false);
         bossbarRight.setVisible(false);
         execute("clear @a iron_sword{tag:{%s:1b}}", kWeaponCustomTag);
-        WallSign.Place(new Point3i(x(101), y(-19), z(-265)), BlockFace.NORTH, "右側エントリー");
-        WallSign.Place(new Point3i(x(99), y(-19), z(-265)), BlockFace.NORTH, "エントリー解除");
-        WallSign.Place(new Point3i(x(167), y(-19), z(-265)), BlockFace.NORTH, "左側エントリー");
-        WallSign.Place(new Point3i(x(169), y(-19), z(-265)), BlockFace.NORTH, "エントリー解除");
+        WallSign.Place(offset(new Point3i(101, -19, -265)), BlockFace.NORTH, "右側エントリー");
+        WallSign.Place(offset(new Point3i(99, -19, -265)), BlockFace.NORTH, "エントリー解除");
+        WallSign.Place(offset(new Point3i(167, -19, -265)), BlockFace.NORTH, "左側エントリー");
+        WallSign.Place(offset(new Point3i(169, -19, -265)), BlockFace.NORTH, "エントリー解除");
     }
 
     @EventHandler
@@ -359,12 +334,8 @@ public class FencingEventListener implements Listener {
             return;
         }
 
-        Location location = e.getBlock().getLocation();
-        int bx = location.getBlockX();
-        int by = location.getBlockY();
-        int bz = location.getBlockZ();
-
-        if (bx == x(134) && by == y(-18) && bz == z(-272)) {
+        Point3i location = new Point3i(e.getBlock().getLocation());
+        if (location.equals(offset(kButtonStart))) {
             onClickStart();
         }
     }
@@ -380,17 +351,14 @@ public class FencingEventListener implements Listener {
         if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
-        Location location = block.getLocation();
-        int bx = location.getBlockX();
-        int by = location.getBlockY();
-        int bz = location.getBlockZ();
-        if (bx == x(101) && by == y(-19) && bz == z(-265)) {
+        Point3i location = new Point3i(block.getLocation());
+        if (location.equals(offset(kButtonRightJoin))) {
             onClickJoin(player, Team.RIGHT);
-        } else if (bx == x(167) && by == y(-19) && bz == z(-265)) {
+        } else if (location.equals(offset(kButtonLeftJoin))) {
             onClickJoin(player, Team.LEFT);
-        } else if (bx == x(169) && by == y(-19) && bz == z(-265)) {
+        } else if (location.equals(offset(kButtonLeftLeave))) {
             onClickLeave(player, Team.LEFT);
-        } else if (bx == x(99) && by == y(-19) && bz == z(-265)) {
+        } else if (location.equals(offset(kButtonRightLeave))) {
             onClickLeave(player, Team.RIGHT);
         }
     }
@@ -556,7 +524,7 @@ public class FencingEventListener implements Listener {
         }
         clearPlayer(team);
         execute("clear @p[name=\"%s\"] iron_sword{tag:{%s:1b}}", player.getName(), kWeaponCustomTag);
-        broadcastUnofficial("[フェンシング] %sがエントリー解除しました（%s）", player.getName(), TeamName(team));
+        broadcast("[フェンシング] %sがエントリー解除しました", player.getName());
     }
 
     private void onClickStart() {
@@ -603,7 +571,31 @@ public class FencingEventListener implements Listener {
     }
 
     private BoundingBox getAnnounceBounds() {
-        return new BoundingBox(x(85), y(-20), z(-280), x(171), y(384), z(-253));
+        return offset(kAnnounceBounds);
+    }
+
+    private Point3i offset(Point3i p) {
+        // 座標が間違っていたらここでオフセットする
+        return new Point3i(p.x, p.y, p.z);
+    }
+
+    private double x(double x) {
+        // 座標が間違っていたらここでオフセットする
+        return x;
+    }
+
+    private double y(double y) {
+        // 座標が間違っていたらここでオフセットする
+        return y;
+    }
+
+    private double z(double z) {
+        // 座標が間違っていたらここでオフセットする
+        return z;
+    }
+
+    private BoundingBox offset(BoundingBox box) {
+        return new BoundingBox(x(box.getMinX()), y(box.getMinY()), z(box.getMinZ()), x(box.getMaxX()), y(box.getMaxY()), z(box.getMaxZ()));
     }
 
     private void execute(String format, Object... args) {
@@ -619,4 +611,12 @@ public class FencingEventListener implements Listener {
         }
         return world.getPlayers().stream().filter(it -> it.getUniqueId().equals(uid)).findFirst().orElse(null);
     }
+
+    private static final Point3i kButtonRightJoin = new Point3i(101, -19, -265);
+    private static final Point3i kButtonLeftJoin = new Point3i(167, -19, -265);
+    private static final Point3i kButtonLeftLeave = new Point3i(169, -19, -265);
+    private static final Point3i kButtonRightLeave = new Point3i(99, -19, -265);
+    private static final Point3i kButtonStart = new Point3i(134, -18, -272);
+    private static final BoundingBox kAnnounceBounds = new BoundingBox(85, -20, -280, 171, 384, -253);
+    private static final BoundingBox kFieldBounds = new BoundingBox(104, -18, -268, 104 + 61, -18 + 5, -268 + 4);
 }
