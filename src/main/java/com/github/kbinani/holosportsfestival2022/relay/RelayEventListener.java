@@ -2,8 +2,8 @@ package com.github.kbinani.holosportsfestival2022.relay;
 
 import com.github.kbinani.holosportsfestival2022.Countdown;
 import com.github.kbinani.holosportsfestival2022.Editor;
-import com.github.kbinani.holosportsfestival2022.Loader;
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Server;
@@ -550,7 +550,7 @@ public class RelayEventListener implements Listener {
         broadcast("[リレー] 競技を開始します！");
         broadcast("");
         setStatus(Status.COUNTDOWN);
-        Countdown.Then(getBounds(), owner, c -> _status == Status.COUNTDOWN, () -> {
+        Countdown.Then(getAnnounceBounds(), owner, c -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
@@ -661,14 +661,11 @@ public class RelayEventListener implements Listener {
             return;
         }
         initialized = true;
-        overworld().ifPresent(world -> {
-            Loader.LoadChunk(world, getBounds());
-        });
         resetField();
     }
 
-    private BoundingBox getBounds() {
-        return offset(kBounds);
+    private BoundingBox getAnnounceBounds() {
+        return offset(kAnnounceBounds);
     }
 
     private Optional<World> overworld() {
@@ -688,8 +685,9 @@ public class RelayEventListener implements Listener {
         }
     }
 
-    private void broadcast(String msg, Object... args) {
-        owner.getServer().broadcastMessage(String.format(msg, args));
+    private void broadcast(String format, Object... args) {
+        String msg = String.format(format, args);
+        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(getAnnounceBounds()), msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
@@ -823,7 +821,7 @@ public class RelayEventListener implements Listener {
     private static final String kItemTag = "hololive_sports_festival_2022_relay";
 
     // アナウンス etc. を行う範囲
-    private static final BoundingBox kBounds = new BoundingBox(-2, -61, -241, 82, 384, -115);
+    private static final BoundingBox kAnnounceBounds = new BoundingBox(-2, -61, -241, 82, 384, -115);
     // 広めに. 進行方向手前 8 ブロック, 進行方向に 16 ブロック
     private static final BoundingBox kBatonPassingArea = new BoundingBox(36, -61, -179, 56, -58, -170);
     // 競技場の外側の白線
