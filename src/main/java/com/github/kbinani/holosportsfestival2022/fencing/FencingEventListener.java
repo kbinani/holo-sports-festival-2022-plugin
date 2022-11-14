@@ -103,24 +103,24 @@ public class FencingEventListener implements Listener {
                 });
 
                 // 左ゲート構築
-                execute(String.format("fill %s %s white_concrete", xyz(165, -16, -268), xyz(165, -18, -264)));
-                execute(String.format("fill %s %s glass", xyz(165, -17, -267), xyz(165, -18, -265)));
-                execute(String.format("setblock %s iron_door[facing=west,half=upper,hinge=left]", xyz(164, -17, -266)));
-                execute(String.format("setblock %s iron_door[facing=west,half=lower,hinge=left]", xyz(164, -18, -266)));
-                execute(String.format("setblock %s air", xyz(165, -17, -266)));
-                execute(String.format("setblock %s heavy_weighted_pressure_plate", xyz(165, -18, -266)));
+                execute("fill %s %s white_concrete", xyz(165, -16, -268), xyz(165, -18, -264));
+                execute("fill %s %s glass", xyz(165, -17, -267), xyz(165, -18, -265));
+                execute("setblock %s iron_door[facing=west,half=upper,hinge=left]", xyz(164, -17, -266));
+                execute("setblock %s iron_door[facing=west,half=lower,hinge=left]", xyz(164, -18, -266));
+                execute("setblock %s air", xyz(165, -17, -266));
+                execute("setblock %s heavy_weighted_pressure_plate", xyz(165, -18, -266));
 
                 // 右ゲート構築
-                execute(String.format("fill %s %s white_concrete", xyz(103, -16, -264), xyz(103, -18, -268)));
-                execute(String.format("fill %s %s glass", xyz(103, -17, -265), xyz(103, -18, -267)));
-                execute(String.format("setblock %s iron_door[facing=east,half=upper,hinge=left]", xyz(104, -17, -266)));
-                execute(String.format("setblock %s iron_door[facing=east,half=lower,hinge=left]", xyz(104, -18, -266)));
-                execute(String.format("setblock %s air", xyz(103, -17, -266)));
-                execute(String.format("setblock %s heavy_weighted_pressure_plate", xyz(103, -18, -266)));
+                execute("fill %s %s white_concrete", xyz(103, -16, -264), xyz(103, -18, -268));
+                execute("fill %s %s glass", xyz(103, -17, -265), xyz(103, -18, -267));
+                execute("setblock %s iron_door[facing=east,half=upper,hinge=left]", xyz(104, -17, -266));
+                execute("setblock %s iron_door[facing=east,half=lower,hinge=left]", xyz(104, -18, -266));
+                execute("setblock %s air", xyz(103, -17, -266));
+                execute("setblock %s heavy_weighted_pressure_plate", xyz(103, -18, -266));
 
                 // バリアブロックの柵
-                execute(String.format("fill %s %s barrier", xyz(165, -17, -269), xyz(103, -17, -269)));
-                execute(String.format("fill %s %s barrier", xyz(104, -17, -263), xyz(165, -17, -263)));
+                execute("fill %s %s barrier", xyz(165, -17, -269), xyz(103, -17, -269));
+                execute("fill %s %s barrier", xyz(104, -17, -263), xyz(165, -17, -263));
 
                 break;
             case COUNTDOWN:
@@ -283,7 +283,7 @@ public class FencingEventListener implements Listener {
             return;
         }
         //NOTE: 敗北者を kill する前にアイテムを回収
-        execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
+        execute("clear @a iron_sword{tag:{%s:1b}}", kWeaponCustomTag);
 
         Player left = null, right = null;
         if (playerLeft != null) {
@@ -302,17 +302,17 @@ public class FencingEventListener implements Listener {
         if (hitpointLeft == 0) {
             Location loc = left.getLocation();
             // https://symtm.blog.fc2.com/blog-entry-96.html
-            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;14188952],FadeColors:[I;14188952]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
-            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
-            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;14602026],FadeColors:[I;14602026]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
+            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;14188952],FadeColors:[I;14188952]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
+            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
+            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;14602026],FadeColors:[I;14602026]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
             left.setHealth(0);
         }
         if (hitpointRight == 0) {
             Location loc = right.getLocation();
             // https://symtm.blog.fc2.com/blog-entry-96.html
-            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;14188952],FadeColors:[I;14188952]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
-            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
-            execute(String.format("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;14602026],FadeColors:[I;14602026]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ()));
+            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;14188952],FadeColors:[I;14188952]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
+            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
+            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;14602026],FadeColors:[I;14602026]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
             right.setHealth(0);
         }
 
@@ -339,10 +339,10 @@ public class FencingEventListener implements Listener {
     }
 
     private void clearField() {
-        execute(String.format("fill %s %s air", xyz(102, -16, -269), xyz(165, -18, -264)));
+        execute("fill %s %s air", xyz(102, -16, -269), xyz(165, -18, -264));
         bossbarLeft.setVisible(false);
         bossbarRight.setVisible(false);
-        execute("clear @a iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
+        execute("clear @a iron_sword{tag:{%s:1b}}", kWeaponCustomTag);
         WallSign.Place(new Point3i(x(101), y(-19), z(-265)), BlockFace.NORTH, "右側エントリー");
         WallSign.Place(new Point3i(x(99), y(-19), z(-265)), BlockFace.NORTH, "エントリー解除");
         WallSign.Place(new Point3i(x(167), y(-19), z(-265)), BlockFace.NORTH, "左側エントリー");
@@ -453,7 +453,7 @@ public class FencingEventListener implements Listener {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.LEFT) + "としてエントリー済みです");
             } else {
                 playerRight = player.getUniqueId();
-                execute("give @p[name=\"" + player.getName() + "\"] " + Weapon());
+                execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         } else if (team == Team.LEFT) {
@@ -461,7 +461,7 @@ public class FencingEventListener implements Listener {
                 broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.RIGHT) + "としてエントリー済みです");
             } else {
                 playerLeft = player.getUniqueId();
-                execute("give @p[name=\"" + player.getName() + "\"] " + Weapon());
+                execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
                 broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
             }
         }
@@ -474,7 +474,7 @@ public class FencingEventListener implements Listener {
 
     private String Weapon() {
         UUID attributeUid = UUID.randomUUID();
-        return "iron_sword{tag:{" + kWeaponCustomTag + ":1b},HideFlags:2,Enchantments:[{id:knockback,lvl:10}],AttributeModifiers:[{AttributeName:\"generic.attack_damage\",Amount:0,Operation:0,UUID:" + UUIDString(attributeUid) + "}]}";
+        return String.format("iron_sword{tag:{%s:1b},HideFlags:2,Enchantments:[{id:knockback,lvl:10}],AttributeModifiers:[{AttributeName:\"generic.attack_damage\",Amount:0,Operation:0,UUID:%s}]}", kWeaponCustomTag, UUIDString(attributeUid));
     }
 
     // [I;-519191173,-134519044,310236205,-136580550]
@@ -551,7 +551,7 @@ public class FencingEventListener implements Listener {
             return;
         }
         clearPlayer(team);
-        execute("clear @p[name=\"" + player.getName() + "\"]" + " iron_sword{tag:{" + kWeaponCustomTag + ":1b}}");
+        execute("clear @p[name=\"%s\"]" + " iron_sword{tag:{%s:1b}}", player.getName(), kWeaponCustomTag);
         broadcastUnofficial("[フェンシング] " + player.getName() + "がエントリー解除しました（" + TeamName(team) + "）");
     }
 
@@ -602,10 +602,10 @@ public class FencingEventListener implements Listener {
         return new BoundingBox(x(85), y(-20), z(-280), x(171), y(384), z(-253));
     }
 
-    private void execute(String command) {
+    private void execute(String format, Object... args) {
         Server server = owner.getServer();
         CommandSender sender = server.getConsoleSender();
-        server.dispatchCommand(sender, command);
+        server.dispatchCommand(sender, String.format(format, args));
     }
 
     private @Nullable Player getPlayer(@Nonnull UUID uid) {
