@@ -4,6 +4,7 @@ import com.github.kbinani.holosportsfestival2022.boatrace.BoatRaceEventListener;
 import com.github.kbinani.holosportsfestival2022.daruma.DarumaEventListener;
 import com.github.kbinani.holosportsfestival2022.fencing.FencingEventListener;
 import com.github.kbinani.holosportsfestival2022.mob.MobFightEventListener;
+import com.github.kbinani.holosportsfestival2022.relay.RelayEventListener;
 import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
