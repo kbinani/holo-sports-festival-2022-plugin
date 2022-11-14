@@ -538,9 +538,7 @@ public class DarumaEventListener implements Listener, Announcer {
     }
 
     private void stroke(Point3i from, Point3i to, String block) {
-        Point3i f = offset(from);
-        Point3i t = offset(to);
-        execute("fill %s %s %s %s %s %s %s", f.x, f.y, f.z, t.x, t.y, t.z, block);
+        Editor.Fill(offset(from), offset(to), block);
     }
 
     public void execute(String format, Object... args) {

@@ -10,13 +10,60 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
 
+import javax.annotation.Nullable;
+import java.awt.*;
+import java.util.HashSet;
+import java.util.Set;
+
 public class Editor {
     private Editor() {
     }
 
-    public static void WallSign(Point3i p, BlockFace facing, String line1, String line2, String line3) {
+    public void Stroke(String block, Point3i... points) {
+        for (int i = 0; i < points.length - 1; i++) {
+            Point3i from = points[i];
+            Point3i to = points[i + 1];
+            Fill(from, to, block);
+        }
+    }
+
+    public static void Fill(Point3i from, Point3i to, String block) {
+        World world = Overworld();
+        if (world == null) {
+            return;
+        }
+        int cx0 = from.x >> 4;
+        int cz0 = from.z >> 4;
+        int cx1 = to.x >> 4;
+        int cz1 = to.z >> 4;
+        if (cx1 < cx0) {
+            int t = cx0;
+            cx0 = cx1;
+            cx1 = t;
+        }
+        if (cz1 < cz0) {
+            int t = cz0;
+            cz0 = cz1;
+            cz1 = t;
+        }
+        Set<Point> loaded = new HashSet<>();
+        for (int cx = cx0; cx <= cx1; cx++) {
+            for (int cz = cz0; cz <= cz1; cz++) {
+                if (!world.isChunkLoaded(cx, cz)) {
+                    world.loadChunk(cx, cz);
+                    loaded.add(new Point(cx, cz));
+                }
+            }
+        }
         Server server = Bukkit.getServer();
-        World world = server.getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst().orElse(null);
+        server.dispatchCommand(server.getConsoleSender(), String.format("fill %d %d %d %d %d %d %s", from.x, from.y, from.z, to.x, to.y, to.z, block));
+        for (Point p : loaded) {
+            world.unloadChunk(p.x, p.y);
+        }
+    }
+
+    public static void WallSign(Point3i p, BlockFace facing, String line1, String line2, String line3) {
+        World world = Overworld();
         if (world == null) {
             return;
         }
@@ -54,5 +101,10 @@ public class Editor {
 
     public static void WallSign(Point3i p, BlockFace facing, String line1, String line2) {
         WallSign(p, facing, line1, line2, "");
+    }
+
+    private static @Nullable World Overworld() {
+        Server server = Bukkit.getServer();
+        return server.getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst().orElse(null);
     }
 }
