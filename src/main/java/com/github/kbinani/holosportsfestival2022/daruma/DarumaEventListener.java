@@ -1,5 +1,6 @@
-package com.github.kbinani.holosportsfestival2022;
+package com.github.kbinani.holosportsfestival2022.daruma;
 
+import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -164,7 +165,7 @@ public class DarumaEventListener implements Listener, Announcer {
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
 
-    DarumaEventListener(JavaPlugin owner) {
+    public DarumaEventListener(JavaPlugin owner) {
         this.owner = owner;
     }
 

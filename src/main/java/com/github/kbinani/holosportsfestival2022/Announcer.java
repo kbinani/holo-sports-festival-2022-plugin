@@ -1,6 +1,6 @@
 package com.github.kbinani.holosportsfestival2022;
 
-interface Announcer {
+public interface Announcer {
     void broadcast(String format, Object ...args);
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
