@@ -44,14 +44,16 @@ public class FencingEventListener implements Listener {
     private Bossbar bossbarLeft;
     private Bossbar bossbarRight;
     private boolean initialized = false;
+    private final long loadDelay;
 
     static final String kBossbarLeft = "sports_festival_2022_bossbar_left";
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
     static final String kWeaponCustomTag = "hololive_sports_festival_2022_fencing";
     static final int kWeaponKnockbackLevel = 10;
 
-    public FencingEventListener(JavaPlugin owner) {
+    public FencingEventListener(JavaPlugin owner, long loadDelay) {
         this.owner = owner;
+        this.loadDelay = loadDelay;
     }
 
     enum Status {
@@ -386,18 +388,20 @@ public class FencingEventListener implements Listener {
         }
         initialized = true;
 
-        BoundingBox bounds = getAnnounceBounds();
-        bossbarLeft = new Bossbar(owner, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
-        bossbarLeft.setMax(3);
-        bossbarLeft.setValue(3);
-        bossbarLeft.setColor("green");
+        owner.getServer().getScheduler().runTaskLater(owner, () -> {
+            BoundingBox bounds = getAnnounceBounds();
+            bossbarLeft = new Bossbar(owner, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
+            bossbarLeft.setMax(3);
+            bossbarLeft.setValue(3);
+            bossbarLeft.setColor("green");
 
-        bossbarRight = new Bossbar(owner, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>", bounds);
-        bossbarRight.setMax(3);
-        bossbarRight.setValue(3);
-        bossbarRight.setColor("green");
+            bossbarRight = new Bossbar(owner, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>", bounds);
+            bossbarRight.setMax(3);
+            bossbarRight.setValue(3);
+            bossbarRight.setColor("green");
 
-        clearField();
+            clearField();
+        }, loadDelay);
     }
 
     private @Nullable UUID getPlayerUid(Team team) {

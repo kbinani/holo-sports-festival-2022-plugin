@@ -28,6 +28,7 @@ public class DarumaEventListener implements Listener, Announcer {
     private Status _status = Status.IDLE;
     private @Nullable Race race;
     private boolean manual = true;
+    private final long loadDelay;
 
     enum Status {
         IDLE,
@@ -161,8 +162,9 @@ public class DarumaEventListener implements Listener, Announcer {
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
 
-    public DarumaEventListener(JavaPlugin owner) {
+    public DarumaEventListener(JavaPlugin owner, long loadDelay) {
         this.owner = owner;
+        this.loadDelay = loadDelay;
     }
 
     @EventHandler
@@ -170,7 +172,7 @@ public class DarumaEventListener implements Listener, Announcer {
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (!initialized) {
             initialized = true;
-            resetField();
+            owner.getServer().getScheduler().runTaskLater(owner, this::resetField, loadDelay);
         }
     }
 

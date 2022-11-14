@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class RelayEventListener implements Listener {
     private final JavaPlugin owner;
+    private final long loadDelay;
 
     enum TeamColor {
         RED,
@@ -188,8 +189,9 @@ public class RelayEventListener implements Listener {
         }
     }
 
-    public RelayEventListener(JavaPlugin owner) {
+    public RelayEventListener(JavaPlugin owner, long loadDelay) {
         this.owner = owner;
+        this.loadDelay = loadDelay;
     }
 
     @EventHandler
@@ -661,7 +663,7 @@ public class RelayEventListener implements Listener {
             return;
         }
         initialized = true;
-        resetField();
+        owner.getServer().getScheduler().runTaskLater(owner, this::resetField, loadDelay);
     }
 
     private BoundingBox getAnnounceBounds() {

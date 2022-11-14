@@ -68,11 +68,11 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
 
-        this.mobFightEventListener = new MobFightEventListener(this);
-        this.fencingEventListener = new FencingEventListener(this);
-        this.boatRaceEventListener = new BoatRaceEventListener(this);
-        this.relayEventListener = new RelayEventListener(this);
-        this.darumaEventListener = new DarumaEventListener(this);
+        this.mobFightEventListener = new MobFightEventListener(this, 20);
+        this.fencingEventListener = new FencingEventListener(this, 40);
+        this.boatRaceEventListener = new BoatRaceEventListener(this, 60);
+        this.relayEventListener = new RelayEventListener(this, 80);
+        this.darumaEventListener = new DarumaEventListener(this, 100);
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(this.mobFightEventListener, this);
         pluginManager.registerEvents(this.fencingEventListener, this);

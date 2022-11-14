@@ -31,9 +31,11 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     private Status _status = Status.IDLE;
     private @Nullable Race race;
     private Map<TeamColor, Bossbar> bossbars = new HashMap<>();
+    private final long loadDelay;
 
-    public MobFightEventListener(JavaPlugin owner) {
+    public MobFightEventListener(JavaPlugin owner, long loadDelay) {
         this.owner = owner;
+        this.loadDelay = loadDelay;
     }
 
     void setStatus(Status s) {
@@ -74,17 +76,19 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (!initialized) {
             initialized = true;
-            BoundingBox box = offset(kAnnounceBounds);
-            Bossbar red = new Bossbar(owner, kBossbarRed, "", box);
-            red.setColor("red");
-            Bossbar yellow = new Bossbar(owner, kBossbarYellow, "", box);
-            yellow.setColor("yellow");
-            Bossbar white = new Bossbar(owner, kBossbarWhite, "", box);
-            white.setColor("white");
-            bossbars.put(TeamColor.RED, red);
-            bossbars.put(TeamColor.YELLOW, yellow);
-            bossbars.put(TeamColor.WHITE, white);
-            resetField();
+            owner.getServer().getScheduler().runTaskLater(owner, () -> {
+                BoundingBox box = offset(kAnnounceBounds);
+                Bossbar red = new Bossbar(owner, kBossbarRed, "", box);
+                red.setColor("red");
+                Bossbar yellow = new Bossbar(owner, kBossbarYellow, "", box);
+                yellow.setColor("yellow");
+                Bossbar white = new Bossbar(owner, kBossbarWhite, "", box);
+                white.setColor("white");
+                bossbars.put(TeamColor.RED, red);
+                bossbars.put(TeamColor.YELLOW, yellow);
+                bossbars.put(TeamColor.WHITE, white);
+                resetField();
+            }, loadDelay);
         }
         Player player = e.getPlayer();
         if (_status != Status.RUN || getCurrentParticipation(player) == null) {

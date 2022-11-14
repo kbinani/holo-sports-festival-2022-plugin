@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 public class BoatRaceEventListener implements Listener {
     private final JavaPlugin owner;
+    private final long loadDelay;
 
     enum Team {
         RED,
@@ -329,8 +330,9 @@ public class BoatRaceEventListener implements Listener {
     private static final Point3i kFieldNorthWest = new Point3i(-106, -60, -294);
     private static final Point3i kFieldSouthEast = new Point3i(-24, -30, -127);
 
-    public BoatRaceEventListener(JavaPlugin owner) {
+    public BoatRaceEventListener(JavaPlugin owner, long loadDelay) {
         this.owner = owner;
+        this.loadDelay = loadDelay;
     }
 
     @EventHandler
@@ -475,10 +477,12 @@ public class BoatRaceEventListener implements Listener {
             return;
         }
         initialized = true;
-        overworld().ifPresent(world -> {
-            Loader.LoadChunk(world, getBounds());
-        });
-        resetField();
+        owner.getServer().getScheduler().runTaskLater(owner, () -> {
+            overworld().ifPresent(world -> {
+                Loader.LoadChunk(world, getBounds());
+            });
+            resetField();
+        }, loadDelay);
     }
 
     @EventHandler
