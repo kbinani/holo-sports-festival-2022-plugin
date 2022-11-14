@@ -1,7 +1,10 @@
 package com.github.kbinani.holosportsfestival2022.fencing;
 
 import com.github.kbinani.holosportsfestival2022.*;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -410,7 +413,7 @@ public class FencingEventListener implements Listener {
         if (e.getType() != ServerLoadEvent.LoadType.STARTUP) {
             return;
         }
-        BoundingBox bounds = getBounds();
+        BoundingBox bounds = getAnnounceBounds();
         bossbarLeft = new Bossbar(owner, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
         bossbarLeft.setMax(3);
         bossbarLeft.setValue(3);
@@ -432,7 +435,7 @@ public class FencingEventListener implements Listener {
         }
         initialized = true;
         overworld().ifPresent(world -> {
-            Loader.LoadChunk(world, getBounds());
+            Loader.LoadChunk(world, getAnnounceBounds());
         });
         clearField();
     }
@@ -450,19 +453,19 @@ public class FencingEventListener implements Listener {
     private void joinPlayer(@Nonnull Player player, Team team) {
         if (team == Team.RIGHT) {
             if (playerLeft != null && playerLeft.equals(player.getUniqueId())) {
-                broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.LEFT) + "としてエントリー済みです");
+                broadcast("[フェンシング] %sはエントリー済みです", player.getName());
             } else {
                 playerRight = player.getUniqueId();
                 execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
-                broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
+                broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
             }
         } else if (team == Team.LEFT) {
             if (playerRight != null && playerRight.equals(player.getUniqueId())) {
-                broadcastUnofficial(ChatColor.RED + "[フェンシング] " + player.getName() + "は" + TeamName(Team.RIGHT) + "としてエントリー済みです");
+                broadcast("[フェンシング] %sはエントリー済みです", player.getName());
             } else {
                 playerLeft = player.getUniqueId();
                 execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
-                broadcast("[フェンシング] " + player.getName() + "がエントリーしました（" + TeamName(team) + "）");
+                broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
             }
         }
         if (playerRight == null && playerLeft == null) {
@@ -501,13 +504,14 @@ public class FencingEventListener implements Listener {
         }
     }
 
-    private void broadcast(String message) {
-        owner.getServer().broadcastMessage(message);
+    private void broadcast(String format, Object... args) {
+        String msg = String.format(format, args);
+        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(getAnnounceBounds()), msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
-    private void broadcastUnofficial(String message) {
-        broadcast(message);
+    private void broadcastUnofficial(String format, Object... args) {
+        broadcast(format, args);
     }
 
     private void onClickJoin(@Nonnull Player player, Team team) {
@@ -551,8 +555,8 @@ public class FencingEventListener implements Listener {
             return;
         }
         clearPlayer(team);
-        execute("clear @p[name=\"%s\"]" + " iron_sword{tag:{%s:1b}}", player.getName(), kWeaponCustomTag);
-        broadcastUnofficial("[フェンシング] " + player.getName() + "がエントリー解除しました（" + TeamName(team) + "）");
+        execute("clear @p[name=\"%s\"] iron_sword{tag:{%s:1b}}", player.getName(), kWeaponCustomTag);
+        broadcastUnofficial("[フェンシング] %sがエントリー解除しました（%s）", player.getName(), TeamName(team));
     }
 
     private void onClickStart() {
@@ -580,14 +584,14 @@ public class FencingEventListener implements Listener {
             }
         }
         if (numLeft != numRight || numLeft < 1 || numRight < 1) {
-            broadcast("参加人数が正しくありません（" + TeamName(Team.LEFT) + " : " + numLeft + "人、" + TeamName(Team.RIGHT) + " : " + numRight + "人）");
+            broadcast("参加人数が正しくありません（%s : %d人、%s : %d人）", TeamName(Team.LEFT), numLeft, TeamName(Team.RIGHT), numRight);
             return;
         }
         left.setHealth(left.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         right.setHealth(right.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
 
         setStatus(Status.COUNTDOWN);
-        Countdown.Then(getBounds(), owner, (count) -> {
+        Countdown.Then(getAnnounceBounds(), owner, (count) -> {
             return _status == Status.COUNTDOWN;
         }, () -> {
             if (_status != Status.COUNTDOWN) {
@@ -598,7 +602,7 @@ public class FencingEventListener implements Listener {
         });
     }
 
-    private BoundingBox getBounds() {
+    private BoundingBox getAnnounceBounds() {
         return new BoundingBox(x(85), y(-20), z(-280), x(171), y(384), z(-253));
     }
 
