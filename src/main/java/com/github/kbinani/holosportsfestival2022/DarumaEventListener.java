@@ -1,9 +1,6 @@
 package com.github.kbinani.holosportsfestival2022;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Server;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -408,6 +405,7 @@ public class DarumaEventListener implements Listener, Announcer {
             if (_status != Status.COUNTDOWN_RED) {
                 return false;
             }
+            Play.Sound(owner.getServer(), getAnnounceBounds(), Sound.ENTITY_GHAST_HURT, 0.25f, 1);
             setTitle("ころんだ！！！", "Red light!!!");
             setStatus(Status.RED);
             return true;
