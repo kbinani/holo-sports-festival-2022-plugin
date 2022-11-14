@@ -8,10 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.BoundingBox;
@@ -236,6 +233,11 @@ public class DarumaEventListener implements Listener, Announcer {
         if (!race.isRunning(player)) {
             return;
         }
+        TeamColor color = getCurrentColor(player);
+        if (color == null) {
+            return;
+        }
+        Team team = ensureTeam(color);
 
         Location from = e.getFrom();
         Location to = e.getTo();
@@ -253,7 +255,7 @@ public class DarumaEventListener implements Listener, Announcer {
                 tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
             }
             race.goal(player, tick);
-            teams.forEach((color, team) -> team.remove(player));
+            team.remove(player);
 
             // 同一 tick で box に侵入したという判定になったとしても,
             // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
@@ -273,9 +275,8 @@ public class DarumaEventListener implements Listener, Announcer {
             double dx = to.getX() - from.getX();
             double dz = to.getZ() - from.getZ();
             if (dx != 0 || dz != 0) {
-                //TODO: kill する処理
                 race.withdraw(player);
-                teams.forEach((color, team) -> team.remove(player));
+                player.setHealth(0);
                 broadcast("%s失格！", player.getName());
                 if (race.getRunningPlayerCount() == 0) {
                     // 最後の走者が失格になったので試合終了
@@ -284,6 +285,24 @@ public class DarumaEventListener implements Listener, Announcer {
                 }
             }
         }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerRespawn(PlayerRespawnEvent e) {
+        Player player = e.getPlayer();
+        TeamColor color = getCurrentColor(player);
+        if (color == null) {
+            return;
+        }
+        Team team = ensureTeam(color);
+        team.remove(player);
+        Location location = player.getLocation();
+        Point3i respawn = getEntryButtonPosition(color);
+        location.setX(respawn.x + 0.5);
+        location.setY(respawn.y);
+        location.setZ(respawn.z + 6.5);
+        e.setRespawnLocation(location);
     }
 
     private void setStatus(Status status) {
@@ -527,6 +546,18 @@ public class DarumaEventListener implements Listener, Announcer {
     public void execute(String format, Object... args) {
         Server server = owner.getServer();
         server.dispatchCommand(server.getConsoleSender(), String.format(format, args));
+    }
+
+    private Point3i getEntryButtonPosition(TeamColor color) {
+        switch (color) {
+            case RED:
+                return offset(kButtonRedJoin);
+            case WHITE:
+                return offset(kButtonWhiteJoin);
+            case YELLOW:
+            default:
+                return offset(kButtonYellowJoin);
+        }
     }
 
     private Point3i offset(Point3i p) {
