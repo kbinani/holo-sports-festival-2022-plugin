@@ -184,7 +184,7 @@ public class RelayEventListener implements Listener {
         for (int i = 0; i < points.length - 1; i++) {
             Point3i from = points[i];
             Point3i to = points[i + 1];
-            execute("fill %s %s %s", xyz(from), xyz(to), block);
+            Editor.Fill(offset(from), offset(to), block);
         }
     }
 
@@ -379,23 +379,31 @@ public class RelayEventListener implements Listener {
     private void setEnableStartGate(boolean enable) {
         if (enable) {
             // 第1レーン
-            execute("fill %s %s birch_fence", xyz(37, -60, -178), xyz(38, -60, -176));
-            execute("setblock %s command_block[facing=north]", xyz(37, -61, -177));
-            execute("setblock %s birch_button[face=floor,facing=east]", xyz(37, -60, -177));
+            fill(new Point3i(37, -60, -178), new Point3i(38, -60, -176), "birch_fence");
+            setBlock(new Point3i(37, -61, -177), "command_block[facing=north]");
+            setBlock(new Point3i(37, -60, -177), "birch_button[face=floor,facing=east]");
 
             // 第2レーン
-            execute("fill %s %s birch_fence", xyz(38, -60, -176), xyz(39, -60, -174));
-            execute("setblock %s command_block[facing=north]", xyz(38, -61, -175));
-            execute("setblock %s birch_button[face=floor,facing=east]", xyz(38, -60, -175));
+            fill(new Point3i(38, -60, -176), new Point3i(39, -60, -174), "birch_fence");
+            setBlock(new Point3i(38, -61, -175), "command_block[facing=north]");
+            setBlock(new Point3i(38, -60, -175), "birch_button[face=floor,facing=east]");
 
             // 第3レーン
-            execute("fill %s %s birch_fence", xyz(39, -60, -174), xyz(40, -60, -172));
-            execute("setblock %s command_block[facing=north]", xyz(39, -61, -173));
-            execute("setblock %s birch_button[face=floor,facing=east]", xyz(39, -60, -173));
+            fill(new Point3i(39, -60, -174), new Point3i(40, -60, -172), "birch_fence");
+            setBlock(new Point3i(39, -61, -173), "command_block[facing=north]");
+            setBlock(new Point3i(39, -60, -173), "birch_button[face=floor,facing=east]");
         } else {
-            execute("fill %s %s air", xyz(37, -60, -178), xyz(40, -60, -172));
-            execute("fill %s %s dirt_path", xyz(40, -61, -172), xyz(37, -61, -178));
+            fill(new Point3i(37, -60, -178), new Point3i(40, -60, -172), "air");
+            fill(new Point3i(40, -61, -172), new Point3i(37, -61, -178), "dirt_path");
         }
+    }
+
+    private void fill(Point3i from, Point3i to, String block) {
+        Editor.Fill(offset(from), offset(to), block);
+    }
+
+    private void setBlock(Point3i p, String block) {
+        Editor.SetBlock(offset(p), block);
     }
 
     private void onClickJoin(Player player, TeamColor teamColor) {
@@ -687,17 +695,6 @@ public class RelayEventListener implements Listener {
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
     private void broadcastUnofficial(String msg, Object... args) {
         broadcast(msg, args);
-    }
-
-    private String xyz(Point3i p) {
-        // 座標が間違っていてもここはオフセットしなくていい
-        Point3i o = offset(p);
-        return String.format("%d %d %d", o.x, o.y, o.z);
-    }
-
-    private String xyz(int x, int y, int z) {
-        // 座標が間違っていたらここでオフセットする
-        return String.format("%d %d %d", x, y, z);
     }
 
     private BoundingBox offset(BoundingBox box) {
