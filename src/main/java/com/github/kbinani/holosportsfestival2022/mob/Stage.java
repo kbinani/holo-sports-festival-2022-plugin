@@ -1,5 +1,6 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
+import com.github.kbinani.holosportsfestival2022.Editor;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
@@ -102,7 +103,7 @@ public abstract class Stage {
     }
 
     protected void fill(int x1, int y1, int z1, int x2, int y2, int z2, String block) {
-        execute("fill %d %d %d %d %d %d %s", x1, y1, z1, x2, y2, z2, block);
+        Editor.Fill(new Point3i(x1, y1, z1), new Point3i(x2, y2, z2), block);
     }
 
     protected void execute(String format, Object... args) {

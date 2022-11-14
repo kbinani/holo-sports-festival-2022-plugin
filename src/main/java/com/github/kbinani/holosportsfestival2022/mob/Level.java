@@ -1,5 +1,6 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
+import com.github.kbinani.holosportsfestival2022.Editor;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
@@ -115,7 +116,7 @@ class Level implements StageDelegate {
     }
 
     void setExitOpened(boolean opened) {
-        execute("fill %s %s %s %s %s %s %s", x(-2), y(-59), z(-412), x(3), y(-57), z(-412), opened ? "air" : "iron_bars");
+        Editor.Fill(new Point3i(x(-2), y(-59), z(-412)), new Point3i(x(3), y(-57), z(-412)), opened ? "air" : "iron_bars");
     }
 
     Point3i getSafeSpawnLocation() {
