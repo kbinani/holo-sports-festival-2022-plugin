@@ -530,8 +530,9 @@ public class BoatRaceEventListener implements Listener {
         return new BoundingBox(x(kFieldNorthWest.x), y(kFieldNorthWest.y), z(kFieldNorthWest.z), x(kFieldSouthEast.x), y(kFieldSouthEast.y), z(kFieldSouthEast.z));
     }
 
-    private void broadcast(String msg, Object... args) {
-        owner.getServer().broadcastMessage(String.format(msg, args));
+    private void broadcast(String format, Object... args) {
+        String msg = String.format(format, args);
+        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(getBounds()), msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
@@ -564,10 +565,10 @@ public class BoatRaceEventListener implements Listener {
                 execute("give @p[name=\"%s\"] crossbow{tag:{%s:1b}}", player.getName(), kItemTag);
                 execute("give @p[name=\"%s\"] splash_potion{Potion:darkness,tag:{%s:1b},display:{Name:'[{\"text\":\"[水上レース専用] 暗闇（強）\"}]'}}", player.getName(), kItemTag);
             }
-            broadcast(String.format("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(team), ToString(role)));
+            broadcast("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(team), ToString(role));
             setStatus(Status.AWAIT_START);
         } else {
-            broadcastUnofficial(ChatColor.RED + String.format("[水上レース] %sは%s%sで既にエントリー済みです", ChatColor.RESET + player.getName(), ToColoredString(team), ChatColor.RED + ToString(role)));
+            broadcast("[水上レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(team));
         }
     }
 
@@ -581,7 +582,7 @@ public class BoatRaceEventListener implements Listener {
         Participant team = ensureTeam(current.team);
         team.setPlayer(current.role, null);
         clearItems(String.format("@p[name=\"%s\"]", player.getName()));
-        broadcast(String.format("[水上レース] %sがエントリー解除しました", player.getName()));
+        broadcast("[水上レース] %sがエントリー解除しました", player.getName());
 
         AtomicInteger totalPlayerCount = new AtomicInteger(0);
         AllTeams(t -> {
@@ -633,9 +634,9 @@ public class BoatRaceEventListener implements Listener {
             Participant participant = ensureTeam(team);
             int count = participant.getPlayerCount();
             if (count < 1) {
-                broadcast(String.format("%sの参加者が見つかりません", ToString(team)));
+                broadcast("%sの参加者が見つかりません", ToString(team));
             } else {
-                broadcast(String.format("%s が競技に参加します（参加者%d人）", ToColoredString(team), count));
+                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(team), count);
             }
         }
         AllTeams(team -> {
