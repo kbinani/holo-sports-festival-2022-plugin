@@ -21,7 +21,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -44,6 +43,7 @@ public class FencingEventListener implements Listener {
     private int hitpointRight = 3;
     private Bossbar bossbarLeft;
     private Bossbar bossbarRight;
+    private boolean initialized = false;
 
     static final String kBossbarLeft = "sports_festival_2022_bossbar_left";
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
@@ -380,10 +380,12 @@ public class FencingEventListener implements Listener {
 
     @EventHandler
     @SuppressWarnings("unused")
-    public void onServerLoad(ServerLoadEvent e) {
-        if (e.getType() != ServerLoadEvent.LoadType.STARTUP) {
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        if (initialized) {
             return;
         }
+        initialized = true;
+
         BoundingBox bounds = getAnnounceBounds();
         bossbarLeft = new Bossbar(owner, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
         bossbarLeft.setMax(3);
@@ -394,20 +396,7 @@ public class FencingEventListener implements Listener {
         bossbarRight.setMax(3);
         bossbarRight.setValue(3);
         bossbarRight.setColor("green");
-    }
 
-    private boolean initialized = false;
-
-    @EventHandler
-    @SuppressWarnings("unused")
-    public void onPlayerJoin(PlayerJoinEvent e) {
-        if (initialized) {
-            return;
-        }
-        initialized = true;
-        overworld().ifPresent(world -> {
-            Loader.LoadChunk(world, getAnnounceBounds());
-        });
         clearField();
     }
 
