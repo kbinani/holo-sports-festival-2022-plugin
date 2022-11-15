@@ -53,6 +53,9 @@ public class Main extends JavaPlugin implements Listener {
             if (world.getDifficulty() == Difficulty.PEACEFUL) {
                 reasons.add("the \"mob\" mini game is not playable as the difficulty is set to peaceful");
             }
+            if (!world.getPVP()) {
+                reasons.add("pvp is set to false");
+            }
         });
         if (!reasons.isEmpty()) {
             getLogger().log(Level.SEVERE, "Disabling the plugin because:");
