@@ -1,0 +1,21 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+env:
+  HOLO_SPORTS_FESTIVAL_2022_PLUGIN_VERSION: ${{ github.ref_name }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: ./gradlew assemble
+      - name: Deploy
+        uses: softprops/action-gh-release@v1
+        if: github.ref_type == 'tag'
+        with:
+          files: build/libs/holo-sports-festival-2022-plugin-${{ env.HOLO_SPORTS_FESTIVAL_2022_PLUGIN_VERSION }}.jar
