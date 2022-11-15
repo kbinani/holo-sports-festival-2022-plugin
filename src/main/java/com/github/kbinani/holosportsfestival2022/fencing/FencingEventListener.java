@@ -18,6 +18,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -402,6 +403,21 @@ public class FencingEventListener implements Listener {
 
             clearField();
         }, loadDelay);
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerDeath(PlayerDeathEvent e) {
+        if (_status != Status.RUN) {
+            return;
+        }
+        Player player = e.getEntity();
+        if (playerLeft != null && player.getUniqueId().equals(playerLeft)) {
+            e.setKeepInventory(true);
+        }
+        if (playerRight != null && player.getUniqueId().equals(playerRight)) {
+            e.setKeepInventory(true);
+        }
     }
 
     private @Nullable UUID getPlayerUid(Team team) {
