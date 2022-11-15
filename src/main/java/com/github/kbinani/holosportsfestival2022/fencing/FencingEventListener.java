@@ -352,11 +352,9 @@ public class FencingEventListener implements Listener {
     @SuppressWarnings("unused")
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player player = e.getPlayer();
-        if (left != null && player.getUniqueId().equals(left.getUniqueId())) {
-            clearPlayer(Team.LEFT);
-        }
-        if (right != null && player.getUniqueId().equals(right.getUniqueId())) {
-            clearPlayer(Team.RIGHT);
+        Team team = getCurrentTeam(player);
+        if (team != null) {
+            clearPlayer(team);
         }
     }
 
@@ -391,10 +389,8 @@ public class FencingEventListener implements Listener {
             return;
         }
         Player player = e.getEntity();
-        if (left != null && player.getUniqueId().equals(left.getUniqueId())) {
-            e.setKeepInventory(true);
-        }
-        if (right != null && player.getUniqueId().equals(right.getUniqueId())) {
+        Team team = getCurrentTeam(player);
+        if (team != null) {
             e.setKeepInventory(true);
         }
     }
@@ -403,50 +399,39 @@ public class FencingEventListener implements Listener {
     @SuppressWarnings("unused")
     public void onPlayerRespawn(PlayerRespawnEvent e) {
         Player player = e.getPlayer();
-        if (left != null && player.getUniqueId().equals(left.getUniqueId())) {
-            Point3i respawn = offset(kRespawnLocation);
-            Location location = player.getLocation();
-            location.setX(respawn.x);
-            location.setY(respawn.y);
-            location.setZ(respawn.z);
-            e.setRespawnLocation(location);
-
-            left = null;
-            right = null;
-            setStatus(Status.IDLE);
+        Team team = getCurrentTeam(player);
+        if (team == null) {
+            return;
         }
-        if (right != null && player.getUniqueId().equals(right.getUniqueId())) {
-            Point3i respawn = offset(kRespawnLocation);
-            Location location = player.getLocation();
-            location.setX(respawn.x);
-            location.setY(respawn.y);
-            location.setZ(respawn.z);
-            e.setRespawnLocation(location);
+        Point3i respawn = offset(kRespawnLocation);
+        Location location = player.getLocation();
+        location.setX(respawn.x);
+        location.setY(respawn.y);
+        location.setZ(respawn.z);
+        e.setRespawnLocation(location);
 
-            left = null;
-            right = null;
+        // ここで setStatus(Status.IDLE) すると相討ちの場合に後に onPlayerRespawn する側のリスポン位置が設定されない.
+        // 1 tick 遅れて IDLE に戻す.
+
+        Server server = owner.getServer();
+        BukkitScheduler scheduler = server.getScheduler();
+        scheduler.runTask(owner, () -> {
             setStatus(Status.IDLE);
-        }
+        });
     }
 
     private void joinPlayer(@Nonnull Player player, Team team) {
-        if (team == Team.RIGHT) {
-            if (left != null && left.getUniqueId().equals(player.getUniqueId())) {
-                broadcast("[フェンシング] %sはエントリー済みです", player.getName());
-            } else {
-                right = player;
-                execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
-                broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
-            }
-        } else if (team == Team.LEFT) {
-            if (right != null && right.getUniqueId().equals(player.getUniqueId())) {
-                broadcast("[フェンシング] %sはエントリー済みです", player.getName());
-            } else {
-                left = player;
-                execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
-                broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
-            }
+        if (getCurrentTeam(player) != null) {
+            broadcast("[フェンシング] %sはエントリー済みです", player.getName());
+            return;
         }
+        if (team == Team.RIGHT) {
+            right = player;
+        } else if (team == Team.LEFT) {
+            left = player;
+        }
+        execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
+        broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
         if (right == null && left == null) {
             setStatus(Status.IDLE);
         } else {
