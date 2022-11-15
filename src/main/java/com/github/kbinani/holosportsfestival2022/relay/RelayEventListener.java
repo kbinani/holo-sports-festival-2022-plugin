@@ -247,7 +247,7 @@ public class RelayEventListener implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerQuit(PlayerQuitEvent e) {
-        if (_status != Status.RUN && _status != Status.COUNTDOWN) {
+        if (_status != Status.RUN && _status != Status.COUNTDOWN && _status != Status.AWAIT_START) {
             return;
         }
         Player player = e.getPlayer();
