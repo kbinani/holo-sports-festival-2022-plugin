@@ -8,18 +8,20 @@ import com.github.kbinani.holosportsfestival2022.relay.RelayEventListener;
 import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 
-public class Main extends JavaPlugin implements Listener {
+public class Main extends JavaPlugin implements Listener, MainDelegate {
     private MobFightEventListener mobFightEventListener;
     private FencingEventListener fencingEventListener;
     private BoatRaceEventListener boatRaceEventListener;
@@ -27,6 +29,22 @@ public class Main extends JavaPlugin implements Listener {
     private DarumaEventListener darumaEventListener;
 
     public Main() {
+    }
+
+    @Override
+    public @Nullable CompetitionType getCurrentCompetition(Player player) {
+        if (mobFightEventListener.isJoined(player)) {
+            return CompetitionType.MOB;
+        } else if (fencingEventListener.isJoined(player)) {
+            return CompetitionType.FENCING;
+        } else if (boatRaceEventListener.isJoined(player)) {
+            return CompetitionType.BOAT_RACE;
+        } else if (relayEventListener.isJoined(player)) {
+            return CompetitionType.RELAY;
+        } else if (darumaEventListener.isJoined(player)) {
+            return CompetitionType.DARUMA;
+        }
+        return null;
     }
 
     @Override
@@ -71,11 +89,11 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
 
-        this.mobFightEventListener = new MobFightEventListener(this, 20);
-        this.fencingEventListener = new FencingEventListener(this, 40);
-        this.boatRaceEventListener = new BoatRaceEventListener(this, 60);
-        this.relayEventListener = new RelayEventListener(this, 80);
-        this.darumaEventListener = new DarumaEventListener(this, 100);
+        this.mobFightEventListener = new MobFightEventListener(this, this, 20);
+        this.fencingEventListener = new FencingEventListener(this, this, 40);
+        this.boatRaceEventListener = new BoatRaceEventListener(this, this, 60);
+        this.relayEventListener = new RelayEventListener(this, this, 80);
+        this.darumaEventListener = new DarumaEventListener(this, this, 100);
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(this.mobFightEventListener, this);
         pluginManager.registerEvents(this.fencingEventListener, this);

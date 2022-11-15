@@ -34,9 +34,10 @@ import java.util.stream.Collectors;
 //TODO: アイテム使った時の処理
 //TODO: 妨害用アイテムをコレクションできないように対策する
 
-public class BoatRaceEventListener implements Listener {
+public class BoatRaceEventListener implements Listener, Competition {
     private final JavaPlugin owner;
     private final long loadDelay;
+    private final MainDelegate delegate;
 
     enum Team {
         RED,
@@ -330,9 +331,10 @@ public class BoatRaceEventListener implements Listener {
     private static final Point3i kFieldNorthWest = new Point3i(-106, -60, -294);
     private static final Point3i kFieldSouthEast = new Point3i(-24, -30, -127);
 
-    public BoatRaceEventListener(JavaPlugin owner, long loadDelay) {
+    public BoatRaceEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
         this.owner = owner;
         this.loadDelay = loadDelay;
+        this.delegate = delegate;
     }
 
     @EventHandler
@@ -695,5 +697,10 @@ public class BoatRaceEventListener implements Listener {
         Server server = owner.getServer();
         CommandSender sender = server.getConsoleSender();
         server.dispatchCommand(sender, String.format(format, args));
+    }
+
+    @Override
+    public boolean isJoined(Player player) {
+        return getCurrentParticipation(player) != null;
     }
 }

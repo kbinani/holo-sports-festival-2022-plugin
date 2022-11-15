@@ -22,13 +22,14 @@ import java.util.function.Consumer;
 
 //TODO: 金リンゴをコレクションできないように対策する
 
-public class DarumaEventListener implements Listener, Announcer {
+public class DarumaEventListener implements Listener, Announcer, Competition {
     private final JavaPlugin owner;
     private boolean initialized = false;
     private Status _status = Status.IDLE;
     private @Nullable Race race;
     private boolean manual = true;
     private final long loadDelay;
+    private final MainDelegate delegate;
 
     enum Status {
         IDLE,
@@ -162,9 +163,10 @@ public class DarumaEventListener implements Listener, Announcer {
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
 
-    public DarumaEventListener(JavaPlugin owner, long loadDelay) {
+    public DarumaEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
         this.owner = owner;
         this.loadDelay = loadDelay;
+        this.delegate = delegate;
     }
 
     @EventHandler
@@ -582,6 +584,11 @@ public class DarumaEventListener implements Listener, Announcer {
 
     private BoundingBox offset(BoundingBox box) {
         return new BoundingBox(xd(box.getMinX()), yd(box.getMinY()), zd(box.getMinZ()), xd(box.getMaxX()), yd(box.getMaxY()), zd(box.getMaxZ()));
+    }
+
+    @Override
+    public boolean isJoined(Player player) {
+        return getCurrentColor(player) != null;
     }
 
     private static final Point3i kButtonLeave = new Point3i(105, -60, -121);

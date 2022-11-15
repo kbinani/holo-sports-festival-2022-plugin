@@ -1,9 +1,6 @@
 package com.github.kbinani.holosportsfestival2022.relay;
 
-import com.github.kbinani.holosportsfestival2022.Countdown;
-import com.github.kbinani.holosportsfestival2022.Editor;
-import com.github.kbinani.holosportsfestival2022.Point3i;
-import com.github.kbinani.holosportsfestival2022.TargetSelector;
+import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Server;
@@ -34,9 +31,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RelayEventListener implements Listener {
+public class RelayEventListener implements Listener, Competition {
     private final JavaPlugin owner;
     private final long loadDelay;
+    private final MainDelegate delegate;
 
     enum TeamColor {
         RED,
@@ -189,9 +187,10 @@ public class RelayEventListener implements Listener {
         }
     }
 
-    public RelayEventListener(JavaPlugin owner, long loadDelay) {
+    public RelayEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
         this.owner = owner;
         this.loadDelay = loadDelay;
+        this.delegate = delegate;
     }
 
     @EventHandler
@@ -740,6 +739,11 @@ public class RelayEventListener implements Listener {
         Server server = owner.getServer();
         CommandSender sender = server.getConsoleSender();
         server.dispatchCommand(sender, String.format(format, args));
+    }
+
+    @Override
+    public boolean isJoined(Player player) {
+        return getCurrentTeam(player) != null;
     }
 
     private static final Point3i[] kCorner1stInner = new Point3i[]{

@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class MobFightEventListener implements Listener, LevelDelegate {
+public class MobFightEventListener implements Listener, LevelDelegate, Competition {
     private final JavaPlugin owner;
     private boolean initialized = false;
     private final Map<TeamColor, Level> levels = new HashMap<>();
@@ -32,10 +32,12 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     private @Nullable Race race;
     private Map<TeamColor, Bossbar> bossbars = new HashMap<>();
     private final long loadDelay;
+    private final MainDelegate delegate;
 
-    public MobFightEventListener(JavaPlugin owner, long loadDelay) {
+    public MobFightEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
         this.owner = owner;
         this.loadDelay = loadDelay;
+        this.delegate = delegate;
     }
 
     void setStatus(Status s) {
@@ -557,6 +559,11 @@ public class MobFightEventListener implements Listener, LevelDelegate {
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
     private void broadcastUnofficial(String msg, Object... args) {
         broadcast(msg, args);
+    }
+
+    @Override
+    public boolean isJoined(Player player) {
+        return getCurrentParticipation(player) != null;
     }
 
     static class Participation {

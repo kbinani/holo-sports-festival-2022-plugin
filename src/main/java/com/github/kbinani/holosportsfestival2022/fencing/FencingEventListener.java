@@ -37,7 +37,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.UUID;
 
-public class FencingEventListener implements Listener {
+public class FencingEventListener implements Listener, Competition {
     private final JavaPlugin owner;
     private @Nullable Player left;
     private @Nullable Player right;
@@ -47,15 +47,17 @@ public class FencingEventListener implements Listener {
     private Bossbar bossbarRight;
     private boolean initialized = false;
     private final long loadDelay;
+    private final MainDelegate delegate;
 
     static final String kBossbarLeft = "sports_festival_2022_bossbar_left";
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
     static final String kWeaponCustomTag = "hololive_sports_festival_2022_fencing";
     static final int kWeaponKnockbackLevel = 10;
 
-    public FencingEventListener(JavaPlugin owner, long loadDelay) {
+    public FencingEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
         this.owner = owner;
         this.loadDelay = loadDelay;
+        this.delegate = delegate;
     }
 
     enum Status {
@@ -594,6 +596,11 @@ public class FencingEventListener implements Listener {
         Server server = owner.getServer();
         CommandSender sender = server.getConsoleSender();
         server.dispatchCommand(sender, String.format(format, args));
+    }
+
+    @Override
+    public boolean isJoined(Player player) {
+        return getCurrentTeam(player) != null;
     }
 
     private static final Point3i kButtonRightJoin = new Point3i(101, -19, -265);
