@@ -22,6 +22,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -316,10 +317,6 @@ public class FencingEventListener implements Listener {
         broadcast(message);
         broadcast("-----------------------");
         broadcast("");
-
-        playerLeft = null;
-        playerRight = null;
-        setStatus(Status.IDLE);
     }
 
     private void clearField() {
@@ -417,6 +414,36 @@ public class FencingEventListener implements Listener {
         }
         if (playerRight != null && player.getUniqueId().equals(playerRight)) {
             e.setKeepInventory(true);
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerRespawn(PlayerRespawnEvent e) {
+        Player player = e.getPlayer();
+        if (playerLeft != null && player.getUniqueId().equals(playerLeft)) {
+            Point3i respawn = offset(kRespawnLocation);
+            Location location = player.getLocation();
+            location.setX(respawn.x);
+            location.setY(respawn.y);
+            location.setZ(respawn.z);
+            e.setRespawnLocation(location);
+
+            playerLeft = null;
+            playerRight = null;
+            setStatus(Status.IDLE);
+        }
+        if (playerRight != null && player.getUniqueId().equals(playerRight)) {
+            Point3i respawn = offset(kRespawnLocation);
+            Location location = player.getLocation();
+            location.setX(respawn.x);
+            location.setY(respawn.y);
+            location.setZ(respawn.z);
+            e.setRespawnLocation(location);
+
+            playerLeft = null;
+            playerRight = null;
+            setStatus(Status.IDLE);
         }
     }
 
@@ -631,4 +658,5 @@ public class FencingEventListener implements Listener {
     private static final Point3i kButtonStart = new Point3i(134, -18, -272);
     private static final BoundingBox kAnnounceBounds = new BoundingBox(85, -20, -280, 171, 384, -253);
     private static final BoundingBox kFieldBounds = new BoundingBox(104, -18, -268, 104 + 61, -18 + 5, -268 + 4);
+    private static final Point3i kRespawnLocation = new Point3i(96, -19, -274);
 }
