@@ -8,6 +8,7 @@ Minecraft [#ホロライブ運動会2022](https://twitter.com/hashtag/%E3%83%9B%
 - MOB討伐レース
 - 協力ボートレース
 - 選抜リレー
+- だるまさんがころんだ
 
 ## ビルド方法
 
