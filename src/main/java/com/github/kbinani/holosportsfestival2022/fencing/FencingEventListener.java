@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
@@ -34,13 +35,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Optional;
 import java.util.UUID;
 
 public class FencingEventListener implements Listener {
     private final JavaPlugin owner;
-    private @Nullable UUID playerLeft;
-    private @Nullable UUID playerRight;
+    private @Nullable Player left;
+    private @Nullable Player right;
     private int hitpointLeft = 3;
     private int hitpointRight = 3;
     private Bossbar bossbarLeft;
@@ -81,8 +81,8 @@ public class FencingEventListener implements Listener {
         switch (status) {
             case IDLE:
                 clearField();
-                playerLeft = null;
-                playerRight = null;
+                left = null;
+                right = null;
                 hitpointRight = 3;
                 hitpointLeft = 3;
                 break;
@@ -153,17 +153,13 @@ public class FencingEventListener implements Listener {
         Editor.SetBlock(offset(p), block);
     }
 
-    private Optional<World> overworld() {
-        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
-    }
-
     @EventHandler
     @SuppressWarnings("unused")
     public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
         if (_status != Status.RUN && _status != Status.AWAIT_DEATH) {
             return;
         }
-        if (playerRight == null || playerLeft == null) {
+        if (right == null || left == null) {
             return;
         }
         Entity entity = e.getEntity();
@@ -175,15 +171,15 @@ public class FencingEventListener implements Listener {
         Player offence = (Player) damager;
         String offenceName = offence.getName();
 
-        Team defenceTeam = null;
-        if (defence.getUniqueId().equals(playerLeft) && offence.getUniqueId().equals(playerRight)) {
-            defenceTeam = Team.LEFT;
-        } else if (defence.getUniqueId().equals(playerRight) && offence.getUniqueId().equals(playerLeft)) {
-            defenceTeam = Team.RIGHT;
-        } else {
+        Team defenceTeam = getCurrentTeam(defence);
+        Team offenceTeam = getCurrentTeam(offence);
+        if (defenceTeam == null || offenceTeam == null) {
             return;
         }
-        Team offenceTeam = TeamHostile(defenceTeam);
+        if (defenceTeam == offenceTeam) {
+            // ここには来ないはず
+            return;
+        }
 
         Server server = owner.getServer();
         World world = entity.getWorld();
@@ -234,13 +230,6 @@ public class FencingEventListener implements Listener {
         // 同一 tick 内で攻撃しあって相打ちになった場合を考慮して, 1 tick 後に勝敗の判定をする.
         setStatus(Status.AWAIT_DEATH);
 
-        Player left = null, right = null;
-        if (playerLeft != null) {
-            left = getPlayer(playerLeft);
-        }
-        if (playerRight != null) {
-            right = getPlayer(playerRight);
-        }
         if (left == null || right == null) {
             // 不在なのでノーコンテストに戻す
             setStatus(Status.IDLE);
@@ -270,13 +259,6 @@ public class FencingEventListener implements Listener {
         //NOTE: 敗北者を kill する前にアイテムを回収
         execute("clear @a iron_sword{tag:{%s:1b}}", kWeaponCustomTag);
 
-        Player left = null, right = null;
-        if (playerLeft != null) {
-            left = getPlayer(playerLeft);
-        }
-        if (playerRight != null) {
-            right = getPlayer(playerRight);
-        }
         if (left == null || right == null) {
             // 不在なのでノーコンテストに戻す
             setStatus(Status.IDLE);
@@ -360,9 +342,9 @@ public class FencingEventListener implements Listener {
         } else if (location.equals(offset(kButtonLeftJoin))) {
             onClickJoin(player, Team.LEFT);
         } else if (location.equals(offset(kButtonLeftLeave))) {
-            onClickLeave(player, Team.LEFT);
+            onClickLeave(player);
         } else if (location.equals(offset(kButtonRightLeave))) {
-            onClickLeave(player, Team.RIGHT);
+            onClickLeave(player);
         }
     }
 
@@ -370,10 +352,10 @@ public class FencingEventListener implements Listener {
     @SuppressWarnings("unused")
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player player = e.getPlayer();
-        if (playerLeft != null && player.getUniqueId().equals(playerLeft)) {
+        if (left != null && player.getUniqueId().equals(left.getUniqueId())) {
             clearPlayer(Team.LEFT);
         }
-        if (playerRight != null && player.getUniqueId().equals(playerRight)) {
+        if (right != null && player.getUniqueId().equals(right.getUniqueId())) {
             clearPlayer(Team.RIGHT);
         }
     }
@@ -409,10 +391,10 @@ public class FencingEventListener implements Listener {
             return;
         }
         Player player = e.getEntity();
-        if (playerLeft != null && player.getUniqueId().equals(playerLeft)) {
+        if (left != null && player.getUniqueId().equals(left.getUniqueId())) {
             e.setKeepInventory(true);
         }
-        if (playerRight != null && player.getUniqueId().equals(playerRight)) {
+        if (right != null && player.getUniqueId().equals(right.getUniqueId())) {
             e.setKeepInventory(true);
         }
     }
@@ -421,7 +403,7 @@ public class FencingEventListener implements Listener {
     @SuppressWarnings("unused")
     public void onPlayerRespawn(PlayerRespawnEvent e) {
         Player player = e.getPlayer();
-        if (playerLeft != null && player.getUniqueId().equals(playerLeft)) {
+        if (left != null && player.getUniqueId().equals(left.getUniqueId())) {
             Point3i respawn = offset(kRespawnLocation);
             Location location = player.getLocation();
             location.setX(respawn.x);
@@ -429,11 +411,11 @@ public class FencingEventListener implements Listener {
             location.setZ(respawn.z);
             e.setRespawnLocation(location);
 
-            playerLeft = null;
-            playerRight = null;
+            left = null;
+            right = null;
             setStatus(Status.IDLE);
         }
-        if (playerRight != null && player.getUniqueId().equals(playerRight)) {
+        if (right != null && player.getUniqueId().equals(right.getUniqueId())) {
             Point3i respawn = offset(kRespawnLocation);
             Location location = player.getLocation();
             location.setX(respawn.x);
@@ -441,41 +423,31 @@ public class FencingEventListener implements Listener {
             location.setZ(respawn.z);
             e.setRespawnLocation(location);
 
-            playerLeft = null;
-            playerRight = null;
+            left = null;
+            right = null;
             setStatus(Status.IDLE);
-        }
-    }
-
-    private @Nullable UUID getPlayerUid(Team team) {
-        if (team == Team.RIGHT) {
-            return playerRight;
-        } else if (team == Team.LEFT) {
-            return playerLeft;
-        } else {
-            return null;
         }
     }
 
     private void joinPlayer(@Nonnull Player player, Team team) {
         if (team == Team.RIGHT) {
-            if (playerLeft != null && playerLeft.equals(player.getUniqueId())) {
+            if (left != null && left.getUniqueId().equals(player.getUniqueId())) {
                 broadcast("[フェンシング] %sはエントリー済みです", player.getName());
             } else {
-                playerRight = player.getUniqueId();
+                right = player;
                 execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
                 broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
             }
         } else if (team == Team.LEFT) {
-            if (playerRight != null && playerRight.equals(player.getUniqueId())) {
+            if (right != null && right.getUniqueId().equals(player.getUniqueId())) {
                 broadcast("[フェンシング] %sはエントリー済みです", player.getName());
             } else {
-                playerLeft = player.getUniqueId();
+                left = player;
                 execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
                 broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
             }
         }
-        if (playerRight == null && playerLeft == null) {
+        if (right == null && left == null) {
             setStatus(Status.IDLE);
         } else {
             setStatus(Status.AWAIT_COUNTDOWN);
@@ -500,11 +472,11 @@ public class FencingEventListener implements Listener {
 
     private void clearPlayer(Team team) {
         if (team == Team.RIGHT) {
-            playerRight = null;
+            right = null;
         } else if (team == Team.LEFT) {
-            playerLeft = null;
+            left = null;
         }
-        if (playerRight == null && playerLeft == null) {
+        if (right == null && left == null) {
             setStatus(Status.IDLE);
         } else {
             setStatus(Status.AWAIT_COUNTDOWN);
@@ -525,12 +497,22 @@ public class FencingEventListener implements Listener {
         if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
         }
-        UUID uid = getPlayerUid(team);
-        if (uid != null) {
+        if (getCurrentTeam(player) != null) {
             //TODO: 既に join 済みの時のメッセージ
             return;
         }
         joinPlayer(player, team);
+    }
+
+    @Nullable
+    Team getCurrentTeam(Player player) {
+        if (left != null && left.getUniqueId().equals(player.getUniqueId())) {
+            return Team.LEFT;
+        }
+        if (right != null && right.getUniqueId().equals(player.getUniqueId())) {
+            return Team.RIGHT;
+        }
+        return null;
     }
 
     private static String TeamName(Team team) {
@@ -544,24 +526,13 @@ public class FencingEventListener implements Listener {
         }
     }
 
-    private static Team TeamHostile(Team team) {
-        if (team == Team.LEFT) {
-            return Team.RIGHT;
-        } else {
-            return Team.LEFT;
-        }
-    }
-
-    private void onClickLeave(@Nonnull Player player, Team team) {
+    private void onClickLeave(@Nonnull Player player) {
         // status をリセットするため _status == Status.IDLE チェックは入れずに強制的にエントリー解除処理する
-        UUID uid = getPlayerUid(team);
-        if (uid == null) {
+        Team color = getCurrentTeam(player);
+        if (color == null) {
             return;
         }
-        if (!uid.equals(player.getUniqueId())) {
-            return;
-        }
-        clearPlayer(team);
+        clearPlayer(color);
         execute("clear @p[name=\"%s\"] iron_sword{tag:{%s:1b}}", player.getName(), kWeaponCustomTag);
         broadcast("[フェンシング] %sがエントリー解除しました", player.getName());
     }
@@ -574,39 +545,36 @@ public class FencingEventListener implements Listener {
         Player right = null;
         int numLeft = 0;
         int numRight = 0;
-        if (playerLeft != null) {
-            left = getPlayer(playerLeft);
-            if (left == null) {
-                clearPlayer(Team.LEFT);
-            } else {
-                numLeft += 1;
-            }
+        if (this.left != null) {
+            left = this.left;
+            numLeft += 1;
         }
-        if (playerRight != null) {
-            right = getPlayer(playerRight);
-            if (right == null) {
-                clearPlayer(Team.RIGHT);
-            } else {
-                numRight += 1;
-            }
+        if (this.right != null) {
+            right = this.right;
+            numRight += 1;
         }
         if (numLeft != numRight || numLeft < 1 || numRight < 1) {
             broadcast("参加人数が正しくありません（%s : %d人、%s : %d人）", TeamName(Team.LEFT), numLeft, TeamName(Team.RIGHT), numRight);
             return;
         }
-        left.setHealth(left.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-        right.setHealth(right.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+        regenerate(left);
+        regenerate(right);
 
         setStatus(Status.COUNTDOWN);
-        Countdown.Then(getAnnounceBounds(), owner, (count) -> {
-            return _status == Status.COUNTDOWN;
-        }, () -> {
+        Countdown.Then(getAnnounceBounds(), owner, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
             setStatus(Status.RUN);
             return true;
         });
+    }
+
+    private void regenerate(Player player) {
+        AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (maxHealth != null) {
+            player.setHealth(maxHealth.getValue());
+        }
     }
 
     private BoundingBox getAnnounceBounds() {
@@ -641,14 +609,6 @@ public class FencingEventListener implements Listener {
         Server server = owner.getServer();
         CommandSender sender = server.getConsoleSender();
         server.dispatchCommand(sender, String.format(format, args));
-    }
-
-    private @Nullable Player getPlayer(@Nonnull UUID uid) {
-        World world = overworld().orElse(null);
-        if (world == null) {
-            return null;
-        }
-        return world.getPlayers().stream().filter(it -> it.getUniqueId().equals(uid)).findFirst().orElse(null);
     }
 
     private static final Point3i kButtonRightJoin = new Point3i(101, -19, -265);
