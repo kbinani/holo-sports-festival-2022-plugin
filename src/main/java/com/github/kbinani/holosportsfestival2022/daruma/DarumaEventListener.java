@@ -340,6 +340,11 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         if (_status != Status.IDLE) {
             return;
         }
+        CompetitionType type = delegate.getCurrentCompetition(player);
+        if (type != null && type != CompetitionType.DARUMA) {
+            broadcastUnofficial("[だるまさんがころんだ] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            return;
+        }
         TeamColor current = getCurrentColor(player);
         if (current == null) {
             Team team = ensureTeam(color);

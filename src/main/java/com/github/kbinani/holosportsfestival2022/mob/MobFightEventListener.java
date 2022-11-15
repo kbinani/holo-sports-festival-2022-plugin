@@ -336,6 +336,11 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
         }
+        CompetitionType type = delegate.getCurrentCompetition(player);
+        if (type != null && type != CompetitionType.MOB) {
+            broadcastUnofficial("[MOB討伐レース] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            return;
+        }
         Participation current = getCurrentParticipation(player);
         if (current != null) {
             broadcast("[MOB討伐レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(current.color));

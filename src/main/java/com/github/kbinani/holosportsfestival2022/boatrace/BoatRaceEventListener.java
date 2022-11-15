@@ -560,6 +560,11 @@ public class BoatRaceEventListener implements Listener, Competition {
         if (_status != Status.IDLE && _status != Status.AWAIT_START) {
             return;
         }
+        CompetitionType type = delegate.getCurrentCompetition(player);
+        if (type != null && type != CompetitionType.BOAT_RACE) {
+            broadcastUnofficial("[水上レース] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            return;
+        }
         @Nullable Participation current = getCurrentParticipation(player);
         if (current == null) {
             Participant p = ensureTeam(team);

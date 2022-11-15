@@ -484,6 +484,11 @@ public class FencingEventListener implements Listener, Competition {
         if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
         }
+        CompetitionType type = delegate.getCurrentCompetition(player);
+        if (type != null && type != CompetitionType.FENCING) {
+            broadcastUnofficial("[フェンシング] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            return;
+        }
         if (getCurrentTeam(player) != null) {
             //TODO: 既に join 済みの時のメッセージ
             return;
