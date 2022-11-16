@@ -15,10 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -530,6 +527,16 @@ public class BoatRaceEventListener implements Listener, Competition {
             execute("data merge entity %s {Item:{tag:{%s:1b}}}", id, kItemTag);
             execute("tag %s add %s", id, kItemTag);
         });
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onGameModeChange(PlayerGameModeChangeEvent e) {
+        Player player = e.getPlayer();
+        GameMode mode = e.getNewGameMode();
+        if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
+            onClickLeave(player);
+        }
     }
 
     private BoundingBox getBounds() {

@@ -17,10 +17,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -417,6 +414,16 @@ public class FencingEventListener implements Listener, Competition {
         scheduler.runTask(owner, () -> {
             setStatus(Status.IDLE);
         });
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onGameModeChange(PlayerGameModeChangeEvent e) {
+        Player player = e.getPlayer();
+        GameMode mode = e.getNewGameMode();
+        if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
+            onClickLeave(player);
+        }
     }
 
     private void joinPlayer(@Nonnull Player player, Team team) {

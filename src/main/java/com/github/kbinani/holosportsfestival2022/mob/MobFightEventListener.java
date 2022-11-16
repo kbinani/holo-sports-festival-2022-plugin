@@ -311,6 +311,16 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         e.setRespawnLocation(location);
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onGameModeChange(PlayerGameModeChangeEvent e) {
+        Player player = e.getPlayer();
+        GameMode mode = e.getNewGameMode();
+        if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
+            onClickLeave(player);
+        }
+    }
+
     void applyBossbarValue(TeamColor color, BossbarValue value) {
         Bossbar bar = bossbars.get(color);
         if (bar == null) {

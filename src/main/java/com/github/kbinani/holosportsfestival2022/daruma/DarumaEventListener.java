@@ -309,6 +309,16 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         e.setRespawnLocation(location);
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onGameModeChange(PlayerGameModeChangeEvent e) {
+        Player player = e.getPlayer();
+        GameMode mode = e.getNewGameMode();
+        if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
+            onClickLeave(player);
+        }
+    }
+
     private void setStatus(Status status) {
         if (_status == status) {
             return;
