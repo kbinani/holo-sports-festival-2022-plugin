@@ -17,7 +17,10 @@ import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.BoundingBox;
 
@@ -28,13 +31,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-//TODO: アイテム使った時の処理
 //TODO: 妨害用アイテムをコレクションできないように対策する
 
 public class BoatRaceEventListener implements Listener, Competition {
     private final JavaPlugin owner;
     private final long loadDelay;
     private final MainDelegate delegate;
+    private static final String kPrimaryShootItemDisplayName = "[水上レース専用] 暗闇（弱）";
+    private static final String kSecondaryShootItemDisplayName = "[水上レース専用] 暗闇（強）";
 
     enum Team {
         RED,
@@ -293,6 +297,15 @@ public class BoatRaceEventListener implements Listener, Competition {
             }
             return Math.max(driverRound, shooterRound);
         }
+
+        void eachPlayer(TriConsumer<Player, Role, PlayerStatus> consumer) {
+            if (driver != null) {
+                consumer.accept(driver, Role.DRIVER, status.getOrDefault(Role.DRIVER, PlayerStatus.IDLE));
+            }
+            if (shooter != null) {
+                consumer.accept(shooter, Role.SHOOTER, status.getOrDefault(Role.SHOOTER, PlayerStatus.IDLE));
+            }
+        }
     }
 
     private final Map<Team, Participant> teams = new HashMap<>();
@@ -432,27 +445,64 @@ public class BoatRaceEventListener implements Listener, Competition {
     public void onPlayerInteract(PlayerInteractEvent e) {
         Player player = e.getPlayer();
         Block block = e.getClickedBlock();
-        if (block == null) {
-            return;
+        Action action = e.getAction();
+        ItemStack item = e.getItem();
+        if (block != null && action == Action.RIGHT_CLICK_BLOCK) {
+            Point3i location = new Point3i(block.getLocation());
+            if (location.equals(offset(kYellowEntryShooter))) {
+                onClickJoin(player, Team.YELLOW, Role.SHOOTER);
+                return;
+            } else if (location.equals(offset(kYellowEntryDriver))) {
+                onClickJoin(player, Team.YELLOW, Role.DRIVER);
+                return;
+            } else if (location.equals(offset(kWhiteEntryShooter))) {
+                onClickJoin(player, Team.WHITE, Role.SHOOTER);
+                return;
+            } else if (location.equals(offset(kWhiteEntryDriver))) {
+                onClickJoin(player, Team.WHITE, Role.DRIVER);
+                return;
+            } else if (location.equals(offset(kRedEntryShooter))) {
+                onClickJoin(player, Team.RED, Role.SHOOTER);
+                return;
+            } else if (location.equals(offset(kRedEntryDriver))) {
+                onClickJoin(player, Team.RED, Role.DRIVER);
+                return;
+            } else if (location.equals(offset(kLeaveButton))) {
+                onClickLeave(player);
+                return;
+            }
         }
-        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
-        Point3i location = new Point3i(block.getLocation());
-        if (location.equals(offset(kYellowEntryShooter))) {
-            onClickJoin(player, Team.YELLOW, Role.SHOOTER);
-        } else if (location.equals(offset(kYellowEntryDriver))) {
-            onClickJoin(player, Team.YELLOW, Role.DRIVER);
-        } else if (location.equals(offset(kWhiteEntryShooter))) {
-            onClickJoin(player, Team.WHITE, Role.SHOOTER);
-        } else if (location.equals(offset(kWhiteEntryDriver))) {
-            onClickJoin(player, Team.WHITE, Role.DRIVER);
-        } else if (location.equals(offset(kRedEntryShooter))) {
-            onClickJoin(player, Team.RED, Role.SHOOTER);
-        } else if (location.equals(offset(kRedEntryDriver))) {
-            onClickJoin(player, Team.RED, Role.DRIVER);
-        } else if (location.equals(offset(kLeaveButton))) {
-            onClickLeave(player);
+        if (_status == Status.RUN && item != null && (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {
+            ItemMeta meta = item.getItemMeta();
+            Participation participation = getCurrentParticipation(player);
+            if (participation != null && meta != null && participation.role == Role.SHOOTER) {
+                PotionEffect candidate = null;
+                if (kPrimaryShootItemDisplayName.equals(meta.getDisplayName())) {
+                    item.setAmount(0);
+                    broadcast("%s が暗闇（弱）を発動！", ToColoredString(participation.team));
+                    candidate = new PotionEffect(PotionEffectType.DARKNESS, 200, 1);
+                } else if (kSecondaryShootItemDisplayName.equals(meta.getDisplayName())) {
+                    item.setAmount(0);
+                    broadcast("%s が暗闇（強）を発動！", ToColoredString(participation.team));
+                    candidate = new PotionEffect(PotionEffectType.BLINDNESS, 100, 1);
+                }
+                PotionEffect effect = candidate;
+                if (effect != null) {
+                    for (Map.Entry<Team, Participant> it : teams.entrySet()) {
+                        Team color = it.getKey();
+                        Participant team = it.getValue();
+                        if (color == participation.team) {
+                            continue;
+                        }
+                        team.eachPlayer((p, role, status) -> {
+                            if (status == Participant.PlayerStatus.FINISHED || status == Participant.PlayerStatus.IDLE) {
+                                return;
+                            }
+                            effect.apply(p);
+                        });
+                    }
+                }
+            }
         }
     }
 
@@ -583,9 +633,9 @@ public class BoatRaceEventListener implements Listener, Competition {
             if (role == Role.DRIVER) {
                 execute("give @p[name=\"%s\"] %s{tag:{%s:1b}}", player.getName(), Boat(team).name().toLowerCase(), kItemTag);
             } else {
-                execute("give @p[name=\"%s\"] snowball{tag:{%s:1b},display:{Name:'[{\"text\":\"[水上レース専用] 暗闇（弱）\"}]'}}", player.getName(), kItemTag);
+                execute("give @p[name=\"%s\"] snowball{tag:{%s:1b},display:{Name:'[{\"text\":\"%s\"}]'}}", player.getName(), kItemTag, kPrimaryShootItemDisplayName);
                 execute("give @p[name=\"%s\"] crossbow{tag:{%s:1b}}", player.getName(), kItemTag);
-                execute("give @p[name=\"%s\"] splash_potion{Potion:darkness,tag:{%s:1b},display:{Name:'[{\"text\":\"[水上レース専用] 暗闇（強）\"}]'}}", player.getName(), kItemTag);
+                execute("give @p[name=\"%s\"] splash_potion{Potion:darkness,tag:{%s:1b},display:{Name:'[{\"text\":\"%s\"}]'}}", player.getName(), kItemTag, kSecondaryShootItemDisplayName);
             }
             broadcast("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(team), ToString(role));
             setStatus(Status.AWAIT_START);
