@@ -345,6 +345,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             broadcastUnofficial("[だるまさんがころんだ] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
             return;
         }
+        if (player.getGameMode() != GameMode.ADVENTURE && player.getGameMode() != GameMode.SURVIVAL) {
+            player.sendMessage("[だるまさんがころんだ] ゲームモードはサバイバルかアドベンチャーの場合のみ参加可能です");
+            return;
+        }
         TeamColor current = getCurrentColor(player);
         if (current == null) {
             Team team = ensureTeam(color);

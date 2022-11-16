@@ -1,10 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.*;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Server;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -339,6 +336,10 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         CompetitionType type = delegate.getCurrentCompetition(player);
         if (type != null && type != CompetitionType.MOB) {
             broadcastUnofficial("[MOB討伐レース] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            return;
+        }
+        if (player.getGameMode() != GameMode.ADVENTURE && player.getGameMode() != GameMode.SURVIVAL) {
+            player.sendMessage("[MOB討伐レース] ゲームモードはサバイバルかアドベンチャーの場合のみ参加可能です");
             return;
         }
         Participation current = getCurrentParticipation(player);

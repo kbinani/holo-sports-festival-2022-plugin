@@ -1,10 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.fencing;
 
 import com.github.kbinani.holosportsfestival2022.*;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Server;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
@@ -487,6 +484,10 @@ public class FencingEventListener implements Listener, Competition {
         CompetitionType type = delegate.getCurrentCompetition(player);
         if (type != null && type != CompetitionType.FENCING) {
             broadcastUnofficial("[フェンシング] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            return;
+        }
+        if (player.getGameMode() != GameMode.ADVENTURE && player.getGameMode() != GameMode.SURVIVAL) {
+            player.sendMessage("[フェンシング] ゲームモードはサバイバルかアドベンチャーの場合のみ参加可能です");
             return;
         }
         if (getCurrentTeam(player) != null) {

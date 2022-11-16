@@ -565,6 +565,10 @@ public class BoatRaceEventListener implements Listener, Competition {
             broadcastUnofficial("[水上レース] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
             return;
         }
+        if (player.getGameMode() != GameMode.ADVENTURE && player.getGameMode() != GameMode.SURVIVAL) {
+            player.sendMessage("[水上レース] ゲームモードはサバイバルかアドベンチャーの場合のみ参加可能です");
+            return;
+        }
         @Nullable Participation current = getCurrentParticipation(player);
         if (current == null) {
             Participant p = ensureTeam(team);

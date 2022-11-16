@@ -1,10 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.relay;
 
 import com.github.kbinani.holosportsfestival2022.*;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Server;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
@@ -414,6 +411,10 @@ public class RelayEventListener implements Listener, Competition {
         CompetitionType type = delegate.getCurrentCompetition(player);
         if (type != null && type != CompetitionType.RELAY) {
             broadcastUnofficial("[リレー] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            return;
+        }
+        if (player.getGameMode() != GameMode.ADVENTURE && player.getGameMode() != GameMode.SURVIVAL) {
+            player.sendMessage("[リレー] ゲームモードはサバイバルかアドベンチャーの場合のみ参加可能です");
             return;
         }
         AtomicBoolean ok = new AtomicBoolean(true);
