@@ -264,18 +264,14 @@ public class FencingEventListener implements Listener, Competition {
         // 敗北者を kill する
         if (hitpointLeft == 0) {
             Location loc = left.getLocation();
-            // https://symtm.blog.fc2.com/blog-entry-96.html
-            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;14188952],FadeColors:[I;14188952]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
-            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
-            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;14602026],FadeColors:[I;14602026]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
+            launchLoserFireworkRocket(loc);
+            launchWinnerFireworkRocket(Team.RIGHT);
             left.setHealth(0);
         }
         if (hitpointRight == 0) {
             Location loc = right.getLocation();
-            // https://symtm.blog.fc2.com/blog-entry-96.html
-            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;14188952],FadeColors:[I;14188952]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
-            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:0,Flicker:1b,Trail:0b,Colors:[I;15790320],FadeColors:[I;15790320]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
-            execute("summon firework_rocket %f %f %f {LifeTime:0,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:0b,Colors:[I;14602026],FadeColors:[I;14602026]}],Flight:1}}}}", loc.getX(), loc.getY(), loc.getZ());
+            launchLoserFireworkRocket(loc);
+            launchWinnerFireworkRocket(Team.LEFT);
             right.setHealth(0);
         }
 
@@ -295,6 +291,24 @@ public class FencingEventListener implements Listener, Competition {
         broadcast(message);
         broadcast("-----------------------");
         broadcast("");
+    }
+
+    private void launchWinnerFireworkRocket(Team team) {
+        int[] colors = new int[]{FireworkRocket.Color.LIGHT_BLUE, FireworkRocket.Color.PINK, FireworkRocket.Color.YELLOW};
+        int x = team == Team.RIGHT ? 99 : 139;
+        int index = team == Team.RIGHT ? 2 : 0;
+        for (int i = 0; i < 7; i++, index++) {
+            int y = i % 2 == 0 ? -11 : -6;
+            Point3i pos = offset(new Point3i(x + i * 5, y, -254));
+            int color = colors[index % 3];
+            FireworkRocket.Launch(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, new int[]{color}, new int[]{}, 10, 1, false, false);
+        }
+    }
+
+    private void launchLoserFireworkRocket(Location loc) {
+        FireworkRocket.Launch(loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.PINK}, new int[]{FireworkRocket.Color.PINK}, 0, 1, false, false);
+        FireworkRocket.Launch(loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.WHITE}, new int[]{FireworkRocket.Color.WHITE}, 0, 0, true, false);
+        FireworkRocket.Launch(loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.YELLOW}, new int[]{FireworkRocket.Color.YELLOW}, 0, 4, false, false);
     }
 
     private void clearField() {
