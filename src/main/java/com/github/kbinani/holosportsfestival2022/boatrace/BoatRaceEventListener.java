@@ -164,6 +164,25 @@ public class BoatRaceEventListener implements Listener, Competition {
         return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     }
 
+    private void launchFireworkRockets(TeamColor color) {
+        int c = 0;
+        switch (color) {
+            case RED:
+                c = FireworkRocket.Color.PINK;
+                break;
+            case WHITE:
+                c = FireworkRocket.Color.LIGHT_BLUE;
+                break;
+            case YELLOW:
+                c = FireworkRocket.Color.YELLOW;
+                break;
+        }
+        for (int i = 0; i < 5; i++) {
+            Point3i pos = offset(new Point3i(-51 + i * 6, -50, -196));
+            FireworkRocket.Launch(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, new int[]{c}, new int[]{c}, 10, 1, false, false);
+        }
+    }
+
     static String ToString(Role role) {
         if (role == Role.DRIVER) {
             return "（操縦担当）";
@@ -398,6 +417,7 @@ public class BoatRaceEventListener implements Listener, Competition {
                     owner.getLogger().info(String.format("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
                     if (team.getRemainingRound() == 0) {
                         broadcast("%s GOAL !!", ToColoredString(participation.color));
+                        launchFireworkRockets(participation.color);
                         finishedServerTime.put(participation.color, player.getWorld().getGameTime());
                         boolean cleared = true;
                         for (Long it : finishedServerTime.values()) {
