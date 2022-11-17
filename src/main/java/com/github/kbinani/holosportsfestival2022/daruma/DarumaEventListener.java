@@ -2,19 +2,21 @@ package com.github.kbinani.holosportsfestival2022.daruma;
 
 import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.*;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
+import org.bukkit.block.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Comparator;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -327,6 +329,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 setEntranceOpened(true);
                 setStartGateOpened(false);
                 clearItem("@a");
+                refillDispensers();
                 if (race != null) {
                     race.announceOrders(this);
                 }
@@ -345,6 +348,51 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             case RED:
                 break;
         }
+    }
+
+    private void refillDispensers() {
+        World world = overworld();
+        if (world == null) {
+            return;
+        }
+
+        final int y = -61;
+        for (int x = 104; x <= 144; x += 2) {
+            refillDispenser(world, offset(new Point3i(x, y, -202)));
+            refillDispenser(world, offset(new Point3i(x, y, -198)));
+        }
+        for (int x = 105; x <= 143; x += 2) {
+            refillDispenser(world, offset(new Point3i(x, y, -200)));
+        }
+    }
+
+    private void refillDispenser(World world, Point3i position) {
+        int cx = position.x >> 4;
+        int cz = position.z >> 4;
+        boolean loaded = world.isChunkLoaded(cx, cz);
+        if (!loaded) {
+            world.loadChunk(cx, cz);
+        }
+        Block block = world.getBlockAt(position.x, position.y, position.z);
+        BlockState state = block.getState();
+        if (!(state instanceof Container)) {
+            if (!loaded) {
+                world.unloadChunk(cx, cz);
+            }
+            return;
+        }
+        Dispenser dispenser = (Dispenser) state;
+        Inventory inventory = dispenser.getInventory();
+        for (int i = 0; i < inventory.getSize(); i++) {
+            inventory.setItem(i, new ItemStack(Material.TNT, 64));
+        }
+        if (!loaded) {
+            world.unloadChunk(cx, cz);
+        }
+    }
+
+    private @Nullable World overworld() {
+        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst().orElse(null);
     }
 
     private void onClickJoin(Player player, TeamColor color) {
