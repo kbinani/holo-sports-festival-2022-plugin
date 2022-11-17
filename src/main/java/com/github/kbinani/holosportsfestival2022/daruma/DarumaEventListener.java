@@ -271,7 +271,6 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 }
                 this.race.announceOrder(this, player);
                 if (this.race.getRunningPlayerCount() < 1) {
-                    this.race.announceOrders(this);
                     setStatus(Status.IDLE);
                 }
             });
@@ -284,7 +283,6 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 broadcast("%s失格！", player.getName());
                 if (race.getRunningPlayerCount() == 0) {
                     // 最後の走者が失格になったので試合終了
-                    race.announceOrders(this);
                     setStatus(Status.IDLE);
                 }
             }
@@ -329,6 +327,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 setEntranceOpened(true);
                 setStartGateOpened(false);
                 clearItem("@a");
+                if (race != null) {
+                    race.announceOrders(this);
+                }
                 race = null;
                 break;
             case COUNTDOWN_START:
@@ -531,6 +532,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             race.withdraw(player);
         }
         broadcast("[だるまさんがころんだ] %sがエントリー解除しました", player.getName());
+        if (getPlayerCount() == 0) {
+            setStatus(Status.IDLE);
+        }
     }
 
     private void clearItem(String selector) {
