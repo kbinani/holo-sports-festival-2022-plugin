@@ -262,6 +262,14 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             if (fromZ != toZ) {
                 tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
             }
+
+            int lightBlue = 6719955;
+            launchFireworkRocket(xd(134.5), yd(-47.5), zd(-223.5), lightBlue);
+            int pink = 14188952;
+            launchFireworkRocket(xd(124.5), yd(-47.5), zd(-223.5), pink);
+            int yellow = 14602026;
+            launchFireworkRocket(xd(114.5), yd(-47.5), zd(-223.5), yellow);
+
             race.goal(player, tick);
             team.remove(player);
 
@@ -285,6 +293,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 player.setHealth(0);
             }
         }
+    }
+
+    private void launchFireworkRocket(double x, double y, double z, int color) {
+        execute("summon firework_rocket %f %f %f {LifeTime:20,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;%d],FadeColors:[I;%d]}],Flight:1}}}}", x, y, z, color, color);
     }
 
     @EventHandler
