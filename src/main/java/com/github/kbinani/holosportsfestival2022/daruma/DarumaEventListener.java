@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -32,6 +33,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private boolean manual = true;
     private final long loadDelay;
     private final MainDelegate delegate;
+    private Map<UUID, Point3i> respawn = new HashMap<>();
 
     enum Status {
         IDLE,
@@ -280,13 +282,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             double dx = to.getX() - from.getX();
             double dz = to.getZ() - from.getZ();
             if (dx != 0 || dz != 0) {
-                race.withdraw(player);
                 player.setHealth(0);
-                broadcast("%s失格！", player.getName());
-                if (race.getRunningPlayerCount() == 0) {
-                    // 最後の走者が失格になったので試合終了
-                    setStatus(Status.IDLE);
-                }
             }
         }
     }
@@ -295,17 +291,15 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     @SuppressWarnings("unused")
     public void onPlayerRespawn(PlayerRespawnEvent e) {
         Player player = e.getPlayer();
-        TeamColor color = getCurrentColor(player);
-        if (color == null) {
+        Point3i pos = respawn.get(player.getUniqueId());
+        if (pos == null) {
             return;
         }
-        Team team = ensureTeam(color);
-        team.remove(player);
+        respawn.remove(player.getUniqueId());
         Location location = player.getLocation();
-        Point3i respawn = getEntryButtonPosition(color);
-        location.setX(respawn.x + 0.5);
-        location.setY(respawn.y);
-        location.setZ(respawn.z + 6.5);
+        location.setX(pos.x + 0.5);
+        location.setY(pos.y);
+        location.setZ(pos.z + 6.5);
         e.setRespawnLocation(location);
     }
 
@@ -316,6 +310,36 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         GameMode mode = e.getNewGameMode();
         if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
             onClickLeave(player);
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerDeath(PlayerDeathEvent e) {
+        if (_status == Status.IDLE || _status == Status.COUNTDOWN_START) {
+            return;
+        }
+        Race race = this.race;
+        if (race == null) {
+            return;
+        }
+        Player player = e.getEntity();
+        TeamColor color = getCurrentColor(player);
+        if (color == null) {
+            return;
+        }
+        Team team = ensureTeam(color);
+        team.remove(player);
+        race.withdraw(player);
+
+        Point3i pos = getEntryButtonPosition(color);
+        respawn.put(player.getUniqueId(), pos);
+
+        broadcast("%s失格！", player.getName());
+
+        if (race.getRunningPlayerCount() == 0) {
+            // 最後の走者が失格になったので試合終了
+            setStatus(Status.IDLE);
         }
     }
 
