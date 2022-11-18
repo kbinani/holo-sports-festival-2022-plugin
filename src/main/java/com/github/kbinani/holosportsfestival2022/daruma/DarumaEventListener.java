@@ -260,7 +260,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             double fromZ = from.getZ();
             double toZ = to.getZ();
             double tick = world.getFullTime();
-            if (fromZ != toZ) {
+            if (fromZ != toZ && toZ <= z && z <= fromZ) {
                 tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
             }
 
