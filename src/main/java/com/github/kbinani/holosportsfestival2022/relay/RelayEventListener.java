@@ -312,6 +312,7 @@ public class RelayEventListener implements Listener, Competition {
             // チェックポイント通過済みの最終走者がゴールを通過した
             race.pushOrder(color);
             broadcast("%s GOAL !!", ToColoredString(color));
+            launchFireworkRocket(color);
 
             // 全てのチームがゴールしたら結果を表示して終了
             AtomicBoolean allTeamsFinished = new AtomicBoolean(true);
@@ -342,6 +343,28 @@ public class RelayEventListener implements Listener, Competition {
                 setStatus(Status.IDLE);
             }
         }
+    }
+
+    private void launchFireworkRocket(TeamColor color) {
+        int c = 0;
+        switch (color) {
+            case WHITE:
+                c = FireworkRocket.Color.LIGHT_BLUE;
+                break;
+            case YELLOW:
+                c = FireworkRocket.Color.YELLOW;
+                break;
+            case RED:
+                c = FireworkRocket.Color.PINK;
+                break;
+            default:
+                return;
+        }
+        FireworkRocket.Launch(x(41) + 0.5, y(-50) + 0.5, z(-171) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
+        FireworkRocket.Launch(x(41) + 0.5, y(-48) + 0.5, z(-173) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
+        FireworkRocket.Launch(x(41) + 0.5, y(-50) + 0.5, z(-175) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
+        FireworkRocket.Launch(x(41) + 0.5, y(-48) + 0.5, z(-177) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
+        FireworkRocket.Launch(x(41) + 0.5, y(-50) + 0.5, z(-179) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
     }
 
     @EventHandler
