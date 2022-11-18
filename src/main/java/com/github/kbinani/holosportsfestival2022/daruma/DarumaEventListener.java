@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
@@ -355,6 +356,82 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onBlockRedstoneEvent(BlockRedstoneEvent e) {
+        if (e.getOldCurrent() != 0 || e.getNewCurrent() <= 0) {
+            return;
+        }
+
+        Point3i location = new Point3i(e.getBlock().getLocation());
+        if (location.y != y(-60)) {
+            return;
+        }
+        if (location.z == z(-202) || location.z == z(-198)) {
+            int dx = location.x - x(104);
+            if (dx < 0 || 40 < dx || dx % 2 != 0) {
+                return;
+            }
+        } else if (location.z == z(-200)) {
+            int dx = location.x - x(105);
+            if (dx < 0 || 38 < dx || dx % 2 != 0) {
+                return;
+            }
+        } else {
+            return;
+        }
+        World world = e.getBlock().getWorld();
+        Block block = world.getBlockAt(location.x, location.y - 1, location.z);
+        BlockState state = block.getState();
+        if (!(state instanceof Dispenser)) {
+            return;
+        }
+        Dispenser dispenser = (Dispenser) state;
+        Inventory inventory = dispenser.getInventory();
+        inventory.setItem(0, new ItemStack(Material.TNT, 1));
+        dispenser.dispense();
+    }
+
+    private void clearDispensers() {
+        World world = overworld();
+        if (world == null) {
+            return;
+        }
+
+        final int y = -61;
+        for (int x = 104; x <= 144; x += 2) {
+            clearDispenser(world, offset(new Point3i(x, y, -202)));
+            clearDispenser(world, offset(new Point3i(x, y, -198)));
+        }
+        for (int x = 105; x <= 143; x += 2) {
+            clearDispenser(world, offset(new Point3i(x, y, -200)));
+        }
+    }
+
+    private void clearDispenser(World world, Point3i position) {
+        int cx = position.x >> 4;
+        int cz = position.z >> 4;
+        boolean loaded = world.isChunkLoaded(cx, cz);
+        if (!loaded) {
+            world.loadChunk(cx, cz);
+        }
+        Block block = world.getBlockAt(position.x, position.y, position.z);
+        BlockState state = block.getState();
+        if (!(state instanceof Container)) {
+            if (!loaded) {
+                world.unloadChunk(cx, cz);
+            }
+            return;
+        }
+        Dispenser dispenser = (Dispenser) state;
+        Inventory inventory = dispenser.getInventory();
+        inventory.clear();
+        if (!loaded) {
+            world.unloadChunk(cx, cz);
+        }
+    }
+
+
     private void setStatus(Status status) {
         if (_status == status) {
             return;
@@ -365,7 +442,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 setEntranceOpened(true);
                 setStartGateOpened(false);
                 clearItem("@a");
-                refillDispensers();
+                clearDispensers();
                 if (race != null) {
                     race.announceOrders(this);
                 }
@@ -383,47 +460,6 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             case COUNTDOWN_RED:
             case RED:
                 break;
-        }
-    }
-
-    private void refillDispensers() {
-        World world = overworld();
-        if (world == null) {
-            return;
-        }
-
-        final int y = -61;
-        for (int x = 104; x <= 144; x += 2) {
-            refillDispenser(world, offset(new Point3i(x, y, -202)));
-            refillDispenser(world, offset(new Point3i(x, y, -198)));
-        }
-        for (int x = 105; x <= 143; x += 2) {
-            refillDispenser(world, offset(new Point3i(x, y, -200)));
-        }
-    }
-
-    private void refillDispenser(World world, Point3i position) {
-        int cx = position.x >> 4;
-        int cz = position.z >> 4;
-        boolean loaded = world.isChunkLoaded(cx, cz);
-        if (!loaded) {
-            world.loadChunk(cx, cz);
-        }
-        Block block = world.getBlockAt(position.x, position.y, position.z);
-        BlockState state = block.getState();
-        if (!(state instanceof Container)) {
-            if (!loaded) {
-                world.unloadChunk(cx, cz);
-            }
-            return;
-        }
-        Dispenser dispenser = (Dispenser) state;
-        Inventory inventory = dispenser.getInventory();
-        for (int i = 0; i < inventory.getSize(); i++) {
-            inventory.setItem(i, new ItemStack(Material.TNT, 64));
-        }
-        if (!loaded) {
-            world.unloadChunk(cx, cz);
         }
     }
 
@@ -672,6 +708,21 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private Point3i offset(Point3i p) {
         // 座標が間違っていたらここでオフセットする
         return new Point3i(p.x, p.y, p.z);
+    }
+
+    private int x(int x) {
+        // 座標が間違っていたらここでオフセットする
+        return x;
+    }
+
+    private int y(int y) {
+        // 座標が間違っていたらここでオフセットする
+        return y;
+    }
+
+    private int z(int z) {
+        // 座標が間違っていたらここでオフセットする
+        return z;
     }
 
     private double xd(double x) {

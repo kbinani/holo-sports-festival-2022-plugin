@@ -36,4 +36,9 @@ public class Point3i {
         Point3i v = (Point3i) o;
         return v.x == x && v.y == y && v.z == z;
     }
+
+    @Override
+    public String toString() {
+        return String.format("[%d,%d,%d]", x, y, z);
+    }
 }
