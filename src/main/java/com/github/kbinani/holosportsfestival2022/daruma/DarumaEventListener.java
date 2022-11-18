@@ -296,7 +296,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void launchFireworkRocket(double x, double y, double z, int color) {
-        execute("summon firework_rocket %f %f %f {LifeTime:20,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:1,Flicker:0b,Trail:0b,Colors:[I;%d],FadeColors:[I;%d]}],Flight:1}}}}", x, y, z, color, color);
+        FireworkRocket.Launch(x, y, z, new int[]{color}, new int[]{color}, 20, 1, false, false);
     }
 
     @EventHandler
