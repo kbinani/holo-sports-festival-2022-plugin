@@ -63,7 +63,9 @@ class NetherStage extends Stage {
     }
 
     private void summonWitherSkeleton(int x, int y, int z) {
-        execute("summon wither_skeleton %d %d %d {HandItems:[{id:stone_sword,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", this.x(x), this.y(y), this.z(z), kEntityTag);
+        // 通常x9, クリティカルx1: https://youtu.be/xIjr6Ct_Wlo?t=3554
+        // 通常x5, クリティカルx4: https://youtu.be/26cNq-_8NIY?t=1264
+        execute("summon wither_skeleton %d %d %d {HandItems:[{id:stone_sword,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}],DeathLootTable:\"minecraft:empty\"}", this.x(x), this.y(y), this.z(z), kEntityTag);
     }
 
     private void summonBlaze(int x, int y, int z) {
