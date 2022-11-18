@@ -7,26 +7,28 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Powerable;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Boat;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -283,7 +285,8 @@ public class BoatRaceEventListener implements Listener, Competition {
             return result;
         }
 
-        @Nullable PlayerStatus getPlayerStatus(Player player) {
+        @Nullable
+        PlayerStatus getPlayerStatus(Player player) {
             Role role = getCurrentRole(player);
             if (role == null) {
                 return null;
@@ -570,30 +573,23 @@ public class BoatRaceEventListener implements Listener, Competition {
 
     @EventHandler
     @SuppressWarnings("unused")
-    public void onEntitySpawn(EntitySpawnEvent e) {
-        if (e.getEntityType() != EntityType.DROPPED_ITEM) {
+    public void onEntityPlace(EntityPlaceEvent e) {
+        if (e.getEntityType() != EntityType.BOAT) {
             return;
         }
-        Item item = (Item) e.getEntity();
-        Point3i pos = new Point3i(item.getLocation());
-        ItemStack itemStack = item.getItemStack();
-        Material material = itemStack.getType();
-        Server server = owner.getServer();
-        UUID id = e.getEntity().getUniqueId();
-        if (material != Boat(TeamColor.RED) && material == Boat(TeamColor.WHITE) && material == Boat(TeamColor.YELLOW)) {
+        Boat boat = (Boat) e.getEntity();
+        Point3i pos = new Point3i(boat.getLocation());
+        Material material = boat.getBoatType().getMaterial();
+        if (material != BoatType(TeamColor.RED) && material != BoatType(TeamColor.WHITE) && material != BoatType(TeamColor.YELLOW)) {
             return;
         }
+
         BoundingBox bounds = getBounds();
         if (!bounds.contains(pos.x, pos.y, pos.z)) {
             return;
         }
 
-        // onEntitySpawn と同一 tick で data コマンド実行しても反映されないので次の tick で実行する.
-        BukkitScheduler scheduler = owner.getServer().getScheduler();
-        scheduler.runTask(owner, () -> {
-            execute("data merge entity %s {Item:{tag:{%s:1b}}}", id, kItemTag);
-            execute("tag %s add %s", id, kItemTag);
-        });
+        boat.addScoreboardTag(kItemTag);
     }
 
     @EventHandler
@@ -627,6 +623,16 @@ public class BoatRaceEventListener implements Listener, Competition {
             return Material.JUNGLE_BOAT;
         } else {
             return Material.MANGROVE_BOAT;
+        }
+    }
+
+    private static Material BoatType(TeamColor color) {
+        if (color == TeamColor.WHITE) {
+            return Material.BIRCH_PLANKS;
+        } else if (color == TeamColor.YELLOW) {
+            return Material.JUNGLE_PLANKS;
+        } else {
+            return Material.MANGROVE_PLANKS;
         }
     }
 
