@@ -392,14 +392,26 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         }
         Team team = ensureTeam(current.color);
         team.remove(player);
-
-        if (getPlayerCount() > 0) {
-            clearItem(String.format("@p[name=\"%s\"]", player.getName()));
-            setStatus(Status.AWAIT_COUNTDOWN);
-        } else {
-            setStatus(Status.IDLE);
-        }
+        clearItem(String.format("@p[name=\"%s\"]", player.getName()));
         broadcast("[MOB討伐レース] %sがエントリー解除しました", player.getName());
+
+        if (team.getPlayerCount() == 0) {
+            setBossbarVisible(current.color, false);
+            Level level = ensureLevel(current.color);
+            level.reset();
+        }
+
+        if (_status == Status.RUN || _status == Status.COUNTDOWN) {
+            if (getPlayerCount() == 0) {
+                setStatus(Status.IDLE);
+            }
+        } else {
+            if (getPlayerCount() > 0) {
+                setStatus(Status.AWAIT_COUNTDOWN);
+            } else {
+                setStatus(Status.IDLE);
+            }
+        }
     }
 
     void onClickStart() {
