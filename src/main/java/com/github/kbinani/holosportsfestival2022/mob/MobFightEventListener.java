@@ -1,7 +1,10 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.*;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -12,27 +15,27 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MobFightEventListener implements Listener, LevelDelegate, Competition {
-    private final JavaPlugin owner;
     private boolean initialized = false;
     private final Map<TeamColor, Level> levels = new HashMap<>();
-    private Map<TeamColor, Team> teams = new HashMap<>();
+    private final Map<TeamColor, Team> teams = new HashMap<>();
     private Status _status = Status.IDLE;
     private @Nullable Race race;
-    private Map<TeamColor, Bossbar> bossbars = new HashMap<>();
+    private final Map<TeamColor, Bossbar> bossbars = new HashMap<>();
     private final long loadDelay;
     private final MainDelegate delegate;
 
-    public MobFightEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
-        this.owner = owner;
+    public MobFightEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
         this.delegate = delegate;
     }
@@ -75,13 +78,13 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (!initialized) {
             initialized = true;
-            owner.getServer().getScheduler().runTaskLater(owner, () -> {
+            delegate.runTaskLater(() -> {
                 BoundingBox box = offset(kAnnounceBounds);
-                Bossbar red = new Bossbar(owner, kBossbarRed, "", box);
+                Bossbar red = new Bossbar(delegate, kBossbarRed, "", box);
                 red.setColor("red");
-                Bossbar yellow = new Bossbar(owner, kBossbarYellow, "", box);
+                Bossbar yellow = new Bossbar(delegate, kBossbarYellow, "", box);
                 yellow.setColor("yellow");
-                Bossbar white = new Bossbar(owner, kBossbarWhite, "", box);
+                Bossbar white = new Bossbar(delegate, kBossbarWhite, "", box);
                 white.setColor("white");
                 bossbars.put(TeamColor.RED, red);
                 bossbars.put(TeamColor.YELLOW, yellow);
@@ -138,16 +141,14 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             }
             if (current.stage == next.stage) {
                 // 同一 stage の次の step に
-                Server server = owner.getServer();
-                server.getScheduler().runTaskLater(owner, () -> {
+                delegate.runTaskLater(() -> {
                     stage.summonMobs(next.step);
                 }, 20 * 3);
             } else {
                 // 次の stage へ
                 level.showTitle("WAVE CLEAR !", "yellow");
                 broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString());
-                Server server = owner.getServer();
-                server.getScheduler().runTaskLater(owner, () -> {
+                delegate.runTaskLater(() -> {
                     Team team = ensureTeam(color);
                     List<Player> players = new ArrayList<>();
                     team.usePlayers(players::add);
@@ -207,6 +208,10 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
         if (_status != Status.RUN) {
+            return;
+        }
+        Race race = this.race;
+        if (race == null) {
             return;
         }
         Player player = e.getPlayer();
@@ -429,7 +434,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             Point3i safe = level.getSafeSpawnLocation();
             execute("tp %s %d %d %d", level.getTargetSelector(), safe.x, safe.y, safe.z);
         }
-        Countdown.Then(offset(kAnnounceBounds), owner, (count) -> _status == Status.COUNTDOWN, () -> {
+        delegate.countdownThen(offset(kAnnounceBounds), (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
@@ -451,7 +456,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             }
             setStatus(Status.RUN);
             return true;
-        });
+        }, 20);
     }
 
     int getPlayerCount() {
@@ -501,9 +506,11 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     }
 
     private void resetField() {
-        overworld().ifPresent(world -> {
-            Loader.LoadChunk(world, offset(kAnnounceBounds));
-        });
+        World world = delegate.getWorld();
+        if (world == null) {
+            return;
+        }
+        Loader.LoadChunk(world, offset(kAnnounceBounds));
 
         Editor.WallSign(offset(kButtonWhiteLeave), BlockFace.SOUTH, "エントリー解除");
         Editor.WallSign(offset(kButtonWhiteJoinArrow), BlockFace.SOUTH, "白組", "エントリー", "（弓）");
@@ -520,10 +527,6 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         for (TeamColor tc : kColors) {
             ensureLevel(tc);
         }
-    }
-
-    private Optional<World> overworld() {
-        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     }
 
     private Point3i offset(Point3i p) {
@@ -564,8 +567,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
 
     @Override
     public void execute(String format, Object... args) {
-        Server server = owner.getServer();
-        server.dispatchCommand(server.getConsoleSender(), String.format(format, args));
+        delegate.execute(format, args);
     }
 
     private void broadcast(String format, Object... args) {

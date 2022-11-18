@@ -6,7 +6,6 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -20,8 +19,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -32,7 +29,6 @@ import java.nio.ByteOrder;
 import java.util.UUID;
 
 public class FencingEventListener implements Listener, Competition {
-    private final JavaPlugin owner;
     private @Nullable Player left;
     private @Nullable Player right;
     private int hitpointLeft = 3;
@@ -48,8 +44,7 @@ public class FencingEventListener implements Listener, Competition {
     static final String kWeaponCustomTag = "hololive_sports_festival_2022_fencing";
     static final int kWeaponKnockbackLevel = 10;
 
-    public FencingEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
-        this.owner = owner;
+    public FencingEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
         this.delegate = delegate;
     }
@@ -84,7 +79,7 @@ public class FencingEventListener implements Listener, Competition {
                 break;
             case AWAIT_COUNTDOWN:
                 // 範囲内に居るプレイヤーを観客席側に排除する
-                Server server = owner.getServer();
+                Server server = Bukkit.getServer();
                 BoundingBox box = offset(kFieldBounds);
                 server.getOnlinePlayers().forEach(player -> {
                     Location loc = player.getLocation();
@@ -177,7 +172,6 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
 
-        Server server = owner.getServer();
         World world = entity.getWorld();
 
         BoundingBox box = offset(kFieldBounds);
@@ -213,8 +207,7 @@ public class FencingEventListener implements Listener, Competition {
         bossbarRight.setValue(hitpointRight);
 
         if (shouldKill) {
-            BukkitScheduler scheduler = owner.getServer().getScheduler();
-            scheduler.runTaskLater(owner, this::decideResult, 1);
+            delegate.runTaskLater(this::decideResult, 1);
         }
     }
 
@@ -244,8 +237,7 @@ public class FencingEventListener implements Listener, Competition {
             right.setVelocity(velocity);
         }
 
-        BukkitScheduler scheduler = owner.getServer().getScheduler();
-        scheduler.runTaskLater(owner, this::killLosers, 30);
+        delegate.runTaskLater(this::killLosers, 30);
     }
 
     private void killLosers() {
@@ -376,14 +368,14 @@ public class FencingEventListener implements Listener, Competition {
         }
         initialized = true;
 
-        owner.getServer().getScheduler().runTaskLater(owner, () -> {
+        delegate.runTaskLater(() -> {
             BoundingBox bounds = getAnnounceBounds();
-            bossbarLeft = new Bossbar(owner, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
+            bossbarLeft = new Bossbar(delegate, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
             bossbarLeft.setMax(3);
             bossbarLeft.setValue(3);
             bossbarLeft.setColor("green");
 
-            bossbarRight = new Bossbar(owner, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>", bounds);
+            bossbarRight = new Bossbar(delegate, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>", bounds);
             bossbarRight.setMax(3);
             bossbarRight.setValue(3);
             bossbarRight.setColor("green");
@@ -423,9 +415,7 @@ public class FencingEventListener implements Listener, Competition {
         // ここで setStatus(Status.IDLE) すると相討ちの場合に後に onPlayerRespawn する側のリスポン位置が設定されない.
         // 1 tick 遅れて IDLE に戻す.
 
-        Server server = owner.getServer();
-        BukkitScheduler scheduler = server.getScheduler();
-        scheduler.runTask(owner, () -> {
+        delegate.runTask(() -> {
             setStatus(Status.IDLE);
         });
     }
@@ -575,13 +565,13 @@ public class FencingEventListener implements Listener, Competition {
         regenerate(right);
 
         setStatus(Status.COUNTDOWN);
-        Countdown.Then(getAnnounceBounds(), owner, (count) -> _status == Status.COUNTDOWN, () -> {
+        delegate.countdownThen(getAnnounceBounds(), (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
             setStatus(Status.RUN);
             return true;
-        });
+        }, 20);
     }
 
     private void regenerate(Player player) {
@@ -620,9 +610,7 @@ public class FencingEventListener implements Listener, Competition {
     }
 
     private void execute(String format, Object... args) {
-        Server server = owner.getServer();
-        CommandSender sender = server.getConsoleSender();
-        server.dispatchCommand(sender, String.format(format, args));
+        delegate.execute(format, args);
     }
 
     @Override

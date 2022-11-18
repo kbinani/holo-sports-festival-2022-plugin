@@ -1,11 +1,10 @@
 package com.github.kbinani.holosportsfestival2022;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
@@ -13,7 +12,7 @@ import javax.annotation.Nullable;
 import java.util.stream.Collectors;
 
 public class Bossbar {
-    private final JavaPlugin owner;
+    private final MainDelegate delegate;
     private final String id;
     private int value = 0;
     private int max = 100;
@@ -24,13 +23,13 @@ public class Bossbar {
     private String players = "";
     private String name;
 
-    public Bossbar(JavaPlugin owner, String id, String name, BoundingBox box) {
-        this.owner = owner;
+    public Bossbar(MainDelegate delegate, String id, String name, BoundingBox box) {
+        this.delegate = delegate;
         this.id = id;
         this.box = box;
         this.name = name;
         clear(id);
-        execute(String.format("bossbar add %s \"%s\"", id, name));
+        execute("bossbar add %s \"%s\"", id, name);
     }
 
     public void dispose() {
@@ -48,7 +47,7 @@ public class Bossbar {
     public void setMax(int m) {
         if (m != max) {
             max = m;
-            execute(String.format("bossbar set %s max %d", id, max));
+            execute("bossbar set %s max %d", id, max);
         }
     }
 
@@ -59,7 +58,7 @@ public class Bossbar {
     public void setValue(int v) {
         if (v != value) {
             value = v;
-            execute(String.format("bossbar set %s value %d", id, value));
+            execute("bossbar set %s value %d", id, value);
         }
     }
 
@@ -70,7 +69,7 @@ public class Bossbar {
     public void setColor(String c) {
         if (!c.equals(color)) {
             color = c;
-            execute(String.format("bossbar set %s color %s", id, color));
+            execute("bossbar set %s color %s", id, color);
         }
     }
 
@@ -79,21 +78,19 @@ public class Bossbar {
             return;
         }
         visible = b;
-        Server server = owner.getServer();
-        BukkitScheduler scheduler = server.getScheduler();
         if (visible) {
             updatePlayers();
             if (timer != null) {
                 timer.cancel();
             }
-            timer = scheduler.runTaskTimer(owner, this::updatePlayers, 20, 20);
+            timer = delegate.runTaskTimer(this::updatePlayers, 20, 20);
         } else {
             if (timer != null) {
                 timer.cancel();
                 timer = null;
             }
         }
-        execute(String.format("bossbar set %s visible %s", id, visible ? "true" : "false"));
+        execute("bossbar set %s visible %s", id, visible ? "true" : "false");
     }
 
     public String getName() {
@@ -103,7 +100,7 @@ public class Bossbar {
     public void setName(String v) {
         if (!v.equals(name)) {
             name = v;
-            execute(String.format("bossbar set %s name \"%s\"", id, name));
+            execute("bossbar set %s name \"%s\"", id, name);
         }
     }
 
@@ -113,12 +110,12 @@ public class Bossbar {
     }
 
     private void updatePlayers() {
-        Server server = owner.getServer();
+        Server server = Bukkit.getServer();
         String players = server.getOnlinePlayers().stream().filter(this::isInField).map(Player::getName).sorted().collect(Collectors.joining(","));
         if (!players.equals(this.players)) {
             this.players = players;
             // set players が同じだとコンソールにエラーが出てうるさいので変わった時だけ set players する
-            execute(String.format("bossbar set %s players @a[%s]", id, TargetSelector.Of(box)));
+            execute("bossbar set %s players @a[%s]", id, TargetSelector.Of(box));
         }
     }
 
@@ -126,8 +123,7 @@ public class Bossbar {
         execute(String.format("bossbar remove %s", id));
     }
 
-    private void execute(String cmd) {
-        Server server = owner.getServer();
-        server.dispatchCommand(server.getConsoleSender(), cmd);
+    private void execute(String cmd, Object... args) {
+        delegate.execute(cmd, args);
     }
 }

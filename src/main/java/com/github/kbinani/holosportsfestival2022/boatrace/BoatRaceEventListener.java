@@ -6,7 +6,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Powerable;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -18,7 +17,6 @@ import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
@@ -28,7 +26,6 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -36,7 +33,6 @@ import java.util.stream.Collectors;
 //TODO: 妨害用アイテムをコレクションできないように対策する
 
 public class BoatRaceEventListener implements Listener, Competition {
-    private final JavaPlugin owner;
     private final long loadDelay;
     private final MainDelegate delegate;
     private static final String kPrimaryShootItemDisplayName = "[水上レース専用] 暗闇（弱）";
@@ -145,7 +141,7 @@ public class BoatRaceEventListener implements Listener, Competition {
     }
 
     private void setLeverPowered(Point3i pos, boolean powered) {
-        World world = overworld().orElse(null);
+        World world = delegate.getWorld();
         if (world == null) {
             return;
         }
@@ -160,10 +156,6 @@ public class BoatRaceEventListener implements Listener, Competition {
         Powerable lever = (Powerable) data;
         lever.setPowered(powered);
         world.setBlockData(pos.x, pos.y, pos.z, data);
-    }
-
-    private Optional<World> overworld() {
-        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     }
 
     private static int FireworkRocketColor(TeamColor color) {
@@ -358,8 +350,7 @@ public class BoatRaceEventListener implements Listener, Competition {
     private static final Point3i kFieldNorthWest = new Point3i(-106, -60, -294);
     private static final Point3i kFieldSouthEast = new Point3i(-24, -30, -127);
 
-    public BoatRaceEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
-        this.owner = owner;
+    public BoatRaceEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
         this.delegate = delegate;
     }
@@ -394,14 +385,14 @@ public class BoatRaceEventListener implements Listener, Competition {
                 if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
                     // 滝の頂上を通過
                     team.updatePlayerStatus(participation.role, Team.PlayerStatus.CLEARED_CHECKPOINT1);
-                    owner.getLogger().info(String.format("[水上レース] %s %s%sが1周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
+                    delegate.info("[水上レース] %s %s%sが1周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                 }
                 break;
             case CLEARED_CHECKPOINT1:
                 if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
                     // ゴールラインを通過
                     team.updatePlayerStatus(participation.role, Team.PlayerStatus.CLEARED_START_LINE1);
-                    owner.getLogger().info(String.format("[水上レース] %s %s%sが1周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
+                    delegate.info("[水上レース] %s %s%sが1周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                     if (team.getRemainingRound() == 1) {
                         broadcast("%s あと1周！", ToColoredString(participation.color));
                     }
@@ -411,14 +402,14 @@ public class BoatRaceEventListener implements Listener, Competition {
                 if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
                     // 滝の頂上を通過
                     team.updatePlayerStatus(participation.role, Team.PlayerStatus.CLEARED_CHECKPOINT2);
-                    owner.getLogger().info(String.format("[水上レース] %s %s%sが2周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
+                    delegate.info("[水上レース] %s %s%sが2周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                 }
                 break;
             case CLEARED_CHECKPOINT2:
                 if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
                     // ゴールラインを通過
                     team.updatePlayerStatus(participation.role, Team.PlayerStatus.FINISHED);
-                    owner.getLogger().info(String.format("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
+                    delegate.info("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                     if (team.getRemainingRound() == 0) {
                         broadcast("%s GOAL !!", ToColoredString(participation.color));
                         launchFireworkRockets(participation.color);
@@ -546,10 +537,12 @@ public class BoatRaceEventListener implements Listener, Competition {
             return;
         }
         initialized = true;
-        owner.getServer().getScheduler().runTaskLater(owner, () -> {
-            overworld().ifPresent(world -> {
-                Loader.LoadChunk(world, getBounds());
-            });
+        delegate.runTaskLater(() -> {
+            World world = delegate.getWorld();
+            if (world == null) {
+                return;
+            }
+            Loader.LoadChunk(world, getBounds());
             resetField();
         }, loadDelay);
     }
@@ -753,15 +746,13 @@ public class BoatRaceEventListener implements Listener, Competition {
         // 場内に居るボートに tag を付ける. 競技終了した時このタグが付いているボートを kill する.
         execute("tag @e[type=boat,%s] add %s", TargetSelector.Of(getBounds()), kItemTag);
 
-        Countdown.Then(getBounds(), owner, (count) -> {
-            return _status == Status.COUNTDOWN;
-        }, () -> {
+        delegate.countdownThen(getBounds(), (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
             setStatus(Status.RUN);
             return true;
-        });
+        }, 20);
     }
 
     private Point3i offset(Point3i p) {
@@ -785,9 +776,7 @@ public class BoatRaceEventListener implements Listener, Competition {
     }
 
     private void execute(String format, Object... args) {
-        Server server = owner.getServer();
-        CommandSender sender = server.getConsoleSender();
-        server.dispatchCommand(sender, String.format(format, args));
+        delegate.execute(format, args);
     }
 
     @Override

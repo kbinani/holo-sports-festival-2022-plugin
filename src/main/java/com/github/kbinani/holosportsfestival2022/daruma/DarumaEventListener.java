@@ -12,8 +12,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
@@ -27,7 +25,6 @@ import java.util.function.Consumer;
 //TODO: 金リンゴをコレクションできないように対策する
 
 public class DarumaEventListener implements Listener, Announcer, Competition {
-    private final JavaPlugin owner;
     private boolean initialized = false;
     private Status _status = Status.IDLE;
     private @Nullable Race race;
@@ -168,8 +165,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
 
-    public DarumaEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
-        this.owner = owner;
+    public DarumaEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
         this.delegate = delegate;
     }
@@ -179,7 +175,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (!initialized) {
             initialized = true;
-            owner.getServer().getScheduler().runTaskLater(owner, this::resetField, loadDelay);
+            delegate.runTaskLater(this::resetField, loadDelay);
         }
     }
 
@@ -274,8 +270,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             // 同一 tick で box に侵入したという判定になったとしても,
             // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
             // 1 tick 待ってから順位を発表する.
-            BukkitScheduler scheduler = owner.getServer().getScheduler();
-            scheduler.runTask(owner, () -> {
+            delegate.runTask(() -> {
                 if (this.race == null) {
                     return;
                 }
@@ -391,7 +386,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void clearDispensers() {
-        World world = overworld();
+        World world = delegate.getWorld();
         if (world == null) {
             return;
         }
@@ -461,10 +456,6 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
     }
 
-    private @Nullable World overworld() {
-        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst().orElse(null);
-    }
-
     private void onClickJoin(Player player, TeamColor color) {
         if (_status != Status.IDLE) {
             return;
@@ -517,7 +508,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         broadcast("-----------------------");
         broadcast("");
         setStatus(Status.COUNTDOWN_START);
-        Countdown.Then(getAnnounceBounds(), owner, (count) -> _status == Status.COUNTDOWN_START, () -> {
+        delegate.countdownThen(getAnnounceBounds(), (count) -> _status == Status.COUNTDOWN_START, () -> {
             if (_status != Status.COUNTDOWN_START) {
                 return false;
             }
@@ -528,7 +519,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             this.race = race;
             setStatus(Status.START);
             return true;
-        });
+        }, 20);
     }
 
     private void onClickGreen(Player player) {
@@ -561,11 +552,11 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             return;
         }
         setStatus(Status.COUNTDOWN_RED);
-        Countdown.Then(getAnnounceBounds(), owner, (count) -> _status == Status.COUNTDOWN_RED, () -> {
+        delegate.countdownThen(getAnnounceBounds(), (count) -> _status == Status.COUNTDOWN_RED, () -> {
             if (_status != Status.COUNTDOWN_RED) {
                 return false;
             }
-            Play.Sound(owner.getServer(), getAnnounceBounds(), Sound.ENTITY_GHAST_HURT, 0.25f, 1);
+            Play.Sound(Bukkit.getServer(), getAnnounceBounds(), Sound.ENTITY_GHAST_HURT, 0.25f, 1);
             setTitle("ころんだ！！！", "Red light!!!");
             setStatus(Status.RED);
             return true;
@@ -687,8 +678,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     public void execute(String format, Object... args) {
-        Server server = owner.getServer();
-        server.dispatchCommand(server.getConsoleSender(), String.format(format, args));
+        delegate.execute(format, args);
     }
 
     private Point3i getEntryButtonPosition(TeamColor color) {

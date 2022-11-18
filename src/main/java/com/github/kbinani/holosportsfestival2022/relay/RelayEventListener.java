@@ -1,10 +1,12 @@
 package com.github.kbinani.holosportsfestival2022.relay;
 
 import com.github.kbinani.holosportsfestival2022.*;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -14,7 +16,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -26,7 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class RelayEventListener implements Listener, Competition {
-    private final JavaPlugin owner;
     private final long loadDelay;
     private final MainDelegate delegate;
 
@@ -181,8 +181,7 @@ public class RelayEventListener implements Listener, Competition {
         }
     }
 
-    public RelayEventListener(JavaPlugin owner, MainDelegate delegate, long loadDelay) {
-        this.owner = owner;
+    public RelayEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
         this.delegate = delegate;
     }
@@ -525,7 +524,7 @@ public class RelayEventListener implements Listener, Competition {
 
         // 第一走者を検出する
         Map<TeamColor, Player> firstRunners = new HashMap<>();
-        World world = overworld().orElse(null);
+        World world = delegate.getWorld();
         if (world == null) {
             return;
         }
@@ -587,7 +586,7 @@ public class RelayEventListener implements Listener, Competition {
         broadcast("[リレー] 競技を開始します！");
         broadcast("");
         setStatus(Status.COUNTDOWN);
-        Countdown.Then(getAnnounceBounds(), owner, c -> _status == Status.COUNTDOWN, () -> {
+        delegate.countdownThen(getAnnounceBounds(), c -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
@@ -622,7 +621,7 @@ public class RelayEventListener implements Listener, Competition {
             });
             setStatus(Status.RUN);
             return true;
-        });
+        }, 20);
     }
 
     private TeamColor getCurrentTeam(@Nonnull Player player) {
@@ -698,15 +697,11 @@ public class RelayEventListener implements Listener, Competition {
             return;
         }
         initialized = true;
-        owner.getServer().getScheduler().runTaskLater(owner, this::resetField, loadDelay);
+        delegate.runTaskLater(this::resetField, loadDelay);
     }
 
     private BoundingBox getAnnounceBounds() {
         return offset(kAnnounceBounds);
-    }
-
-    private Optional<World> overworld() {
-        return owner.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     }
 
     static String ToColoredString(TeamColor color) {
@@ -772,9 +767,7 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     private void execute(String format, Object... args) {
-        Server server = owner.getServer();
-        CommandSender sender = server.getConsoleSender();
-        server.dispatchCommand(sender, String.format(format, args));
+        delegate.execute(format, args);
     }
 
     @Override

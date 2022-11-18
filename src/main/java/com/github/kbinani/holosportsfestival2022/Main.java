@@ -7,6 +7,7 @@ import com.github.kbinani.holosportsfestival2022.mob.MobFightEventListener;
 import com.github.kbinani.holosportsfestival2022.relay.RelayEventListener;
 import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
+import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,11 +15,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 public class Main extends JavaPlugin implements Listener, MainDelegate {
@@ -27,6 +32,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     private BoatRaceEventListener boatRaceEventListener;
     private RelayEventListener relayEventListener;
     private DarumaEventListener darumaEventListener;
+    private @Nullable Optional<World> overworld;
 
     public Main() {
     }
@@ -45,6 +51,47 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
             return CompetitionType.DARUMA;
         }
         return null;
+    }
+
+    @Override
+    public void execute(String format, Object... args) {
+        Server server = getServer();
+        String command = String.format(format, args);
+        server.dispatchCommand(server.getConsoleSender(), command);
+    }
+
+    @Override
+    public void runTask(Runnable task) {
+        getServer().getScheduler().runTask(this, task);
+    }
+
+    @Override
+    public void runTaskLater(Runnable task, long delay) {
+        getServer().getScheduler().runTaskLater(this, task, delay);
+    }
+
+    @Override
+    public BukkitTask runTaskTimer(Runnable task, long delay, long period) {
+        return getServer().getScheduler().runTaskTimer(this, task, delay, period);
+    }
+
+    @Override
+    @Nullable
+    public World getWorld() {
+        if (overworld == null) {
+            overworld = getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
+        }
+        return overworld().orElse(null);
+    }
+
+    @Override
+    public void info(String format, Object... args) {
+        getLogger().info(String.format(format, args));
+    }
+
+    @Override
+    public void countdownThen(BoundingBox box, Predicate<Integer> countdown, Supplier<Boolean> task, long delay) {
+        Countdown.Then(box, this, countdown, task, delay);
     }
 
     @Override
@@ -89,11 +136,11 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
             }
         }
 
-        this.mobFightEventListener = new MobFightEventListener(this, this, 20);
-        this.fencingEventListener = new FencingEventListener(this, this, 40);
-        this.boatRaceEventListener = new BoatRaceEventListener(this, this, 60);
-        this.relayEventListener = new RelayEventListener(this, this, 80);
-        this.darumaEventListener = new DarumaEventListener(this, this, 100);
+        this.mobFightEventListener = new MobFightEventListener(this, 20);
+        this.fencingEventListener = new FencingEventListener(this, 40);
+        this.boatRaceEventListener = new BoatRaceEventListener(this, 60);
+        this.relayEventListener = new RelayEventListener(this, 80);
+        this.darumaEventListener = new DarumaEventListener(this, 100);
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(this.mobFightEventListener, this);
         pluginManager.registerEvents(this.fencingEventListener, this);
