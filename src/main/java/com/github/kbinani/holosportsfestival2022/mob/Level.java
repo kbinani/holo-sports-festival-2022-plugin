@@ -1,6 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Editor;
+import com.github.kbinani.holosportsfestival2022.FireworkRocket;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
@@ -121,6 +122,15 @@ class Level implements StageDelegate {
 
     Point3i getSafeSpawnLocation() {
         return new Point3i(x(1), y(-59), z(-251));
+    }
+
+    void launchFireworkRockets(int color) {
+        FireworkRocket.Launch(x(-3) + 0.5, y(-49) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(x(-2) + 0.5, y(-47) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(x(-1) + 0.5, y(-46) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(x(2) + 0.5, y(-46) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(x(3) + 0.5, y(-47) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(x(4) + 0.5, y(-49) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
     }
 
     // 黄色チーム用 Level 原点: (-9, -59, -254)

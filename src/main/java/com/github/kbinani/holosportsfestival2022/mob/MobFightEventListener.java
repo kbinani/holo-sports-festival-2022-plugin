@@ -233,6 +233,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 if (finishedPlayerCount == team.getPlayerCount()) {
                     broadcast("%s GAME CLEAR !!", ToColoredString(color));
                     level.showTitle("GAME CLEAR !!", "gold");
+                    level.launchFireworkRockets(FireworkRocketColor(color));
                     applyBossbarValue(color, new BossbarValue(team.getPlayerCount(), team.getPlayerCount(), "GAME CLEAR !!"));
                     race.pushOrder(color);
 
@@ -624,6 +625,18 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 return "（剣）";
         }
         return "";
+    }
+
+    static int FireworkRocketColor(TeamColor color) {
+        switch (color) {
+            case YELLOW:
+                return FireworkRocket.Color.YELLOW;
+            case WHITE:
+                return FireworkRocket.Color.LIGHT_BLUE;
+            case RED:
+                return FireworkRocket.Color.PINK;
+        }
+        return 0;
     }
 
     static final String kItemTag = "hololive_sports_festival_2022_mob";
