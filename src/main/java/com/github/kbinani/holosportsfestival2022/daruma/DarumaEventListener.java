@@ -264,12 +264,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
             }
 
-            int lightBlue = 6719955;
-            launchFireworkRocket(xd(134.5), yd(-47.5), zd(-223.5), lightBlue);
-            int pink = 14188952;
-            launchFireworkRocket(xd(124.5), yd(-47.5), zd(-223.5), pink);
-            int yellow = 14602026;
-            launchFireworkRocket(xd(114.5), yd(-47.5), zd(-223.5), yellow);
+            launchFireworkRocket(xd(134.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.LIGHT_BLUE);
+            launchFireworkRocket(xd(124.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.PINK);
+            launchFireworkRocket(xd(114.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.YELLOW);
 
             race.goal(player, tick);
             team.remove(player);
