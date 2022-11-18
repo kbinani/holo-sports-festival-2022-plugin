@@ -388,6 +388,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
         Dispenser dispenser = (Dispenser) state;
         Inventory inventory = dispenser.getInventory();
+        inventory.clear();
         inventory.setItem(0, new ItemStack(Material.TNT, 1));
         dispenser.dispense();
     }
