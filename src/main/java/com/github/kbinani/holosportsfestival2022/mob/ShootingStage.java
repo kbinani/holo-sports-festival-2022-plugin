@@ -93,6 +93,7 @@ class ShootingStage extends Stage {
     @Override
     void onReset() {
         execute("kill @e[type=item,%s]", TargetSelector.Of(getBounds()));
+        execute("kill @e[type=arrow,%s]", TargetSelector.Of(getBounds()));
         remainingMobCount = 16;
     }
 
