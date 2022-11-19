@@ -64,21 +64,17 @@ class ShootingStage extends Stage {
     }
 
     private void summonSkeleton(int x, int y, int z) {
-        execute("summon minecart %d %d %d {Passengers:[{id:skeleton,Tags:[\"%s\"],HandItems:[{id:bow,Count:1},{}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"_ookamimio\"}}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag, kEntityTag);
+        execute("summon minecart %d %d %d {Passengers:[{id:skeleton,Tags:[\"%s\",\"%s\"],HandItems:[{id:bow,Count:1},{}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"_ookamimio\"}}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag, stageEntityTag, kEntityTag);
     }
 
     private void summonZombie(int x, int y, int z) {
-        execute("summon minecart %d %d %d {Passengers:[{id:zombie,Tags:[\"%s\"],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"sakuramiko35\"}}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag, kEntityTag);
+        execute("summon minecart %d %d %d {Passengers:[{id:zombie,Tags:[\"%s\",\"%s\"],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"sakuramiko35\"}}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag, stageEntityTag, kEntityTag);
     }
 
     @Override
     Optional<Result> consumeDeadMob(Entity entity) {
-        switch (entity.getType()) {
-            case ZOMBIE:
-            case SKELETON:
-                break;
-            default:
-                return Optional.empty();
+        if (!entity.getScoreboardTags().contains(stageEntityTag)) {
+            return Optional.empty();
         }
         int before = remainingMobCount;
         int after = Math.max(0, remainingMobCount - 1);

@@ -122,10 +122,6 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             if (stage == null) {
                 continue;
             }
-            BoundingBox box = stage.getBounds();
-            if (!box.contains(location)) {
-                continue;
-            }
             boolean consumed = level.consumeDeadMob(entity);
             if (consumed) {
                 e.setDroppedExp(0);

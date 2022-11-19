@@ -3,7 +3,6 @@ package com.github.kbinani.holosportsfestival2022.mob;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
@@ -53,25 +52,24 @@ class OceanMonumentStage extends Stage {
                 summonGuardian(9, -57, -294);
                 break;
             case 1:
-                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-3), y(-59), z(-299), kEntityTag);
-                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(5), y(-43), z(-297), kEntityTag);
+                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\",\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-3), y(-59), z(-299), kEntityTag, stageEntityTag);
+                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\",\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(5), y(-43), z(-297), kEntityTag, stageEntityTag);
                 execute("effect give @e[tag=%s,%s] glowing 86400 1 true", kEntityTag, TargetSelector.Of(box));
                 break;
         }
     }
 
     private void summonDrowned(int x, int y, int z) {
-        execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
+        execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
     }
 
     private void summonGuardian(int x, int y, int z) {
-        execute("summon guardian %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
+        execute("summon guardian %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
     }
 
     @Override
     Optional<Result> consumeDeadMob(Entity entity) {
-        EntityType type = entity.getType();
-        if (type != EntityType.DROWNED && type != EntityType.GUARDIAN) {
+        if (!entity.getScoreboardTags().contains(stageEntityTag)) {
             return Optional.empty();
         }
         int before = remainingMobCount;

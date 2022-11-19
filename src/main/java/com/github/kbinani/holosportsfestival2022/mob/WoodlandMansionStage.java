@@ -3,7 +3,6 @@ package com.github.kbinani.holosportsfestival2022.mob;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
@@ -51,7 +50,7 @@ class WoodlandMansionStage extends Stage {
                 summonWitch(5, -49, -332);
                 break;
             case 1:
-                execute("summon ravager %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-1), y(-59), z(-349), kEntityTag);
+                execute("summon ravager %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-1), y(-59), z(-349), kEntityTag, stageEntityTag);
                 BoundingBox box = getBounds();
                 execute("effect give @e[tag=%s,%s] glowing 86400 1 true", kEntityTag, TargetSelector.Of(box));
                 break;
@@ -59,28 +58,21 @@ class WoodlandMansionStage extends Stage {
     }
 
     private void summonVindicator(int x, int y, int z) {
-        execute("summon vindicator %d %d %d {HandItems:[{id:iron_axe,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
+        execute("summon vindicator %d %d %d {HandItems:[{id:iron_axe,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
     }
 
     private void summonWitch(int x, int y, int z) {
-        execute("summon witch %d %d %d {ArmorItems:[{},{},{},{}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
+        execute("summon witch %d %d %d {ArmorItems:[{},{},{},{}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
     }
 
     private void summonPillager(int x, int y, int z) {
-        execute("summon pillager %d %d %d {HandItems:[{id:crossbow,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
+        execute("summon pillager %d %d %d {HandItems:[{id:crossbow,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
     }
 
     @Override
     Optional<Result> consumeDeadMob(Entity entity) {
-        EntityType type = entity.getType();
-        switch (type) {
-            case PILLAGER:
-            case WITCH:
-            case VINDICATOR:
-            case RAVAGER:
-                break;
-            default:
-                return Optional.empty();
+        if (!entity.getScoreboardTags().contains(stageEntityTag)) {
+            return Optional.empty();
         }
         int before = remainingMobCount;
         int after = Math.max(0, remainingMobCount - 1);

@@ -3,7 +3,6 @@ package com.github.kbinani.holosportsfestival2022.mob;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
@@ -54,7 +53,7 @@ class NetherStage extends Stage {
                 summonWitherSkeleton(8, -49, -314);
                 summonWitherSkeleton(9, -55, -318);
 
-                execute("summon ghast %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-5), y(-47), z(-312), kEntityTag);
+                execute("summon ghast %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\", \"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-5), y(-47), z(-312), kEntityTag, stageEntityTag);
 
                 BoundingBox box = getBounds();
                 execute("effect give @e[tag=%s,%s] glowing 86400 1 true", kEntityTag, TargetSelector.Of(box));
@@ -65,28 +64,21 @@ class NetherStage extends Stage {
     private void summonWitherSkeleton(int x, int y, int z) {
         // 通常x9, クリティカルx1: https://youtu.be/xIjr6Ct_Wlo?t=3554
         // 通常x5, クリティカルx4: https://youtu.be/26cNq-_8NIY?t=1264
-        execute("summon wither_skeleton %d %d %d {HandItems:[{id:stone_sword,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", this.x(x), this.y(y), this.z(z), kEntityTag);
+        execute("summon wither_skeleton %d %d %d {HandItems:[{id:stone_sword,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\", \"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", this.x(x), this.y(y), this.z(z), kEntityTag, stageEntityTag);
     }
 
     private void summonBlaze(int x, int y, int z) {
-        execute("summon blaze %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", this.x(x), this.y(y), this.z(z), kEntityTag);
+        execute("summon blaze %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\", \"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", this.x(x), this.y(y), this.z(z), kEntityTag, stageEntityTag);
     }
 
     private void summonZombifiedPiglin(int x, int y, int z) {
-        execute("summon zombified_piglin %d %d %d {HandItems:[{id:golden_sword,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", this.x(x), this.y(y), this.z(z), kEntityTag);
+        execute("summon zombified_piglin %d %d %d {HandItems:[{id:golden_sword,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\", \"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", this.x(x), this.y(y), this.z(z), kEntityTag, stageEntityTag);
     }
 
     @Override
     Optional<Result> consumeDeadMob(Entity entity) {
-        EntityType type = entity.getType();
-        switch (type) {
-            case ZOMBIFIED_PIGLIN:
-            case BLAZE:
-            case WITHER_SKELETON:
-            case GHAST:
-                break;
-            default:
-                return Optional.empty();
+        if (!entity.getScoreboardTags().contains(stageEntityTag)) {
+            return Optional.empty();
         }
         int before = remainingMobCount;
         int after = Math.max(0, remainingMobCount - 1);
