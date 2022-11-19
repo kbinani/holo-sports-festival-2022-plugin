@@ -3,11 +3,14 @@ package com.github.kbinani.holosportsfestival2022.daruma;
 import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.*;
 import org.bukkit.block.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
@@ -383,6 +386,29 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         inventory.clear();
         inventory.setItem(0, new ItemStack(Material.TNT, 1));
         dispenser.dispense();
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
+        if (_status == Status.IDLE) {
+            return;
+        }
+        if (race == null) {
+            return;
+        }
+        Entity entity = e.getEntity();
+        Entity damager = e.getDamager();
+        if (entity.getType() != EntityType.PLAYER || damager.getType() != EntityType.PLAYER) {
+            return;
+        }
+        Player player = (Player) entity;
+        Player attacker = (Player) damager;
+        e.setCancelled(true);
+
+        if (race.isRunning(player)) {
+            attacker.setHealth(0);
+        }
     }
 
     private void clearDispensers() {
