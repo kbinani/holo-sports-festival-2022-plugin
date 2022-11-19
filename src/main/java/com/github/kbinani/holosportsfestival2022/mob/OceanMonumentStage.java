@@ -88,9 +88,9 @@ class OceanMonumentStage extends Stage {
 
     @Override
     void onReset() {
+        execute("kill @e[type=trident,%s]", TargetSelector.Of(getBounds()));
         remainingMobCount = 10;
     }
-
 
     @Override
     BossbarValue getBossbarValue() {
