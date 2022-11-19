@@ -392,6 +392,9 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         broadcast("[MOB討伐レース] %sがエントリー解除しました", player.getName());
 
         if (team.getPlayerCount() == 0) {
+            if (race != null) {
+                race.remove(current.color);
+            }
             setBossbarVisible(current.color, false);
             Level level = ensureLevel(current.color);
             level.reset();
