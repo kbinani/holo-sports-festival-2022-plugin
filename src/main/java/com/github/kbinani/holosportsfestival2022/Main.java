@@ -13,8 +13,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
@@ -166,6 +168,15 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
             case SPAWNER:
                 e.setCancelled(true);
                 break;
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        Player player = e.getPlayer();
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
         }
     }
 
