@@ -470,6 +470,18 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             case COUNTDOWN_START:
                 setEntranceOpened(false);
                 setStartGateOpened(false);
+                final BoundingBox startGrid = offset(kStartGridBounds);
+                for (Team team : teams.values()) {
+                    team.eachPlayer((p) -> {
+                        Location l = p.getLocation();
+                        if (!startGrid.contains(l.toVector())) {
+                            l.setX(Clamp(l.getX(), startGrid.getMinX(), startGrid.getMaxX()));
+                            l.setY(startGrid.getMinY());
+                            l.setZ(zd(-120.5));
+                            p.teleport(l);
+                        }
+                    });
+                }
                 break;
             case START:
                 setEntranceOpened(false);
@@ -546,6 +558,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             setStatus(Status.START);
             return true;
         }, 20);
+    }
+
+    private static double Clamp(double v, double min, double max) {
+        return Math.min(Math.max(v, min), max);
     }
 
     private void onClickGreen(Player player) {
@@ -778,6 +794,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
     private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
     private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -223);
+    private static final BoundingBox kStartGridBounds = new BoundingBox(104, -60, -122.5, 145, -58, -120);
 
     private static final String kItemTag = "hololive_sports_festival_2022_daruma";
 }
