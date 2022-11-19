@@ -7,7 +7,16 @@ import java.util.Set;
 
 class Race {
     private final Set<TeamColor> participants = new HashSet<>();
-    final List<TeamColor> order = new LinkedList<>();
+    final List<Goal> order = new LinkedList<>();
+    private long startTime;
+
+    Race() {
+        memoStartTime();
+    }
+
+    void memoStartTime() {
+        this.startTime = System.currentTimeMillis();
+    }
 
     void add(TeamColor color) {
         participants.add(color);
@@ -25,6 +34,7 @@ class Race {
         if (!participants.contains(color)) {
             return;
         }
-        order.add(color);
+        double seconds = System.currentTimeMillis() - startTime;
+        order.add(new Goal(color, seconds / 1000.0));
     }
 }

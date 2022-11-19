@@ -285,8 +285,8 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                         broadcast("-----------------------");
                         broadcast("[結果発表]");
                         for (int i = 0; i < race.order.size(); i++) {
-                            TeamColor tc = race.order.get(i);
-                            broadcast("%d位 : %s", i + 1, ToColoredString(tc));
+                            Goal goal = race.order.get(i);
+                            broadcast("%d位 : %s (%.2f 秒)", i + 1, ToColoredString(goal.color), goal.seconds);
                         }
                         broadcast("-----------------------");
                         broadcast("");
@@ -473,6 +473,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
+            race.memoStartTime();
             this.race = race;
             for (TeamColor color : race.getTeamColors()) {
                 Level level = ensureLevel(color);
