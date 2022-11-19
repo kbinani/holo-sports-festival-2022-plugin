@@ -6,6 +6,7 @@ import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,6 +21,7 @@ class Level implements StageDelegate {
     private final BoundingBox bounds;
     private Progress progress = Progress.Zero();
     private final LevelDelegate delegate;
+    private final BoundingBox boundsExceptFinalStage;
 
     // エントリー解除看板が貼ってあるブロックの座標を原点としてステージ群を初期化する
     Level(Point3i origin, @Nonnull LevelDelegate delegate) {
@@ -37,6 +39,21 @@ class Level implements StageDelegate {
         this.stages.add(new WoodlandMansionStage(new Point3i(origin.x, origin.y, origin.z - 97), this));
         // (-9, -59, -376)
         this.stages.add(new ShootingStage(new Point3i(origin.x, origin.y, origin.z - 122), this));
+
+        BoundingBox boundsExceptFinalStage = null;
+        for (Stage stage : stages) {
+            BoundingBox box = stage.getBounds();
+            if (boundsExceptFinalStage == null) {
+                boundsExceptFinalStage = box;
+            } else {
+                boundsExceptFinalStage.union(box);
+            }
+        }
+        if (boundsExceptFinalStage == null) {
+            boundsExceptFinalStage = new BoundingBox();
+        }
+        this.boundsExceptFinalStage = boundsExceptFinalStage;
+
         // (-10, -60, -412)
         finalStage = new FinalStage(new Point3i(origin.x - 1, origin.y - 1, origin.z - 158), this);
         this.stages.add(finalStage);
@@ -70,6 +87,13 @@ class Level implements StageDelegate {
 
     BoundingBox getBounds() {
         return bounds.clone();
+    }
+
+    boolean containsInBounds(Vector location) {
+        if (boundsExceptFinalStage.contains(location)) {
+            return true;
+        }
+        return finalStage.containsInBounds(location);
     }
 
     void reset() {

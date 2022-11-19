@@ -224,15 +224,27 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         }
         Player player = e.getPlayer();
         Vector location = player.getLocation().toVector();
+
         for (Map.Entry<TeamColor, Level> it : levels.entrySet()) {
             TeamColor color = it.getKey();
             Level level = it.getValue();
-            Progress progress = level.getProgress();
-            if (progress.stage != level.getStageCount() - 1) {
-                continue;
-            }
+
             Team team = ensureTeam(color);
             if (team.getCurrentRole(player) == null) {
+                if (level.containsInBounds(location) && player.getGameMode() != GameMode.SPECTATOR) {
+                    // 競技場内に侵入した非参加者を安全地帯に移動させる
+                    Point3i spawn = level.getSafeSpawnLocation();
+                    Location l = player.getLocation();
+                    l.setX(spawn.x);
+                    l.setY(spawn.y);
+                    l.setZ(spawn.z);
+                    player.teleport(l);
+                }
+                continue;
+            }
+
+            Progress progress = level.getProgress();
+            if (progress.stage != level.getStageCount() - 1) {
                 continue;
             }
 
@@ -282,7 +294,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                             Team t = ensureTeam(tc);
                             t.reset();
                         }
-                        race = null;
+                        this.race = null;
                         setStatus(Status.IDLE);
                         return;
                     }

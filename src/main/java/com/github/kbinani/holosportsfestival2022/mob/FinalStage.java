@@ -3,6 +3,7 @@ package com.github.kbinani.holosportsfestival2022.mob;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -64,6 +65,10 @@ class FinalStage extends Stage {
         return new BoundingBox(x(-3), y(-58), z(-412), x(5), y(-56), z(-404));
     }
 
+    BoundingBox getCorridorBounds() {
+        return new BoundingBox(x(-3), y(-60), z(-404), x(5), y(-55), z(-381));
+    }
+
     private void summonCreeper(int x, int y, int z) {
         execute("summon creeper %d %d %d {Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
     }
@@ -97,6 +102,10 @@ class FinalStage extends Stage {
 
     boolean isCreeperSpawned() {
         return this.isCreeperSpawned;
+    }
+
+    boolean containsInBounds(Vector location) {
+        return getCreeperSpawnBounds().contains(location) || getCorridorBounds().contains(location);
     }
 
     // 黄色チーム用 final ステージの原点: (-10, -60, -412)
