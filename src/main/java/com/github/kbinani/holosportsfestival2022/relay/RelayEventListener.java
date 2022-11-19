@@ -383,7 +383,23 @@ public class RelayEventListener implements Listener, Competition {
         if (_status != Status.RUN) {
             return;
         }
+        Race race = this.race;
+        if (race == null) {
+            return;
+        }
         Player player = e.getEntity();
+        TeamColor color = getCurrentTeam(player);
+        if (color == null) {
+            return;
+        }
+        Team team = ensureTeam(color);
+        Player runner = team.getCurrentRunner();
+        if (runner == null) {
+            return;
+        }
+        if (!runner.getUniqueId().equals(player.getUniqueId())) {
+            return;
+        }
         onClickLeave(player);
     }
 
