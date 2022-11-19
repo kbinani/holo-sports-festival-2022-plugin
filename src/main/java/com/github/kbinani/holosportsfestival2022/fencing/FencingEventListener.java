@@ -78,21 +78,6 @@ public class FencingEventListener implements Listener, Competition {
                 hitpointLeft = 3;
                 break;
             case AWAIT_COUNTDOWN:
-                // 範囲内に居るプレイヤーを観客席側に排除する
-                Server server = Bukkit.getServer();
-                BoundingBox box = offset(kFieldBounds);
-                server.getOnlinePlayers().forEach(player -> {
-                    Location loc = player.getLocation();
-                    if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
-                        return;
-                    }
-                    if (box.contains(loc.toVector())) {
-                        loc.setZ(z(-273));
-                        loc.setY(y(-19));
-                        player.teleport(loc);
-                    }
-                });
-
                 // 左ゲート構築
                 fill(new Point3i(165, -16, -268), new Point3i(165, -18, -264), "white_concrete");
                 fill(new Point3i(165, -17, -267), new Point3i(165, -18, -265), "glass");
@@ -109,12 +94,30 @@ public class FencingEventListener implements Listener, Competition {
                 setBlock(new Point3i(103, -17, -266), "air");
                 setBlock(new Point3i(103, -18, -266), "heavy_weighted_pressure_plate");
 
-                // バリアブロックの柵
-                fill(new Point3i(165, -17, -269), new Point3i(103, -17, -269), "barrier");
+                // 南側バリアブロックの柵
                 fill(new Point3i(104, -17, -263), new Point3i(165, -17, -263), "barrier");
 
                 break;
             case COUNTDOWN:
+                // 北側バリアブロックの柵
+                // 間違って入場してしまった場合自力で脱出できるよう, 北側の柵はカウントダウンが始まってから設置する
+                fill(new Point3i(165, -17, -269), new Point3i(103, -17, -269), "barrier");
+
+                // 範囲内に居るプレイヤーを観客席側に排除する
+                Server server = Bukkit.getServer();
+                BoundingBox box = offset(kFieldBounds);
+                server.getOnlinePlayers().forEach(player -> {
+                    Location loc = player.getLocation();
+                    if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
+                        return;
+                    }
+                    if (box.contains(loc.toVector())) {
+                        loc.setZ(z(-273));
+                        loc.setY(y(-19));
+                        player.teleport(loc);
+                    }
+                });
+
                 hitpointRight = 3;
                 hitpointLeft = 3;
 
