@@ -871,8 +871,8 @@ public class RelayEventListener implements Listener, Competition {
     private static final BoundingBox kFieldOuterJumpArea = new BoundingBox(12, -60, -234, 30, -54, -233);
     // 水槽の外側の白線(南). 進入不可にする
     private static final BoundingBox kFieldInnerJumpArea = new BoundingBox(12, -60, -226, 30, -54, -225);
-    // ゴール手前のチェックポイント. バトンパス領域から進行方向手前に 8 ブロック
-    private static final BoundingBox kPreGoalCheckPointArea = new BoundingBox(25, -61, -179, 33, -58, -170);
+    // 赤組MOB討伐ステージの入り口前付近
+    private static final BoundingBox kPreGoalCheckPointArea = new BoundingBox(30, -61, -234, 43, -54, -225);
     // ゴール判定を行う範囲. ゴールラインから進行方向に 8 ブロック
     private static final BoundingBox kGoalArea = new BoundingBox(41, -61, -179, 49, -58, -170);
     private static final BoundingBox kStartGateFirstLane = new BoundingBox(37.5, -60, -177.5, 38.5, -58, -175.5);
