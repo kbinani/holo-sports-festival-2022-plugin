@@ -17,7 +17,7 @@ public abstract class Stage {
     protected final StageDelegate delegate;
     private Boolean entranceOpened = null;
     private Boolean exitOpened = null;
-    protected final String stageEntityTag = UUID.randomUUID().toString();
+    protected final String stageEntityTag;
 
     protected static final String kEntityTag = "hololive_sports_festival_2022_enemy";
 
@@ -25,6 +25,7 @@ public abstract class Stage {
     Stage(Point3i origin, @Nonnull StageDelegate delegate) {
         this.origin = new Point3i(origin);
         this.delegate = delegate;
+        this.stageEntityTag = String.format("%s_%d_%d_%d", kEntityTag, origin.x, origin.y, origin.z);
     }
 
     void setEntranceOpened(boolean open) {
