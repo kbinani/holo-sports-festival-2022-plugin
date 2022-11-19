@@ -51,7 +51,7 @@ class WoodlandMansionStage extends Stage {
                 summonWitch(5, -49, -332);
                 break;
             case 1:
-                execute("summon ravager %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(-1), y(-59), z(-349), kEntityTag);
+                execute("summon ravager %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-1), y(-59), z(-349), kEntityTag);
                 BoundingBox box = getBounds();
                 execute("effect give @e[tag=%s,%s] glowing 86400 1 true", kEntityTag, TargetSelector.Of(box));
                 break;
@@ -59,15 +59,15 @@ class WoodlandMansionStage extends Stage {
     }
 
     private void summonVindicator(int x, int y, int z) {
-        execute("summon vindicator %d %d %d {HandItems:[{id:iron_axe,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
+        execute("summon vindicator %d %d %d {HandItems:[{id:iron_axe,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
     }
 
     private void summonWitch(int x, int y, int z) {
-        execute("summon witch %d %d %d {ArmorItems:[{},{},{},{}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
+        execute("summon witch %d %d %d {ArmorItems:[{},{},{},{}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
     }
 
     private void summonPillager(int x, int y, int z) {
-        execute("summon pillager %d %d %d {HandItems:[{id:crossbow,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag);
+        execute("summon pillager %d %d %d {HandItems:[{id:crossbow,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
     }
 
     @Override

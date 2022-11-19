@@ -77,9 +77,9 @@ class PlainsStage extends Stage {
                 break;
             case 1:
                 // 1F
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:diamond_helmet,Count:1}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}],DeathLootTable:\"minecraft:empty\"}", x(0), y(-59), z(-274), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:diamond_helmet,Count:1}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(0), y(-59), z(-274), kEntityTag);
                 // 2F
-                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:diamond_helmet,Count:1}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}],DeathLootTable:\"minecraft:empty\"}", x(-8), y(-48), z(-268), kEntityTag);
+                execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:diamond_helmet,Count:1}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],Tags:[\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d},{Name:\"generic.movement_speed\",Base:0.345d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-8), y(-48), z(-268), kEntityTag);
                 execute("effect give @e[tag=%s,%s] glowing 86400 1 true", kEntityTag, TargetSelector.Of(box));
                 // BOSS 戦の様子 (60fps)
                 // https://www.youtube.com/watch?v=TiSgN3lvfrM
@@ -122,7 +122,7 @@ class PlainsStage extends Stage {
     }
 
     private void summonZombie(int x, int y, int z, boolean baby) {
-        execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],IsBaby:%db,Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), baby ? 1 : 0, kEntityTag);
+        execute("summon zombie %d %d %d {ArmorItems:[{},{},{},{id:leather_helmet,Count:1}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],IsBaby:%db,Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), baby ? 1 : 0, kEntityTag);
     }
 
     @Override
