@@ -138,6 +138,12 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             if (current.stage == next.stage) {
                 // 同一 stage の次の step に
                 delegate.runTaskLater(() -> {
+                    if (this.race == null) {
+                        return;
+                    }
+                    if (!this.race.getTeamColors().contains(color)) {
+                        return;
+                    }
                     stage.summonMobs(next.step);
                 }, 20 * 3);
             } else {
@@ -145,6 +151,12 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 level.showTitle("WAVE CLEAR !", "yellow");
                 broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString());
                 delegate.runTaskLater(() -> {
+                    if (this.race == null) {
+                        return;
+                    }
+                    if (!this.race.getTeamColors().contains(color)) {
+                        return;
+                    }
                     Team team = ensureTeam(color);
                     List<Player> players = new ArrayList<>();
                     team.usePlayers(players::add);
