@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -374,6 +375,16 @@ public class RelayEventListener implements Listener, Competition {
         if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
             onClickLeave(player);
         }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerDeath(PlayerDeathEvent e) {
+        if (_status != Status.RUN) {
+            return;
+        }
+        Player player = e.getEntity();
+        onClickLeave(player);
     }
 
     private void resetField() {
