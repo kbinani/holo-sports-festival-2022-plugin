@@ -185,16 +185,16 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
         double wait = next.getTimeInMillis() - now.getTimeInMillis();
         double passed = now.getTimeInMillis() - last.getTimeInMillis();
-        if (wait <= kTimerIntervalMillis * 0.75 || passed <= kTimerIntervalMillis * 0.75) {
+        if (wait <= kTimerIntervalMillis * 0.5 || passed <= kTimerIntervalMillis * 0.5) {
             manual = false;
             start();
         } else {
-            String selector = TargetSelector.Of(getAnnounceBounds());
-            execute("title @a[%s] times 0 %d 0", selector, 2 * kTimerIntervalMillis * 20 / 1000);
-            execute("title @a[%s] title \"\"", selector);
-            execute("title @a[%s] subtitle \"次回のスタートは %02d 時 %02d 分です (JST)\"", selector, next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
+            int stay = kTimerIntervalMillis * 20 / 1000 + 20;
+            String subtitle = String.format("次回のスタートは %02d 時 %02d 分です (JST)", next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
+            Players.Within(getAnnounceBounds(), player -> {
+                player.sendTitle("", subtitle, 0, stay, 20);
+            });
         }
-
     }
 
     private Calendar getNextAutoStart() {
@@ -690,7 +690,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
     private void setTitle(@Nullable String title, @Nullable String subtitle) {
         String selector = TargetSelector.Of(getAnnounceBounds());
-        execute("title @a[%s] clear", selector);
+        execute("title @a[%s] reset", selector);
         if (title != null) {
             execute("title @a[%s] title \"%s\"", selector, title);
         }
