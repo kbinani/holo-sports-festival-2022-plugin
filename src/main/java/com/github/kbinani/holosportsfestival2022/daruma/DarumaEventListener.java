@@ -175,25 +175,37 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void onTick() {
-        if (_status != Status.IDLE) {
-            return;
-        }
-        Calendar now = GregorianCalendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
-        Calendar next = getNextAutoStart();
-        Calendar last = (Calendar) next.clone();
-        last.add(Calendar.MINUTE, -kAutoStartIntervalMinutes);
+        switch (_status) {
+            case IDLE:
+                Calendar now = GregorianCalendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
+                Calendar next = getNextAutoStart();
+                Calendar last = (Calendar) next.clone();
+                last.add(Calendar.MINUTE, -kAutoStartIntervalMinutes);
 
-        double wait = next.getTimeInMillis() - now.getTimeInMillis();
-        double passed = now.getTimeInMillis() - last.getTimeInMillis();
-        if (wait <= kTimerIntervalMillis * 0.5 || passed <= kTimerIntervalMillis * 0.5) {
-            manual = false;
-            start();
-        } else {
-            int stay = kTimerIntervalMillis * 20 / 1000 + 20;
-            String subtitle = String.format("次回のスタートは %02d 時 %02d 分です (JST)", next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
-            Players.Within(getAnnounceBounds(), player -> {
-                player.sendTitle("", subtitle, 0, stay, 20);
-            });
+                double wait = next.getTimeInMillis() - now.getTimeInMillis();
+                double passed = now.getTimeInMillis() - last.getTimeInMillis();
+                if (wait <= kTimerIntervalMillis * 0.5 || passed <= kTimerIntervalMillis * 0.5) {
+                    manual = false;
+                    start();
+                } else {
+                    int stay = kTimerIntervalMillis * 20 / 1000 + 20;
+                    String subtitle = String.format("次回のスタートは %02d 時 %02d 分です (JST)", next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
+                    Players.Within(getAnnounceBounds(), player -> {
+                        player.sendTitle("", subtitle, 0, stay, 20);
+                    });
+                }
+                break;
+            case START:
+            case RED:
+                if (!manual) {
+                    triggerGreen();
+                }
+                break;
+            case GREEN:
+                if (!manual) {
+                    triggerRed();
+                }
+                break;
         }
     }
 
@@ -681,6 +693,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         if (!player.isOp()) {
             return;
         }
+        triggerGreen();
+    }
+
+    private void triggerGreen() {
         if (_status != Status.RED && _status != Status.START) {
             return;
         }
@@ -703,6 +719,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         if (!player.isOp()) {
             return;
         }
+        triggerRed();
+    }
+
+    private void triggerRed() {
         if (_status != Status.GREEN) {
             return;
         }
