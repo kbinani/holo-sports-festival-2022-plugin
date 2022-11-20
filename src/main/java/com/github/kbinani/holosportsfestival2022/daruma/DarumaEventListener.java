@@ -540,7 +540,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         if (current == null) {
             Team team = ensureTeam(color);
             team.add(player);
+
+            delegate.clearCompetitionItems(player);
             giveItem(player);
+
             broadcast("[だるまさんがころんだ] %sが%sにエントリーしました", player.getName(), ToColoredString(color));
         } else {
             broadcast("[だるまさんがころんだ] %sは%sにエントリー済みです", player.getName(), ToColoredString(current));

@@ -484,6 +484,7 @@ public class RelayEventListener implements Listener, Competition {
         if (!ok.get()) {
             return;
         }
+        delegate.clearCompetitionItems(player);
         Team team = ensureTeam(teamColor);
         team.add(player);
         broadcast("[リレー] %sが%sにエントリーしました", player.getName(), ToColoredString(teamColor));

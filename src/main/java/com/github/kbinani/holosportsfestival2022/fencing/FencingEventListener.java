@@ -444,6 +444,7 @@ public class FencingEventListener implements Listener, Competition {
         } else if (team == Team.LEFT) {
             left = player;
         }
+        delegate.clearCompetitionItems(player);
         execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
         broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
         if (right == null && left == null) {

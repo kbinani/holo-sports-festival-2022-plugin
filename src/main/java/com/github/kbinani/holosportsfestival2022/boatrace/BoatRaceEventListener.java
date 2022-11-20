@@ -646,6 +646,7 @@ public class BoatRaceEventListener implements Competition {
         if (current == null) {
             Team p = ensureTeam(color);
             p.setPlayer(role, player);
+            delegate.clearCompetitionItems(player);
             if (role == Role.DRIVER) {
                 execute("give @p[name=\"%s\"] %s{tag:{%s:1b}}", player.getName(), Boat(color).name().toLowerCase(), kItemTag);
             } else {

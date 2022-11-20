@@ -387,6 +387,8 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         Team team = ensureTeam(color);
         team.add(player, role);
         broadcast("[MOB討伐レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role));
+
+        delegate.clearCompetitionItems(player);
         execute("give %s iron_leggings{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
         execute("give %s iron_chestplate{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
         execute("give %s iron_helmet{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:respiration,lvl:3},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
