@@ -16,6 +16,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -247,47 +248,66 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
         Team team = ensureTeam(color);
 
-        Location from = e.getFrom();
-        Location to = e.getTo();
-        if (to == null) {
-            to = player.getLocation();
+        Vector from = e.getFrom().toVector();
+        Location toLocation = e.getTo();
+        Vector to = null;
+        if (toLocation == null) {
+            to = player.getLocation().toVector();
+        } else {
+            to = toLocation.toVector();
         }
-        BoundingBox box = offset(kGoalDetectionBox);
-        if ((_status == Status.GREEN || _status == Status.START || _status == Status.COUNTDOWN_RED) && box.contains(to.toVector())) {
-            // ゴールラインを超えた時刻を計算する.
-            double z = box.getMaxZ();
-            double fromZ = from.getZ();
-            double toZ = to.getZ();
-            double tick = world.getFullTime();
-            if (fromZ != toZ && toZ <= z && z <= fromZ) {
-                tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
-            }
+        BoundingBox goal = offset(kGoalDetectionBox);
+        BoundingBox kill = offset(kKillZone);
+        BoundingBox habitable = offset(kHabitableZone);
 
-            launchFireworkRocket(xd(134.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.LIGHT_BLUE);
-            launchFireworkRocket(xd(124.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.PINK);
-            launchFireworkRocket(xd(114.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.YELLOW);
+        switch (_status) {
+            case GREEN:
+            case START:
+            case COUNTDOWN_RED:
+                if (goal.contains(to)) {
+                    // ゴールラインを超えた時刻を計算する.
+                    double z = goal.getMaxZ();
+                    double fromZ = from.getZ();
+                    double toZ = to.getZ();
+                    double tick = world.getFullTime();
+                    if (fromZ != toZ && toZ <= z && z <= fromZ) {
+                        tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
+                    }
 
-            race.goal(player, tick);
-            team.remove(player);
+                    launchFireworkRocket(xd(134.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.LIGHT_BLUE);
+                    launchFireworkRocket(xd(124.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.PINK);
+                    launchFireworkRocket(xd(114.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.YELLOW);
 
-            // 同一 tick で box に侵入したという判定になったとしても,
-            // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
-            // 1 tick 待ってから順位を発表する.
-            delegate.runTask(() -> {
-                if (this.race == null) {
-                    return;
+                    race.goal(player, tick);
+                    team.remove(player);
+
+                    // 同一 tick で box に侵入したという判定になったとしても,
+                    // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
+                    // 1 tick 待ってから順位を発表する.
+                    delegate.runTask(() -> {
+                        if (this.race == null) {
+                            return;
+                        }
+                        this.race.announceOrder(this, player);
+                        if (this.race.getRunningPlayerCount() < 1) {
+                            setStatus(Status.IDLE);
+                        }
+                    });
+                } else if (!habitable.contains(from) || !habitable.contains(to)) {
+                    player.setHealth(0);
                 }
-                this.race.announceOrder(this, player);
-                if (this.race.getRunningPlayerCount() < 1) {
-                    setStatus(Status.IDLE);
+                break;
+            case RED:
+                if (!habitable.contains(from) || !habitable.contains(to)) {
+                    player.setHealth(0);
+                } else if (kill.contains(from) || kill.contains(to)) {
+                    double dx = to.getX() - from.getX();
+                    double dz = to.getZ() - from.getZ();
+                    if (dx != 0 || dz != 0) {
+                        player.setHealth(0);
+                    }
                 }
-            });
-        } else if (_status == Status.RED) {
-            double dx = to.getX() - from.getX();
-            double dz = to.getZ() - from.getZ();
-            if (dx != 0 || dz != 0) {
-                player.setHealth(0);
-            }
+                break;
         }
     }
 
@@ -795,6 +815,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
     private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -223);
     private static final BoundingBox kStartGridBounds = new BoundingBox(104, -60, -122.5, 145, -58, -120);
+    // 競技中 "ころんだ" の時に動くと kill される領域
+    private static final BoundingBox kKillZone = new BoundingBox(104, -62, -223, 145, -55, -123);
+    // 競技中移動できる領域. この領域から逸脱すると, "ころんだ" の時じゃなくても kill される.
+    private static final BoundingBox kHabitableZone = new BoundingBox(104, -62, -223, 145, -55, -117.5);
 
     private static final String kItemTag = "hololive_sports_festival_2022_daruma";
 }
