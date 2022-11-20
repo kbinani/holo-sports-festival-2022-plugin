@@ -256,12 +256,18 @@ public class RelayEventListener implements Listener, Competition {
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
-        if (_status != Status.RUN || race == null) {
-            return;
-        }
         Player player = e.getPlayer();
         TeamColor color = getCurrentTeam(player);
         if (color == null) {
+            return;
+        }
+        Vector location = player.getLocation().toVector();
+        if (!getAnnounceBounds().contains(location)) {
+            player.sendMessage(ChatColor.RED + "[リレー] 場外に出たためエントリー解除となります");
+            onClickLeave(player);
+            return;
+        }
+        if (_status != Status.RUN || race == null) {
             return;
         }
         if (!race.isActive(color)) {
@@ -284,7 +290,6 @@ public class RelayEventListener implements Listener, Competition {
         BoundingBox westWhiteLine = offset(kFieldOuterPoolArea);
         BoundingBox northWhiteLine = offset(kFieldOuterJumpArea);
         BoundingBox southWhiteLine = offset(kFieldInnerJumpArea);
-        Vector location = player.getLocation().toVector();
         if (!outer.contains(location) || inner.contains(location) || eastWhiteLine.contains(location) || westWhiteLine.contains(location) || northWhiteLine.contains(location) || southWhiteLine.contains(location)) {
             broadcastUnofficial(ChatColor.RED + "%sの%sがコースから逸脱しました。失格とします", ToColoredString(color), player.getName());
             abstain(player);
@@ -371,10 +376,6 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     private void abstain(Player player) {
-        Race race = this.race;
-        if (race == null) {
-            return;
-        }
         TeamColor color = getCurrentTeam(player);
         if (color == null) {
             return;
@@ -382,14 +383,16 @@ public class RelayEventListener implements Listener, Competition {
         Team team = ensureTeam(color);
         clearBatons(player.getName());
         team.clearParticipants();
-        race.remove(color);
+        if (this.race != null) {
+            race.remove(color);
 
-        if (race.getTeamCount() == 0) {
-            if (getPlayerCount() == 0) {
-                setStatus(Status.IDLE);
-            } else {
-                // 唯一のチームが失格になった. 結果も表示できないので AWAIT_START に戻す
-                setStatus(Status.AWAIT_START);
+            if (race.getTeamCount() == 0) {
+                if (getPlayerCount() == 0) {
+                    setStatus(Status.IDLE);
+                } else {
+                    // 唯一のチームが失格になった. 結果も表示できないので AWAIT_START に戻す
+                    setStatus(Status.AWAIT_START);
+                }
             }
         }
     }
