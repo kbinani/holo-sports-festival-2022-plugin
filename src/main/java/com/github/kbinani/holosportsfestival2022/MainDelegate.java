@@ -11,22 +11,22 @@ import java.util.function.Supplier;
 
 public interface MainDelegate {
     @Nullable
-    CompetitionType getCurrentCompetition(Player player);
+    CompetitionType mainGetCurrentCompetition(Player player);
 
-    void execute(String format, Object... args);
+    void mainExecute(String format, Object... args);
 
-    void runTask(Runnable task);
+    void mainRunTask(Runnable task);
 
-    void runTaskLater(Runnable task, long delay);
+    void mainRunTaskLater(Runnable task, long delay);
 
-    BukkitTask runTaskTimer(Runnable task, long delay, long period);
+    BukkitTask mainRunTaskTimer(Runnable task, long delay, long period);
 
     @Nullable
-    World getWorld();
+    World mainGetWorld();
 
-    void info(String format, Object... args);
+    void mainInfo(String format, Object... args);
 
-    void countdownThen(BoundingBox[] box, Predicate<Integer> countdown, Supplier<Boolean> task, long delay);
+    void mainCountdownThen(BoundingBox[] box, Predicate<Integer> countdown, Supplier<Boolean> task, long delay);
 
-    void clearCompetitionItems(Player player);
+    void mainClearCompetitionItems(Player player);
 }

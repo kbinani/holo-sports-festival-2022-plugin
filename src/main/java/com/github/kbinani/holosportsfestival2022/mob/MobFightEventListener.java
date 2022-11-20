@@ -79,7 +79,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (!initialized) {
             initialized = true;
-            delegate.runTaskLater(() -> {
+            delegate.mainRunTaskLater(() -> {
                 BoundingBox box = offset(kAnnounceBounds);
                 Bossbar red = new Bossbar(delegate, kBossbarRed, "", box);
                 red.setColor("red");
@@ -138,7 +138,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             }
             if (current.stage == next.stage) {
                 // 同一 stage の次の step に
-                delegate.runTaskLater(() -> {
+                delegate.mainRunTaskLater(() -> {
                     if (this.race == null) {
                         return;
                     }
@@ -151,7 +151,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 // 次の stage へ
                 level.showTitle("WAVE CLEAR !", "yellow");
                 broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString());
-                delegate.runTaskLater(() -> {
+                delegate.mainRunTaskLater(() -> {
                     if (this.race == null) {
                         return;
                     }
@@ -380,7 +380,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
         }
-        CompetitionType type = delegate.getCurrentCompetition(player);
+        CompetitionType type = delegate.mainGetCurrentCompetition(player);
         if (type != null && type != CompetitionType.MOB) {
             broadcastUnofficial("[MOB討伐レース] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
             return;
@@ -398,7 +398,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         team.add(player, role);
         broadcast("[MOB討伐レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role));
 
-        delegate.clearCompetitionItems(player);
+        delegate.mainClearCompetitionItems(player);
         execute("give %s iron_leggings{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
         execute("give %s iron_chestplate{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
         execute("give %s iron_helmet{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:respiration,lvl:3},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
@@ -482,7 +482,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             Point3i safe = level.getSafeSpawnLocation();
             execute("tp %s %d %d %d", level.getTargetSelector(), safe.x, safe.y, safe.z);
         }
-        delegate.countdownThen(new BoundingBox[]{offset(kAnnounceBounds)}, (count) -> _status == Status.COUNTDOWN, () -> {
+        delegate.mainCountdownThen(new BoundingBox[]{offset(kAnnounceBounds)}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
@@ -555,7 +555,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     }
 
     private void resetField() {
-        World world = delegate.getWorld();
+        World world = delegate.mainGetWorld();
         if (world == null) {
             return;
         }
@@ -616,7 +616,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
 
     @Override
     public void execute(String format, Object... args) {
-        delegate.execute(format, args);
+        delegate.mainExecute(format, args);
     }
 
     private void broadcast(String format, Object... args) {

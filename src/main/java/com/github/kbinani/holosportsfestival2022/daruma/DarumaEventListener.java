@@ -180,7 +180,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             random = new Random();
         }
         this.random = random;
-        delegate.runTaskTimer(this::onTick, 0, 20);
+        delegate.mainRunTaskTimer(this::onTick, 0, 20);
     }
 
     private void onTick() {
@@ -259,7 +259,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (!initialized) {
             initialized = true;
-            delegate.runTaskLater(this::resetField, loadDelay);
+            delegate.mainRunTaskLater(this::resetField, loadDelay);
         }
     }
 
@@ -369,7 +369,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                     // 同一 tick で box に侵入したという判定になったとしても,
                     // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
                     // 1 tick 待ってから順位を発表する.
-                    delegate.runTask(() -> {
+                    delegate.mainRunTask(() -> {
                         if (this.race == null) {
                             return;
                         }
@@ -527,7 +527,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void clearDispensers() {
-        World world = delegate.getWorld();
+        World world = delegate.mainGetWorld();
         if (world == null) {
             return;
         }
@@ -631,7 +631,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         if (_status != Status.IDLE) {
             return;
         }
-        CompetitionType type = delegate.getCurrentCompetition(player);
+        CompetitionType type = delegate.mainGetCurrentCompetition(player);
         if (type != null && type != CompetitionType.DARUMA) {
             broadcastUnofficial("[だるまさんがころんだ] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
             return;
@@ -645,7 +645,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             Team team = ensureTeam(color);
             team.add(player);
 
-            delegate.clearCompetitionItems(player);
+            delegate.mainClearCompetitionItems(player);
             giveItem(player);
 
             broadcast("[だるまさんがころんだ] %sが%sにエントリーしました", player.getName(), ToColoredString(color));
@@ -697,7 +697,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         broadcast("");
 
         setStatus(Status.COUNTDOWN_START);
-        delegate.countdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN_START, () -> {
+        delegate.mainCountdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN_START, () -> {
             if (_status != Status.COUNTDOWN_START) {
                 return false;
             }
@@ -749,7 +749,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             return;
         }
         setStatus(Status.COUNTDOWN_RED);
-        delegate.countdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN_RED, () -> {
+        delegate.mainCountdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN_RED, () -> {
             if (_status != Status.COUNTDOWN_RED) {
                 return false;
             }
@@ -875,7 +875,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     public void execute(String format, Object... args) {
-        delegate.execute(format, args);
+        delegate.mainExecute(format, args);
     }
 
     private Point3i getEntryButtonPosition(TeamColor color) {

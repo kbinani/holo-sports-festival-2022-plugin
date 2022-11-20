@@ -36,7 +36,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     }
 
     @Override
-    public @Nullable CompetitionType getCurrentCompetition(Player player) {
+    public @Nullable CompetitionType mainGetCurrentCompetition(Player player) {
         for (Competition competition : competitions) {
             if (competition.isJoined(player)) {
                 return competition.competitionGetType();
@@ -46,30 +46,30 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     }
 
     @Override
-    public void execute(String format, Object... args) {
+    public void mainExecute(String format, Object... args) {
         Server server = getServer();
         String command = String.format(format, args);
         server.dispatchCommand(server.getConsoleSender(), command);
     }
 
     @Override
-    public void runTask(Runnable task) {
+    public void mainRunTask(Runnable task) {
         getServer().getScheduler().runTask(this, task);
     }
 
     @Override
-    public void runTaskLater(Runnable task, long delay) {
+    public void mainRunTaskLater(Runnable task, long delay) {
         getServer().getScheduler().runTaskLater(this, task, delay);
     }
 
     @Override
-    public BukkitTask runTaskTimer(Runnable task, long delay, long period) {
+    public BukkitTask mainRunTaskTimer(Runnable task, long delay, long period) {
         return getServer().getScheduler().runTaskTimer(this, task, delay, period);
     }
 
     @Override
     @Nullable
-    public World getWorld() {
+    public World mainGetWorld() {
         if (overworld == null) {
             overworld = getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
         }
@@ -77,17 +77,17 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     }
 
     @Override
-    public void info(String format, Object... args) {
+    public void mainInfo(String format, Object... args) {
         getLogger().info(String.format(format, args));
     }
 
     @Override
-    public void countdownThen(BoundingBox[] boxes, Predicate<Integer> countdown, Supplier<Boolean> task, long delay) {
+    public void mainCountdownThen(BoundingBox[] boxes, Predicate<Integer> countdown, Supplier<Boolean> task, long delay) {
         Countdown.Then(boxes, this, countdown, task, delay);
     }
 
     @Override
-    public void clearCompetitionItems(Player player) {
+    public void mainClearCompetitionItems(Player player) {
         for (Competition competition : competitions) {
             competition.clearCompetitionItems(player);
         }

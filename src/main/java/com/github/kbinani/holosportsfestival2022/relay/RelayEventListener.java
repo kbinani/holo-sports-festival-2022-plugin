@@ -487,7 +487,7 @@ public class RelayEventListener implements Listener, Competition {
         if (_status != Status.IDLE && _status != Status.AWAIT_START) {
             return;
         }
-        CompetitionType type = delegate.getCurrentCompetition(player);
+        CompetitionType type = delegate.mainGetCurrentCompetition(player);
         if (type != null && type != CompetitionType.RELAY) {
             broadcastUnofficial("[リレー] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
             return;
@@ -506,7 +506,7 @@ public class RelayEventListener implements Listener, Competition {
         if (!ok.get()) {
             return;
         }
-        delegate.clearCompetitionItems(player);
+        delegate.mainClearCompetitionItems(player);
         Team team = ensureTeam(teamColor);
         team.add(player);
         broadcast("[リレー] %sが%sにエントリーしました", player.getName(), ToColoredString(teamColor));
@@ -575,7 +575,7 @@ public class RelayEventListener implements Listener, Competition {
 
         // 第一走者を検出する
         Map<TeamColor, Player> firstRunners = new HashMap<>();
-        World world = delegate.getWorld();
+        World world = delegate.mainGetWorld();
         if (world == null) {
             return;
         }
@@ -637,7 +637,7 @@ public class RelayEventListener implements Listener, Competition {
         broadcast("[リレー] 競技を開始します！");
         broadcast("");
         setStatus(Status.COUNTDOWN);
-        delegate.countdownThen(new BoundingBox[]{getAnnounceBounds()}, c -> _status == Status.COUNTDOWN, () -> {
+        delegate.mainCountdownThen(new BoundingBox[]{getAnnounceBounds()}, c -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
@@ -748,7 +748,7 @@ public class RelayEventListener implements Listener, Competition {
             return;
         }
         initialized = true;
-        delegate.runTaskLater(this::resetField, loadDelay);
+        delegate.mainRunTaskLater(this::resetField, loadDelay);
     }
 
     private BoundingBox getAnnounceBounds() {
@@ -818,7 +818,7 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     private void execute(String format, Object... args) {
-        delegate.execute(format, args);
+        delegate.mainExecute(format, args);
     }
 
     @Override

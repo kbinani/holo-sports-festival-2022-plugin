@@ -211,7 +211,7 @@ public class FencingEventListener implements Listener, Competition {
         bossbarRight.setValue(hitpointRight);
 
         if (shouldKill) {
-            delegate.runTaskLater(this::decideResult, 1);
+            delegate.mainRunTaskLater(this::decideResult, 1);
         }
     }
 
@@ -241,7 +241,7 @@ public class FencingEventListener implements Listener, Competition {
             right.setVelocity(velocity);
         }
 
-        delegate.runTaskLater(this::killLosers, 30);
+        delegate.mainRunTaskLater(this::killLosers, 30);
     }
 
     private void killLosers() {
@@ -372,7 +372,7 @@ public class FencingEventListener implements Listener, Competition {
         }
         initialized = true;
 
-        delegate.runTaskLater(() -> {
+        delegate.mainRunTaskLater(() -> {
             BoundingBox bounds = getAnnounceBounds();
             bossbarLeft = new Bossbar(delegate, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
             bossbarLeft.setMax(3);
@@ -419,7 +419,7 @@ public class FencingEventListener implements Listener, Competition {
         // ここで setStatus(Status.IDLE) すると相討ちの場合に後に onPlayerRespawn する側のリスポン位置が設定されない.
         // 1 tick 遅れて IDLE に戻す.
 
-        delegate.runTask(() -> {
+        delegate.mainRunTask(() -> {
             setStatus(Status.IDLE);
         });
     }
@@ -467,7 +467,7 @@ public class FencingEventListener implements Listener, Competition {
         } else if (team == Team.LEFT) {
             left = player;
         }
-        delegate.clearCompetitionItems(player);
+        delegate.mainClearCompetitionItems(player);
         execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
         broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
         if (right == null && left == null) {
@@ -520,7 +520,7 @@ public class FencingEventListener implements Listener, Competition {
         if (_status != Status.IDLE && _status != Status.AWAIT_COUNTDOWN) {
             return;
         }
-        CompetitionType type = delegate.getCurrentCompetition(player);
+        CompetitionType type = delegate.mainGetCurrentCompetition(player);
         if (type != null && type != CompetitionType.FENCING) {
             broadcastUnofficial("[フェンシング] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
             return;
@@ -597,7 +597,7 @@ public class FencingEventListener implements Listener, Competition {
         regenerate(right);
 
         setStatus(Status.COUNTDOWN);
-        delegate.countdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN, () -> {
+        delegate.mainCountdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
@@ -642,7 +642,7 @@ public class FencingEventListener implements Listener, Competition {
     }
 
     private void execute(String format, Object... args) {
-        delegate.execute(format, args);
+        delegate.mainExecute(format, args);
     }
 
     @Override

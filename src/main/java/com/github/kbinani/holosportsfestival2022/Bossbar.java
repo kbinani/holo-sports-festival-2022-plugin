@@ -83,7 +83,7 @@ public class Bossbar {
             if (timer != null) {
                 timer.cancel();
             }
-            timer = delegate.runTaskTimer(this::updatePlayers, 20, 20);
+            timer = delegate.mainRunTaskTimer(this::updatePlayers, 20, 20);
         } else {
             if (timer != null) {
                 timer.cancel();
@@ -124,6 +124,6 @@ public class Bossbar {
     }
 
     private void execute(String cmd, Object... args) {
-        delegate.execute(cmd, args);
+        delegate.mainExecute(cmd, args);
     }
 }
