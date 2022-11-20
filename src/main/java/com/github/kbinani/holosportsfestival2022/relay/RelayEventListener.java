@@ -57,6 +57,7 @@ public class RelayEventListener implements Listener, Competition {
 
         void clearParticipants() {
             participants.clear();
+            passedCheckPoint.clear();
         }
 
         boolean contains(@Nonnull Player player) {
@@ -250,11 +251,6 @@ public class RelayEventListener implements Listener, Competition {
             return;
         }
         onClickLeave(player);
-        if (getPlayerCount() > 0) {
-            setStatus(Status.AWAIT_START);
-        } else {
-            setStatus(Status.IDLE);
-        }
     }
 
     @EventHandler
@@ -291,14 +287,7 @@ public class RelayEventListener implements Listener, Competition {
         Vector location = player.getLocation().toVector();
         if (!outer.contains(location) || inner.contains(location) || eastWhiteLine.contains(location) || westWhiteLine.contains(location) || northWhiteLine.contains(location) || southWhiteLine.contains(location)) {
             broadcastUnofficial(ChatColor.RED + "%sの%sがコースから逸脱しました。失格とします", ToColoredString(color), player.getName());
-            clearBatons(player.getName());
-            race.remove(color);
-
-            if (race.getTeamCount() == 0) {
-                // 唯一のチームが失格になった. 結果も表示できないので AWAIT_START に戻す
-                setStatus(Status.AWAIT_START);
-            }
-
+            abstain(player);
             return;
         }
 
@@ -371,16 +360,41 @@ public class RelayEventListener implements Listener, Competition {
     @EventHandler
     @SuppressWarnings("unused")
     public void onGameModeChange(PlayerGameModeChangeEvent e) {
+        if (_status != Status.RUN) {
+            return;
+        }
         Player player = e.getPlayer();
         GameMode mode = e.getNewGameMode();
         if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
-            onClickLeave(player);
+            abstainIfRunner(player);
         }
     }
 
-    @EventHandler
-    @SuppressWarnings("unused")
-    public void onPlayerDeath(PlayerDeathEvent e) {
+    private void abstain(Player player) {
+        Race race = this.race;
+        if (race == null) {
+            return;
+        }
+        TeamColor color = getCurrentTeam(player);
+        if (color == null) {
+            return;
+        }
+        Team team = ensureTeam(color);
+        clearBatons(player.getName());
+        team.clearParticipants();
+        race.remove(color);
+
+        if (race.getTeamCount() == 0) {
+            if (getPlayerCount() == 0) {
+                setStatus(Status.IDLE);
+            } else {
+                // 唯一のチームが失格になった. 結果も表示できないので AWAIT_START に戻す
+                setStatus(Status.AWAIT_START);
+            }
+        }
+    }
+
+    private void abstainIfRunner(Player player) {
         if (_status != Status.RUN) {
             return;
         }
@@ -388,7 +402,6 @@ public class RelayEventListener implements Listener, Competition {
         if (race == null) {
             return;
         }
-        Player player = e.getEntity();
         TeamColor color = getCurrentTeam(player);
         if (color == null) {
             return;
@@ -401,7 +414,13 @@ public class RelayEventListener implements Listener, Competition {
         if (!runner.getUniqueId().equals(player.getUniqueId())) {
             return;
         }
-        onClickLeave(player);
+        abstain(player);
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerDeath(PlayerDeathEvent e) {
+        abstainIfRunner(e.getEntity());
     }
 
     private void resetField() {
