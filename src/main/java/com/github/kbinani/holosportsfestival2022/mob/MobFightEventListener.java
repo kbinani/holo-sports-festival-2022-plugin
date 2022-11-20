@@ -216,6 +216,18 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
+        Player player = e.getPlayer();
+        Participation participation = getCurrentParticipation(player);
+        if (participation == null) {
+            return;
+        }
+        Vector location = player.getLocation().toVector();
+        if (!offset(kAnnounceBounds).contains(location)) {
+            player.sendMessage(ChatColor.RED + "[MOB討伐レース] 場外に出たためエントリー解除となります");
+            onClickLeave(player);
+            return;
+        }
+
         if (_status != Status.RUN) {
             return;
         }
@@ -223,8 +235,6 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         if (race == null) {
             return;
         }
-        Player player = e.getPlayer();
-        Vector location = player.getLocation().toVector();
 
         for (Map.Entry<TeamColor, Level> it : levels.entrySet()) {
             TeamColor color = it.getKey();
@@ -693,7 +703,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
 
     static final String kItemTag = "hololive_sports_festival_2022_mob";
 
-    private static final BoundingBox kAnnounceBounds = new BoundingBox(-26, -61, -424, 79, -19, -244);
+    private static final BoundingBox kAnnounceBounds = new BoundingBox(-26, -61, -424, 83, -19, -243);
 
     private static final TeamColor[] kColors = new TeamColor[]{TeamColor.RED, TeamColor.YELLOW, TeamColor.WHITE};
 
