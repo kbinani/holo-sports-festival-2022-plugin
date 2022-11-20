@@ -191,16 +191,27 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 Calendar last = (Calendar) next.clone();
                 last.add(Calendar.MINUTE, -kAutoStartIntervalMinutes);
 
-                double wait = next.getTimeInMillis() - now.getTimeInMillis();
-                double passed = now.getTimeInMillis() - last.getTimeInMillis();
+                long wait = next.getTimeInMillis() - now.getTimeInMillis();
+                long passed = now.getTimeInMillis() - last.getTimeInMillis();
                 if (wait <= kTimerIntervalMillis * 0.5 || passed <= kTimerIntervalMillis * 0.5) {
                     manual = false;
                     start();
                 } else {
                     int stay = kTimerIntervalMillis * 20 / 1000 + 20;
-                    String subtitle = String.format("次回のスタートは %02d 時 %02d 分です (JST)", next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
+                    String titleString = "";
+                    String subtitleString = "";
+                    if (30 * 1000 >= wait) {
+                        int seconds = (int) (wait / 1000);
+                        titleString = String.format("開始まであと %d 秒です！", seconds);
+                        subtitleString = "";
+                    } else {
+                        titleString = "";
+                        subtitleString = String.format("次回のスタートは %02d 時 %02d 分です (JST)", next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
+                    }
+                    final String title = titleString;
+                    final String subtitle = subtitleString;
                     Players.Within(getAnnounceBounds(), player -> {
-                        player.sendTitle("", subtitle, 0, stay, 20);
+                        player.sendTitle(title, subtitle, 0, stay, 20);
                     });
                 }
                 break;
@@ -722,12 +733,8 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private void setTitle(@Nullable String title, @Nullable String subtitle) {
         String selector = TargetSelector.Of(getAnnounceBounds());
         execute("title @a[%s] reset", selector);
-        if (title != null) {
-            execute("title @a[%s] title \"%s\"", selector, title);
-        }
-        if (subtitle != null) {
-            execute("title @a[%s] subtitle \"%s\"", selector, subtitle);
-        }
+        execute("title @a[%s] title \"%s\"", selector, title == null ? "" : title);
+        execute("title @a[%s] subtitle \"%s\"", selector, subtitle == null ? "" : subtitle);
     }
 
     private void onClickTriggerRed(Player player) {
