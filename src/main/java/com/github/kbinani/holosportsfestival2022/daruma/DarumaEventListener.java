@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.security.SecureRandom;
 import java.util.Comparator;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,6 +36,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private final long loadDelay;
     private final MainDelegate delegate;
     private Map<UUID, Point3i> respawn = new HashMap<>();
+    private final Random random;
 
     enum Status {
         IDLE,
@@ -171,6 +173,13 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     public DarumaEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
         this.delegate = delegate;
+        Random random = null;
+        try {
+            random = SecureRandom.getInstance("SHA1PRNG");
+        } catch (Throwable e) {
+            random = new Random();
+        }
+        this.random = random;
         delegate.runTaskTimer(this::onTick, 0, 20);
     }
 
@@ -198,12 +207,18 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             case START:
             case RED:
                 if (!manual) {
-                    triggerGreen();
+                    int random = this.random.nextInt(100);
+                    if (random < 50) {
+                        triggerGreen();
+                    }
                 }
                 break;
             case GREEN:
                 if (!manual) {
-                    triggerRed();
+                    int random = this.random.nextInt(100);
+                    if (random < 20) {
+                        triggerRed();
+                    }
                 }
                 break;
         }
