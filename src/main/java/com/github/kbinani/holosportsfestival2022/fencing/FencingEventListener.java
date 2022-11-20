@@ -434,6 +434,29 @@ public class FencingEventListener implements Listener, Competition {
         }
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerMove(PlayerMoveEvent e) {
+        if (_status == Status.AWAIT_DEATH) {
+            // どこまで飛んでいくかわからないので勝敗が決して死に待ち状態の間は場外に出たかどうかの確認は省略する
+            return;
+        }
+        Player player = e.getPlayer();
+        World world = player.getWorld();
+        if (world.getEnvironment() != World.Environment.NORMAL) {
+            return;
+        }
+        Team team = getCurrentTeam(player);
+        if (team == null) {
+            return;
+        }
+        if (getAnnounceBounds().contains(player.getLocation().toVector())) {
+            return;
+        }
+        player.sendMessage(ChatColor.RED + "[フェンシング] 場外に出たためエントリー解除となります");
+        onClickLeave(player);
+    }
+
     private void joinPlayer(@Nonnull Player player, Team team) {
         if (getCurrentTeam(player) != null) {
             broadcast("[フェンシング] %sはエントリー済みです", player.getName());
