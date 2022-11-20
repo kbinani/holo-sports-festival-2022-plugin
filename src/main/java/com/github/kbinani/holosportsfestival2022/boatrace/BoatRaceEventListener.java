@@ -137,7 +137,7 @@ public class BoatRaceEventListener implements Competition {
         }
 
         // 競技用のエンティティを削除する. 競技場内に居るアイテム化したボート.
-        execute("kill @e[tag=%s,%s]", kItemTag, TargetSelector.Of(getBounds()));
+        execute("kill @e[tag=%s,%s]", kItemTag, TargetSelector.Of(getFieldBounds()));
     }
 
     private void setLeverPowered(Point3i pos, boolean powered) {
@@ -347,8 +347,9 @@ public class BoatRaceEventListener implements Competition {
             new Point3i(-105, -56, -189), // 西側のフェンスゲート
     };
     private static final String kItemTag = "hololive_sports_festival_2022_boat_race";
-    private static final Point3i kFieldNorthWest = new Point3i(-106, -60, -294);
-    private static final Point3i kFieldSouthEast = new Point3i(-24, -30, -127);
+    private static final BoundingBox kFieldBounds = new BoundingBox(-106, -60, -294, -24, -30, -127);
+    private static final BoundingBox kAnnounceBoundsNorth = new BoundingBox(-106, -60, -294, -11, -30, -243);
+    private static final BoundingBox kAnnounceBoundsSouth = new BoundingBox(-106, -60, -243, -2, -30, -126);
 
     public BoatRaceEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
@@ -358,21 +359,26 @@ public class BoatRaceEventListener implements Competition {
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
-        if (_status != Status.RUN) {
-            return;
-        }
         Player player = e.getPlayer();
         if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
             return;
         }
-        Location location = player.getLocation();
-        int x = location.getBlockX();
-        int y = location.getBlockY();
-        int z = location.getBlockZ();
         Participation participation = getCurrentParticipation(player);
         if (participation == null) {
             return;
         }
+        Location location = player.getLocation();
+        if (!getFieldBounds().contains(location.toVector())) {
+            onClickLeave(player);
+            return;
+        }
+
+        if (_status != Status.RUN) {
+            return;
+        }
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
         Team team = ensureTeam(participation.color);
         Team.PlayerStatus playerStatus = team.getPlayerStatus(player);
         if (playerStatus == null) {
@@ -542,7 +548,7 @@ public class BoatRaceEventListener implements Competition {
             if (world == null) {
                 return;
             }
-            Loader.LoadChunk(world, getBounds());
+            Loader.LoadChunk(world, getFieldBounds());
             resetField();
         }, loadDelay);
     }
@@ -577,7 +583,7 @@ public class BoatRaceEventListener implements Competition {
             return;
         }
 
-        BoundingBox bounds = getBounds();
+        BoundingBox bounds = getFieldBounds();
         if (!bounds.contains(pos.x, pos.y, pos.z)) {
             return;
         }
@@ -595,13 +601,14 @@ public class BoatRaceEventListener implements Competition {
         }
     }
 
-    private BoundingBox getBounds() {
-        return new BoundingBox(x(kFieldNorthWest.x), y(kFieldNorthWest.y), z(kFieldNorthWest.z), x(kFieldSouthEast.x), y(kFieldSouthEast.y), z(kFieldSouthEast.z));
+    private BoundingBox getFieldBounds() {
+        return offset(kFieldBounds);
     }
 
     private void broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(getBounds()), msg);
+        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBoundsNorth)), msg);
+        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBoundsSouth)), msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
@@ -745,15 +752,19 @@ public class BoatRaceEventListener implements Competition {
         setStatus(Status.COUNTDOWN);
 
         // 場内に居るボートに tag を付ける. 競技終了した時このタグが付いているボートを kill する.
-        execute("tag @e[type=boat,%s] add %s", TargetSelector.Of(getBounds()), kItemTag);
+        execute("tag @e[type=boat,%s] add %s", TargetSelector.Of(getFieldBounds()), kItemTag);
 
-        delegate.countdownThen(getBounds(), (count) -> _status == Status.COUNTDOWN, () -> {
+        delegate.countdownThen(new BoundingBox[]{offset(kAnnounceBoundsNorth), offset(kAnnounceBoundsSouth)}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
             setStatus(Status.RUN);
             return true;
         }, 20);
+    }
+
+    private BoundingBox offset(BoundingBox box) {
+        return new BoundingBox(x(box.getMinX()), y(box.getMinY()), z(box.getMinZ()), x(box.getMaxX()), y(box.getMaxY()), z(box.getMaxZ()));
     }
 
     private Point3i offset(Point3i p) {
@@ -772,6 +783,21 @@ public class BoatRaceEventListener implements Competition {
     }
 
     private int z(int z) {
+        // 座標が間違っていたらここでオフセットする
+        return z;
+    }
+
+    private double x(double x) {
+        // 座標が間違っていたらここでオフセットする
+        return x;
+    }
+
+    private double y(double y) {
+        // 座標が間違っていたらここでオフセットする
+        return y;
+    }
+
+    private double z(double z) {
         // 座標が間違っていたらここでオフセットする
         return z;
     }

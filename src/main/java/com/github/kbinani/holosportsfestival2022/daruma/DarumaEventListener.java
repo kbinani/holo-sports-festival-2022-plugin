@@ -589,7 +589,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         broadcast("");
 
         setStatus(Status.COUNTDOWN_START);
-        delegate.countdownThen(getAnnounceBounds(), (count) -> _status == Status.COUNTDOWN_START, () -> {
+        delegate.countdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN_START, () -> {
             if (_status != Status.COUNTDOWN_START) {
                 return false;
             }
@@ -637,7 +637,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             return;
         }
         setStatus(Status.COUNTDOWN_RED);
-        delegate.countdownThen(getAnnounceBounds(), (count) -> _status == Status.COUNTDOWN_RED, () -> {
+        delegate.countdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN_RED, () -> {
             if (_status != Status.COUNTDOWN_RED) {
                 return false;
             }

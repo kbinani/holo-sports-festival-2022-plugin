@@ -26,7 +26,7 @@ public interface MainDelegate {
 
     void info(String format, Object... args);
 
-    void countdownThen(BoundingBox box, Predicate<Integer> countdown, Supplier<Boolean> task, long delay);
+    void countdownThen(BoundingBox[] box, Predicate<Integer> countdown, Supplier<Boolean> task, long delay);
 
     void clearCompetitionItems(Player player);
 }

@@ -472,7 +472,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             Point3i safe = level.getSafeSpawnLocation();
             execute("tp %s %d %d %d", level.getTargetSelector(), safe.x, safe.y, safe.z);
         }
-        delegate.countdownThen(offset(kAnnounceBounds), (count) -> _status == Status.COUNTDOWN, () -> {
+        delegate.countdownThen(new BoundingBox[]{offset(kAnnounceBounds)}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }

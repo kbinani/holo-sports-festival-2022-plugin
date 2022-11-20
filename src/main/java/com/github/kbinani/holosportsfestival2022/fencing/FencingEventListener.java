@@ -574,7 +574,7 @@ public class FencingEventListener implements Listener, Competition {
         regenerate(right);
 
         setStatus(Status.COUNTDOWN);
-        delegate.countdownThen(getAnnounceBounds(), (count) -> _status == Status.COUNTDOWN, () -> {
+        delegate.countdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }

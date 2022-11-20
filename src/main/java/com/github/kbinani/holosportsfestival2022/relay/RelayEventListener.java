@@ -634,7 +634,7 @@ public class RelayEventListener implements Listener, Competition {
         broadcast("[リレー] 競技を開始します！");
         broadcast("");
         setStatus(Status.COUNTDOWN);
-        delegate.countdownThen(getAnnounceBounds(), c -> _status == Status.COUNTDOWN, () -> {
+        delegate.countdownThen(new BoundingBox[]{getAnnounceBounds()}, c -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
             }
