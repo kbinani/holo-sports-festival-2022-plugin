@@ -19,6 +19,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -800,6 +801,17 @@ public class RelayEventListener implements Listener, Competition {
     @Override
     public boolean isJoined(Player player) {
         return getCurrentTeam(player) != null;
+    }
+
+    @NotNull
+    @Override
+    public CompetitionType competitionGetType() {
+        return CompetitionType.RELAY;
+    }
+
+    @Override
+    public void clearCompetitionItems(Player player) {
+        clearBatons(player.getName());
     }
 
     private static final Point3i[] kCorner1stInner = new Point3i[]{

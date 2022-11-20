@@ -21,6 +21,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -248,7 +249,7 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
         //NOTE: 敗北者を kill する前にアイテムを回収
-        execute("clear @a iron_sword{tag:{%s:1b}}", kWeaponCustomTag);
+        clearItem("@a");
 
         if (left == null || right == null) {
             // 不在なのでノーコンテストに戻す
@@ -310,7 +311,7 @@ public class FencingEventListener implements Listener, Competition {
         fill(new Point3i(102, -16, -269), new Point3i(165, -18, -264), "air");
         bossbarLeft.setVisible(false);
         bossbarRight.setVisible(false);
-        execute("clear @a iron_sword{tag:{%s:1b}}", kWeaponCustomTag);
+        clearItem("@a");
         Editor.WallSign(offset(new Point3i(101, -19, -265)), BlockFace.NORTH, "右側エントリー");
         Editor.WallSign(offset(new Point3i(99, -19, -265)), BlockFace.NORTH, "エントリー解除");
         Editor.WallSign(offset(new Point3i(167, -19, -265)), BlockFace.NORTH, "左側エントリー");
@@ -540,8 +541,12 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
         clearPlayer(color);
-        execute("clear @p[name=\"%s\"] iron_sword{tag:{%s:1b}}", player.getName(), kWeaponCustomTag);
+        clearItem(player.getName());
         broadcast("[フェンシング] %sがエントリー解除しました", player.getName());
+    }
+
+    private void clearItem(String selector) {
+        execute("clear %s iron_sword{tag:{%s:1b}}", selector, kWeaponCustomTag);
     }
 
     private void onClickStart() {
@@ -619,6 +624,17 @@ public class FencingEventListener implements Listener, Competition {
     @Override
     public boolean isJoined(Player player) {
         return getCurrentTeam(player) != null;
+    }
+
+    @NotNull
+    @Override
+    public CompetitionType competitionGetType() {
+        return CompetitionType.FENCING;
+    }
+
+    @Override
+    public void clearCompetitionItems(Player player) {
+        clearItem(player.getName());
     }
 
     private static final Point3i kButtonRightJoin = new Point3i(101, -19, -265);

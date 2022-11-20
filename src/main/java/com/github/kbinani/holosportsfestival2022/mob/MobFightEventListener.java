@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -619,6 +620,17 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     @Override
     public boolean isJoined(Player player) {
         return getCurrentParticipation(player) != null;
+    }
+
+    @NotNull
+    @Override
+    public CompetitionType competitionGetType() {
+        return CompetitionType.MOB;
+    }
+
+    @Override
+    public void clearCompetitionItems(Player player) {
+        clearItem(player.getName());
     }
 
     static class Participation {

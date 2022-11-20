@@ -17,6 +17,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -806,6 +807,16 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     @Override
     public boolean isJoined(Player player) {
         return getCurrentColor(player) != null;
+    }
+
+    @Override
+    public void clearCompetitionItems(Player player) {
+        clearItem(player.getName());
+    }
+
+    @Override
+    public @NotNull CompetitionType competitionGetType() {
+        return CompetitionType.DARUMA;
     }
 
     private static final Point3i kButtonLeave = new Point3i(105, -60, -121);

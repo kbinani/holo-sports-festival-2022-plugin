@@ -29,11 +29,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 public class Main extends JavaPlugin implements Listener, MainDelegate {
-    private MobFightEventListener mobFightEventListener;
-    private FencingEventListener fencingEventListener;
-    private BoatRaceEventListener boatRaceEventListener;
-    private RelayEventListener relayEventListener;
-    private DarumaEventListener darumaEventListener;
+    private final List<Competition> competitions = new ArrayList<>();
     private @Nullable Optional<World> overworld;
 
     public Main() {
@@ -41,16 +37,10 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
 
     @Override
     public @Nullable CompetitionType getCurrentCompetition(Player player) {
-        if (mobFightEventListener.isJoined(player)) {
-            return CompetitionType.MOB;
-        } else if (fencingEventListener.isJoined(player)) {
-            return CompetitionType.FENCING;
-        } else if (boatRaceEventListener.isJoined(player)) {
-            return CompetitionType.BOAT_RACE;
-        } else if (relayEventListener.isJoined(player)) {
-            return CompetitionType.RELAY;
-        } else if (darumaEventListener.isJoined(player)) {
-            return CompetitionType.DARUMA;
+        for (Competition competition : competitions) {
+            if (competition.isJoined(player)) {
+                return competition.competitionGetType();
+            }
         }
         return null;
     }
@@ -97,6 +87,13 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     }
 
     @Override
+    public void clearCompetitionItems(Player player) {
+        for (Competition competition : competitions) {
+            competition.clearCompetitionItems(player);
+        }
+    }
+
+    @Override
     public void onEnable() {
         List<String> reasons = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
@@ -138,17 +135,15 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
             }
         }
 
-        this.mobFightEventListener = new MobFightEventListener(this, 20);
-        this.fencingEventListener = new FencingEventListener(this, 40);
-        this.boatRaceEventListener = new BoatRaceEventListener(this, 60);
-        this.relayEventListener = new RelayEventListener(this, 80);
-        this.darumaEventListener = new DarumaEventListener(this, 100);
+        competitions.add(new MobFightEventListener(this, 20));
+        competitions.add(new FencingEventListener(this, 40));
+        competitions.add(new BoatRaceEventListener(this, 60));
+        competitions.add(new RelayEventListener(this, 80));
+        competitions.add(new DarumaEventListener(this, 100));
         PluginManager pluginManager = getServer().getPluginManager();
-        pluginManager.registerEvents(this.mobFightEventListener, this);
-        pluginManager.registerEvents(this.fencingEventListener, this);
-        pluginManager.registerEvents(this.boatRaceEventListener, this);
-        pluginManager.registerEvents(this.relayEventListener, this);
-        pluginManager.registerEvents(this.darumaEventListener, this);
+        for (Listener competition : competitions) {
+            pluginManager.registerEvents(competition, this);
+        }
         pluginManager.registerEvents(this, this);
     }
 

@@ -10,7 +10,6 @@ import org.bukkit.entity.Boat;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
@@ -20,6 +19,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 
 //TODO: 妨害用アイテムをコレクションできないように対策する
 
-public class BoatRaceEventListener implements Listener, Competition {
+public class BoatRaceEventListener implements Competition {
     private final long loadDelay;
     private final MainDelegate delegate;
     private static final String kPrimaryShootItemDisplayName = "[水上レース専用] 暗闇（弱）";
@@ -782,5 +782,15 @@ public class BoatRaceEventListener implements Listener, Competition {
     @Override
     public boolean isJoined(Player player) {
         return getCurrentParticipation(player) != null;
+    }
+
+    @Override
+    public @NotNull CompetitionType competitionGetType() {
+        return CompetitionType.BOAT_RACE;
+    }
+
+    @Override
+    public void clearCompetitionItems(Player player) {
+        clearItems(player.getName());
     }
 }
