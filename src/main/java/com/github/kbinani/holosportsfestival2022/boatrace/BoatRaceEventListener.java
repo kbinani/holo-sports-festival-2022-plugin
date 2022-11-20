@@ -369,6 +369,7 @@ public class BoatRaceEventListener implements Competition {
         }
         Location location = player.getLocation();
         if (!getFieldBounds().contains(location.toVector())) {
+            player.sendMessage(ChatColor.RED + "[水上レース] 場外に出たためエントリー解除となります");
             onClickLeave(player);
             return;
         }
