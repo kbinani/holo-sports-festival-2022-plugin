@@ -27,8 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-//TODO: 金リンゴをコレクションできないように対策する
-
 public class DarumaEventListener implements Listener, Announcer, Competition {
     private boolean initialized = false;
     private Status _status = Status.IDLE;

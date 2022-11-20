@@ -30,8 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-//TODO: 妨害用アイテムをコレクションできないように対策する
-
 public class BoatRaceEventListener implements Competition {
     private final long loadDelay;
     private final MainDelegate delegate;
