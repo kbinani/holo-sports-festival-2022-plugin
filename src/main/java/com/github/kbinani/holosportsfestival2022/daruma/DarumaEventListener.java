@@ -490,6 +490,8 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             case COUNTDOWN_START:
                 setEntranceOpened(false);
                 setStartGateOpened(false);
+
+                // 参加者だけどスタートラインの柵の中に居ない人を白線まで移動
                 final BoundingBox startGrid = offset(kStartGridBounds);
                 for (Team team : teams.values()) {
                     team.eachPlayer((p) -> {
@@ -502,6 +504,12 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                         }
                     });
                 }
+
+                // 場内に入ってしまっている人を移動
+                Point3i to = offset(kSafeSpawnLocation);
+                execute("tp @a[%s,gamemode=survival] %f %f %f", TargetSelector.Of(offset(kHabitableZone)), to.x + 0.5, to.y, to.z + 0.5);
+                execute("tp @a[%s,gamemode=adventure] %f %f %f", TargetSelector.Of(offset(kHabitableZone)), to.x + 0.5, to.y, to.z + 0.5);
+
                 break;
             case START:
                 setEntranceOpened(false);
@@ -565,6 +573,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
         broadcast("-----------------------");
         broadcast("");
+
         setStatus(Status.COUNTDOWN_START);
         delegate.countdownThen(getAnnounceBounds(), (count) -> _status == Status.COUNTDOWN_START, () -> {
             if (_status != Status.COUNTDOWN_START) {
@@ -819,6 +828,8 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private static final BoundingBox kKillZone = new BoundingBox(104, -62, -223, 145, -55, -123);
     // 競技中移動できる領域. この領域から逸脱すると, "ころんだ" の時じゃなくても kill される.
     private static final BoundingBox kHabitableZone = new BoundingBox(104, -62, -223, 145, -55, -117.5);
+    // 開始時に場内に居る人を避難させる時の移動先
+    private static final Point3i kSafeSpawnLocation = new Point3i(124, -60, -112);
 
     private static final String kItemTag = "hololive_sports_festival_2022_daruma";
 }
