@@ -171,6 +171,49 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     public DarumaEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
         this.delegate = delegate;
+        delegate.runTaskTimer(this::onTick, 0, 20);
+    }
+
+    private void onTick() {
+        if (_status != Status.IDLE) {
+            return;
+        }
+        Calendar now = GregorianCalendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
+        Calendar next = getNextAutoStart();
+        Calendar last = (Calendar) next.clone();
+        last.add(Calendar.MINUTE, -kAutoStartIntervalMinutes);
+
+        double wait = next.getTimeInMillis() - now.getTimeInMillis();
+        double passed = now.getTimeInMillis() - last.getTimeInMillis();
+        if (wait <= kTimerIntervalMillis * 0.75 || passed <= kTimerIntervalMillis * 0.75) {
+            manual = false;
+            start();
+        } else {
+            String selector = TargetSelector.Of(getAnnounceBounds());
+            execute("title @a[%s] times 0 %d 0", selector, 2 * kTimerIntervalMillis * 20 / 1000);
+            execute("title @a[%s] title \"\"", selector);
+            execute("title @a[%s] subtitle \"次回のスタートは %02d 時 %02d 分です (JST)\"", selector, next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
+        }
+
+    }
+
+    private Calendar getNextAutoStart() {
+        Calendar now = GregorianCalendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
+        Calendar next = (Calendar) now.clone();
+        int index = next.get(Calendar.MINUTE) / kAutoStartIntervalMinutes;
+        int minutes = index * kAutoStartIntervalMinutes;
+        next.set(Calendar.MILLISECOND, 0);
+        next.set(Calendar.SECOND, 0);
+        next.set(Calendar.MINUTE, minutes);
+        while (next.before(now)) {
+            next.add(Calendar.MINUTE, kAutoStartIntervalMinutes);
+        }
+        while (next.after(now)) {
+            next.add(Calendar.MINUTE, -kAutoStartIntervalMinutes);
+        }
+        next.add(Calendar.MINUTE, kAutoStartIntervalMinutes);
+
+        return next;
     }
 
     @EventHandler
@@ -219,9 +262,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         } else if (location.equals(offset(kButtonStartPreliminary))) {
             // 予選
             onClickStart(player);
-        } else if (location.equals(offset(kButtonGreen))) {
+        } else if (manual && location.equals(offset(kButtonGreen))) {
             onClickGreen(player);
-        } else if (location.equals(offset(kButtonTriggerRed))) {
+        } else if (manual && location.equals(offset(kButtonTriggerRed))) {
             onClickTriggerRed(player);
         }
     }
@@ -500,30 +543,40 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                     race.announceOrders(this);
                 }
                 race = null;
+                manual = false;
                 break;
             case COUNTDOWN_START:
                 setEntranceOpened(false);
                 setStartGateOpened(false);
 
-                // 参加者だけどスタートラインの柵の中に居ない人を白線まで移動
                 final BoundingBox startGrid = offset(kStartGridBounds);
-                for (Team team : teams.values()) {
-                    team.eachPlayer((p) -> {
-                        Location l = p.getLocation();
-                        if (!startGrid.contains(l.toVector())) {
-                            l.setX(Clamp(l.getX(), startGrid.getMinX(), startGrid.getMaxX()));
-                            l.setY(startGrid.getMinY());
-                            l.setZ(zd(-120.5));
-                            p.teleport(l);
+                final BoundingBox habitable = offset(kHabitableZone);
+                final Point3i safeRespawn = offset(kSafeSpawnLocation);
+                Server server = Bukkit.getServer();
+                server.getOnlinePlayers().forEach(p -> {
+                    if (p.getWorld().getEnvironment() != World.Environment.NORMAL) {
+                        return;
+                    }
+                    Location location = p.getLocation();
+                    if (getCurrentColor(p) == null) {
+                        // 場内に入ってしまっている人を移動
+                        GameMode mode = p.getGameMode();
+                        if (habitable.contains(location.toVector()) && (mode == GameMode.ADVENTURE || mode == GameMode.SURVIVAL)) {
+                            location.setX(safeRespawn.x + 0.5);
+                            location.setY(safeRespawn.y);
+                            location.setZ(safeRespawn.z + 0.5);
+                            p.teleport(location);
                         }
-                    });
-                }
-
-                // 場内に入ってしまっている人を移動
-                Point3i to = offset(kSafeSpawnLocation);
-                execute("tp @a[%s,gamemode=survival] %f %f %f", TargetSelector.Of(offset(kHabitableZone)), to.x + 0.5, to.y, to.z + 0.5);
-                execute("tp @a[%s,gamemode=adventure] %f %f %f", TargetSelector.Of(offset(kHabitableZone)), to.x + 0.5, to.y, to.z + 0.5);
-
+                    } else {
+                        // 参加者だけどスタートラインの柵の中に居ない人を白線まで移動
+                        if (!startGrid.contains(location.toVector())) {
+                            location.setX(Clamp(location.getX(), startGrid.getMinX(), startGrid.getMaxX()));
+                            location.setY(startGrid.getMinY());
+                            location.setZ(zd(-120.5));
+                            p.teleport(location);
+                        }
+                    }
+                });
                 break;
             case START:
                 setEntranceOpened(false);
@@ -571,9 +624,23 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         if (_status != Status.IDLE) {
             return;
         }
+        manual = true;
+        start();
+    }
+
+    private void start() {
+        if (_status != Status.IDLE) {
+            return;
+        }
         int total = getPlayerCount();
         if (total < 1) {
-            broadcastUnofficial("[だるまさんがころんだ] 参加者が見つかりません");
+            if (manual) {
+                broadcastUnofficial("[だるまさんがころんだ] 参加者が見つかりません");
+            } else {
+                Calendar next = getNextAutoStart();
+                next.add(Calendar.MINUTE, kAutoStartIntervalMinutes);
+                broadcastUnofficial("[だるまさんがころんだ] 参加者が見つかりません。次回のスタートは %02d 時 %02d 分です", next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
+            }
             return;
         }
         broadcast("");
@@ -866,4 +933,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private static final Point3i kSafeSpawnLocation = new Point3i(124, -60, -112);
 
     private static final String kItemTag = "hololive_sports_festival_2022_daruma";
+
+    private static final int kAutoStartIntervalMinutes = 5;
+    private static final int kTimerIntervalMillis = 1000;
 }
