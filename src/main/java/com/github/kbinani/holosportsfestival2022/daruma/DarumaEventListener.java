@@ -384,7 +384,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             Point3i pos = offset(button);
             if (pos.equals(location)) {
                 BoundingBox box = new BoundingBox(pos.x - 6, pos.y - 6, pos.z - 6, pos.x + 6, pos.y + 6, pos.z + 6);
-                execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(box), ChatColor.RED + "このボタンは無効になっています. 代わりに看板を右クリックしてください. op のみ操作可能です");
+                execute("tellraw @a[%s,gamemode=creative] \"%s\"", TargetSelector.Of(box), ChatColor.RED + "このボタンは無効になっています. 代わりに看板を右クリックしてください. op のみ操作可能です");
                 e.setNewCurrent(0);
                 return;
             }
