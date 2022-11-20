@@ -231,20 +231,25 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
-        if (race == null) {
-            return;
-        }
-        final Race race = this.race;
         Player player = e.getPlayer();
         World world = player.getWorld();
         if (world.getEnvironment() != World.Environment.NORMAL) {
             return;
         }
-        if (!race.isRunning(player)) {
-            return;
-        }
         TeamColor color = getCurrentColor(player);
         if (color == null) {
+            return;
+        }
+        if (!offset(kAnnounceBounds).contains(player.getLocation().toVector())) {
+            player.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 場外に出たためエントリー解除となります");
+            onClickLeave(player);
+            return;
+        }
+        final Race race = this.race;
+        if (race == null) {
+            return;
+        }
+        if (!race.isRunning(player)) {
             return;
         }
         Team team = ensureTeam(color);
@@ -852,7 +857,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             new Point3i(122, -52, -228),
     };
 
-    private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
+    private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -62, -240, 152, -30, -106);
     private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -223);
     private static final BoundingBox kStartGridBounds = new BoundingBox(104, -60, -122.5, 145, -58, -120);
     // 競技中 "ころんだ" の時に動くと kill される領域
