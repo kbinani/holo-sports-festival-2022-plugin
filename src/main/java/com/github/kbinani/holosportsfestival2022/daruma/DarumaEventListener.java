@@ -380,6 +380,16 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
 
         Point3i location = new Point3i(e.getBlock().getLocation());
+        for (Point3i button : kDummyButtons) {
+            Point3i pos = offset(button);
+            if (pos.equals(location)) {
+                BoundingBox box = new BoundingBox(pos.x - 6, pos.y - 6, pos.z - 6, pos.x + 6, pos.y + 6, pos.z + 6);
+                execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(box), ChatColor.RED + "このボタンは無効になっています. 代わりに看板を右クリックしてください. op のみ操作可能です");
+                e.setNewCurrent(0);
+                return;
+            }
+        }
+
         if (location.y != y(-60)) {
             return;
         }
@@ -834,6 +844,13 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private static final Point3i kButtonGreen = new Point3i(124, -53, -229);
     // デバッグ用. 本家ではボタン押す形式だけど, ボタンだと誰でも押せてしまう. 誰でもスタートできるとマズいので看板右クリックの形式にする.
     private static final Point3i kButtonTriggerRed = new Point3i(122, -53, -229);
+    // 会場を再現するために置いてあるボタン. このボタンを押しても反応しない. おされたら警告メッセージを出す.
+    private static final Point3i[] kDummyButtons = new Point3i[]{
+            new Point3i(128, -52, -228),
+            new Point3i(126, -52, -228),
+            new Point3i(124, -52, -228),
+            new Point3i(122, -52, -228),
+    };
 
     private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -60, -240, 152, -30, -106);
     private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -223);
