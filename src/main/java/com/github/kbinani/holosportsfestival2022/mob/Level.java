@@ -132,12 +132,12 @@ class Level implements StageDelegate {
     }
 
     void showTitle(String text, String color) {
-        execute("title %s title {\"text\": \"%s\", \"bold\": true, \"color\": \"%s\"}", getTargetSelector(), text, color);
+        stageExecute("title %s title {\"text\": \"%s\", \"bold\": true, \"color\": \"%s\"}", getTargetSelector(), text, color);
     }
 
     @Override
-    public void execute(String format, Object... args) {
-        delegate.execute(format, args);
+    public void stageExecute(String format, Object... args) {
+        delegate.levelExecute(format, args);
     }
 
     void setExitOpened(boolean opened) {

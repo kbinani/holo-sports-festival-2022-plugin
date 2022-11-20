@@ -111,6 +111,6 @@ public abstract class Stage {
     }
 
     protected void execute(String format, Object... args) {
-        delegate.execute(format, args);
+        delegate.stageExecute(format, args);
     }
 }
