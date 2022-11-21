@@ -23,7 +23,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,122 +34,7 @@ public class RelayEventListener implements Listener, Competition {
     private final long loadDelay;
     private final MainDelegate delegate;
 
-    enum TeamColor {
-        RED,
-        WHITE,
-        YELLOW,
-    }
-
-    static class Team {
-        private final Set<Player> participants = new HashSet<>();
-        private final List<Player> order = new LinkedList<>();
-        private final List<Player> passedCheckPoint = new LinkedList<>();
-
-        int getPlayerCount() {
-            return (int) participants.stream().filter(Player::isOnline).count();
-        }
-
-        void add(@Nonnull Player player) {
-            participants.add(player);
-        }
-
-        void remove(@Nonnull Player player) {
-            participants.removeIf(it -> it.getUniqueId().equals(player.getUniqueId()));
-        }
-
-        void clearParticipants() {
-            participants.clear();
-            passedCheckPoint.clear();
-        }
-
-        boolean contains(@Nonnull Player player) {
-            return participants.stream().anyMatch(it -> it.getUniqueId().equals(player.getUniqueId()));
-        }
-
-        void pushRunner(@Nonnull Player player) {
-            if (!contains(player)) {
-                return;
-            }
-            order.add(player);
-        }
-
-        @Nullable
-        Player getCurrentRunner() {
-            if (order.isEmpty()) {
-                return null;
-            }
-            return order.stream().skip(order.size() - 1).findFirst().orElse(null);
-        }
-
-        void pushPassedCheckPoint(@Nonnull Player player) {
-            if (!contains(player)) {
-                return;
-            }
-            passedCheckPoint.add(player);
-        }
-
-        boolean isRunnerPassedCheckPoint(@Nonnull Player player) {
-            return passedCheckPoint.stream().anyMatch(it -> it.getUniqueId().equals(player.getUniqueId()));
-        }
-
-        void clearOrder() {
-            order.clear();
-        }
-
-        int getOrderLength() {
-            return order.size();
-        }
-
-        void clearPassedCheckPoint() {
-            passedCheckPoint.clear();
-        }
-    }
-
     private final Map<TeamColor, Team> teams = new HashMap<>();
-
-    static class Race {
-        final int numberOfLaps;
-        final List<TeamColor> order = new LinkedList<>();
-        final Set<TeamColor> participants = new HashSet<>();
-
-        Race(int numberOfLaps) {
-            this.numberOfLaps = numberOfLaps;
-        }
-
-        int getTeamCount() {
-            return participants.size();
-        }
-
-        void add(TeamColor color) {
-            participants.add(color);
-        }
-
-        boolean isActive(TeamColor color) {
-            return participants.contains(color);
-        }
-
-        void remove(TeamColor color) {
-            participants.remove(color);
-        }
-
-        void pushOrder(TeamColor teamColor) {
-            if (!participants.contains(teamColor)) {
-                return;
-            }
-            order.add(teamColor);
-        }
-
-        boolean isAlreadyFinished(TeamColor color) {
-            return order.contains(color);
-        }
-    }
-
-    enum Status {
-        IDLE,
-        AWAIT_START,
-        COUNTDOWN,
-        RUN,
-    }
 
     private Status _status = Status.IDLE;
     private @Nullable Race race;
