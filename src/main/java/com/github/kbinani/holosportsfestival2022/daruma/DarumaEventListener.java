@@ -15,6 +15,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -434,7 +435,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             case IDLE:
                 setEntranceOpened(true);
                 setStartGateOpened(false);
-                clearItem("@a");
+                Bukkit.getServer().getOnlinePlayers().forEach(this::clearItem);
                 clearDispensers();
                 if (race != null) {
                     race.announceOrders(this);
@@ -699,7 +700,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
         Team team = ensureTeam(current);
         team.remove(player);
-        clearItem(String.format("@p[name=\"%s\"]", player.getName()));
+        clearItem(player);
         if (race != null) {
             race.withdraw(player);
         }
@@ -709,8 +710,11 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
     }
 
-    private void clearItem(String selector) {
-        execute("clear %s golden_apple{tag:{%s:1b}}", selector, kItemTag);
+    private void clearItem(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        if (inventory.contains(Material.GOLDEN_APPLE)) {
+            execute("clear %s golden_apple{tag:{%s:1b}}", player.getName(), kItemTag);
+        }
     }
 
     private void giveItem(Player player) {
@@ -802,7 +806,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
     @Override
     public void competitionClearItems(Player player) {
-        clearItem(player.getName());
+        clearItem(player);
     }
 
     @Override

@@ -1,10 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.relay;
 
 import com.github.kbinani.holosportsfestival2022.*;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -47,13 +44,13 @@ public class RelayEventListener implements Listener, Competition {
         switch (_status) {
             case IDLE:
                 resetField();
-                clearBatons("@a");
+                Bukkit.getServer().getOnlinePlayers().forEach(this::clearBatons);
                 race = null;
                 break;
             case AWAIT_START:
                 setEnableStartGate(true);
                 setEnableCornerFence(true);
-                clearBatons("@a");
+                Bukkit.getServer().getOnlinePlayers().forEach(this::clearBatons);
                 break;
             case COUNTDOWN:
                 break;
@@ -268,7 +265,7 @@ public class RelayEventListener implements Listener, Competition {
             return;
         }
         Team team = ensureTeam(color);
-        clearBatons(player.getName());
+        clearBatons(player);
         team.clearParticipants();
         if (this.race != null) {
             race.remove(color);
@@ -481,14 +478,16 @@ public class RelayEventListener implements Listener, Competition {
         Team team = ensureTeam(color);
         team.remove(player);
         broadcast("[リレー] %sがエントリー解除しました", player.getName());
-        clearBatons(player.getName());
+        clearBatons(player);
 
         // チーム競技なので人数が減ったら強制的にノーコンテストにする
         setStatus(Status.IDLE);
     }
 
-    private void clearBatons(String selector) {
-        execute("clear %s blaze_rod{tag:{%s:1b}}", selector, kItemTag);
+    private void clearBatons(Player player) {
+        if (player.getInventory().contains(Material.BLAZE_ROD)) {
+            execute("clear %s blaze_rod{tag:{%s:1b}}", player.getName(), kItemTag);
+        }
     }
 
     private void giveBaton(Player player) {
@@ -675,7 +674,7 @@ public class RelayEventListener implements Listener, Competition {
 
         // バトンパスする
         team.pushRunner(to);
-        clearBatons(from.getName());
+        clearBatons(from);
         giveBaton(to);
         broadcast("%s バトンタッチ！%sがスタート！", ToColoredString(teamColor), to.getName());
     }
@@ -775,7 +774,7 @@ public class RelayEventListener implements Listener, Competition {
 
     @Override
     public void competitionClearItems(Player player) {
-        clearBatons(player.getName());
+        clearBatons(player);
     }
 
     private static final Point3i[] kCorner1stInner = new Point3i[]{

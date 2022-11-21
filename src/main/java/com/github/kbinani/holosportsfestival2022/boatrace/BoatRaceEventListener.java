@@ -15,6 +15,7 @@ import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -53,7 +54,7 @@ public class BoatRaceEventListener implements Competition {
         switch (status) {
             case IDLE:
                 resetField();
-                clearItems("@a");
+                Bukkit.getServer().getOnlinePlayers().forEach(this::clearItems);
                 break;
             case AWAIT_START:
                 // ゴールラインに柵を設置
@@ -546,7 +547,7 @@ public class BoatRaceEventListener implements Competition {
         }
         Team team = ensureTeam(current.color);
         team.setPlayer(current.role, null);
-        clearItems(String.format("@p[name=\"%s\"]", player.getName()));
+        clearItems(player);
         broadcast("[水上レース] %sがエントリー解除しました", player.getName());
 
         AtomicInteger totalPlayerCount = new AtomicInteger(0);
@@ -559,9 +560,21 @@ public class BoatRaceEventListener implements Competition {
         }
     }
 
-    private void clearItems(String selector) {
-        for (String item : new String[]{"snowball", "crossbow", "splash_potion", Boat(TeamColor.RED).name().toLowerCase(), Boat(TeamColor.YELLOW).name().toLowerCase(), Boat(TeamColor.WHITE).name().toLowerCase()}) {
-            execute("clear %s %s{tag:{%s:1b}}", selector, item, kItemTag);
+    private void clearItems(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        if (inventory.contains(Material.SNOWBALL)) {
+            execute("clear %s snowball{tag:{%s:1b}}", player.getName(), kItemTag);
+        }
+        if (inventory.contains(Material.CROSSBOW)) {
+            execute("clear %s crossbow{tag:{%s:1b}}", player.getName(), kItemTag);
+        }
+        if (inventory.contains(Material.SPLASH_POTION)) {
+            execute("clear %s splash_potion{tag:{%s:1b}}", player.getName(), kItemTag);
+        }
+        for (Material material : new Material[]{Boat(TeamColor.RED), Boat(TeamColor.YELLOW), Boat(TeamColor.WHITE)}) {
+            if (inventory.contains(material)) {
+                execute("clear %s %s{tag:{%s:1b}}", player.getName(), material.name().toLowerCase(), kItemTag);
+            }
         }
     }
 
@@ -685,6 +698,6 @@ public class BoatRaceEventListener implements Competition {
 
     @Override
     public void competitionClearItems(Player player) {
-        clearItems(player.getName());
+        clearItems(player);
     }
 }

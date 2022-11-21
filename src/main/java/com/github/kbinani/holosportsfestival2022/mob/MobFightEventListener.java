@@ -1,9 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.*;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -14,6 +12,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +47,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         switch (_status) {
             case IDLE:
                 resetField();
-                clearItem("@a");
+                Bukkit.getServer().getOnlinePlayers().forEach(this::clearItem);
                 for (Level level : levels.values()) {
                     level.reset();
                 }
@@ -424,7 +423,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         }
         Team team = ensureTeam(current.color);
         team.remove(player);
-        clearItem(String.format("@p[name=\"%s\"]", player.getName()));
+        clearItem(player);
         broadcast("[MOB討伐レース] %sがエントリー解除しました", player.getName());
 
         if (team.getPlayerCount() == 0) {
@@ -515,9 +514,12 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         return count;
     }
 
-    void clearItem(String selector) {
-        for (String item : new String[]{"iron_leggings", "iron_chestplate", "iron_helmet", "iron_boots", "golden_apple", "cooked_beef", "bow", "arrow", "shield", "iron_sword"}) {
-            levelExecute("clear %s %s{tag:{%s:1b}}", selector, item, kItemTag);
+    void clearItem(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        for (Material material : new Material[]{Material.IRON_LEGGINGS, Material.IRON_CHESTPLATE, Material.IRON_HELMET, Material.IRON_BOOTS, Material.GOLDEN_APPLE, Material.COOKED_BEEF, Material.BOW, Material.ARROW, Material.SHIELD, Material.IRON_SWORD}) {
+            if (inventory.contains(material)) {
+                levelExecute("clear %s %s{tag:{%s:1b}}", player.getName(), material.name().toLowerCase(), kItemTag);
+            }
         }
     }
 
@@ -637,7 +639,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
 
     @Override
     public void competitionClearItems(Player player) {
-        clearItem(player.getName());
+        clearItem(player);
     }
 
     static class Participation {

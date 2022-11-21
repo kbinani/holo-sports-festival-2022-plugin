@@ -236,7 +236,12 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
         //NOTE: 敗北者を kill する前にアイテムを回収
-        clearItem("@a");
+        if (left != null) {
+            clearItem(left);
+        }
+        if (right != null) {
+            clearItem(right);
+        }
 
         if (left == null || right == null) {
             // 不在なのでノーコンテストに戻す
@@ -298,7 +303,7 @@ public class FencingEventListener implements Listener, Competition {
         fill(new Point3i(102, -16, -269), new Point3i(165, -18, -264), "air");
         bossbarLeft.setVisible(false);
         bossbarRight.setVisible(false);
-        clearItem("@a");
+        Bukkit.getServer().getOnlinePlayers().forEach(this::clearItem);
         Editor.WallSign(offset(new Point3i(101, -19, -265)), BlockFace.NORTH, "右側エントリー");
         Editor.WallSign(offset(new Point3i(99, -19, -265)), BlockFace.NORTH, "エントリー解除");
         Editor.WallSign(offset(new Point3i(167, -19, -265)), BlockFace.NORTH, "左側エントリー");
@@ -552,12 +557,14 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
         clearPlayer(color);
-        clearItem(player.getName());
+        clearItem(player);
         broadcast("[フェンシング] %sがエントリー解除しました", player.getName());
     }
 
-    private void clearItem(String selector) {
-        execute("clear %s iron_sword{tag:{%s:1b}}", selector, kWeaponCustomTag);
+    private void clearItem(Player player) {
+        if (player.getInventory().contains(Material.IRON_SWORD)) {
+            execute("clear %s iron_sword{tag:{%s:1b}}", player.getName(), kWeaponCustomTag);
+        }
     }
 
     private void onClickStart() {
@@ -645,7 +652,7 @@ public class FencingEventListener implements Listener, Competition {
 
     @Override
     public void competitionClearItems(Player player) {
-        clearItem(player.getName());
+        clearItem(player);
     }
 
     private static final Point3i kButtonRightJoin = new Point3i(101, -19, -265);
