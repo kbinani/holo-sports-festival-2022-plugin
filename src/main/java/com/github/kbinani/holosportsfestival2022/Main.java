@@ -38,7 +38,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     @Override
     public @Nullable CompetitionType mainGetCurrentCompetition(Player player) {
         for (Competition competition : competitions) {
-            if (competition.isJoined(player)) {
+            if (competition.competitionIsJoined(player)) {
                 return competition.competitionGetType();
             }
         }
@@ -89,7 +89,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     @Override
     public void mainClearCompetitionItems(Player player) {
         for (Competition competition : competitions) {
-            competition.clearCompetitionItems(player);
+            competition.competitionClearItems(player);
         }
     }
 

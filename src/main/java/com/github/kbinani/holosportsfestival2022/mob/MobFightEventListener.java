@@ -630,7 +630,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     }
 
     @Override
-    public boolean isJoined(Player player) {
+    public boolean competitionIsJoined(Player player) {
         return getCurrentParticipation(player) != null;
     }
 
@@ -641,7 +641,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     }
 
     @Override
-    public void clearCompetitionItems(Player player) {
+    public void competitionClearItems(Player player) {
         clearItem(player.getName());
     }
 

@@ -822,7 +822,7 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     @Override
-    public boolean isJoined(Player player) {
+    public boolean competitionIsJoined(Player player) {
         return getCurrentTeam(player) != null;
     }
 
@@ -833,7 +833,7 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     @Override
-    public void clearCompetitionItems(Player player) {
+    public void competitionClearItems(Player player) {
         clearBatons(player.getName());
     }
 

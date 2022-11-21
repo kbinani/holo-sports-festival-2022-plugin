@@ -806,7 +806,7 @@ public class BoatRaceEventListener implements Competition {
     }
 
     @Override
-    public boolean isJoined(Player player) {
+    public boolean competitionIsJoined(Player player) {
         return getCurrentParticipation(player) != null;
     }
 
@@ -816,7 +816,7 @@ public class BoatRaceEventListener implements Competition {
     }
 
     @Override
-    public void clearCompetitionItems(Player player) {
+    public void competitionClearItems(Player player) {
         clearItems(player.getName());
     }
 }

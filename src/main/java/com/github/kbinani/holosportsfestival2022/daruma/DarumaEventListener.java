@@ -930,12 +930,12 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     @Override
-    public boolean isJoined(Player player) {
+    public boolean competitionIsJoined(Player player) {
         return getCurrentColor(player) != null;
     }
 
     @Override
-    public void clearCompetitionItems(Player player) {
+    public void competitionClearItems(Player player) {
         clearItem(player.getName());
     }
 
