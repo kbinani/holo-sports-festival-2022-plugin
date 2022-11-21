@@ -11,9 +11,6 @@ import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
 
 import javax.annotation.Nullable;
-import java.awt.*;
-import java.util.HashSet;
-import java.util.Set;
 
 public class Editor {
     private Editor() {
@@ -26,13 +23,9 @@ public class Editor {
         }
         int cx = p.x >> 4;
         int cz = p.z >> 4;
-        boolean loaded = world.isChunkLoaded(cx, cz);
         world.loadChunk(cx, cz);
         Server server = Bukkit.getServer();
         server.dispatchCommand(server.getConsoleSender(), String.format("setblock %d %d %d %s", p.x, p.y, p.z, block));
-        if (!loaded) {
-            world.unloadChunk(cx, cz);
-        }
     }
 
     public static void Stroke(String block, Point3i... points) {
@@ -62,20 +55,15 @@ public class Editor {
             cz0 = cz1;
             cz1 = t;
         }
-        Set<Point> loaded = new HashSet<>();
         for (int cx = cx0; cx <= cx1; cx++) {
             for (int cz = cz0; cz <= cz1; cz++) {
                 if (!world.isChunkLoaded(cx, cz)) {
                     world.loadChunk(cx, cz);
-                    loaded.add(new Point(cx, cz));
                 }
             }
         }
         Server server = Bukkit.getServer();
         server.dispatchCommand(server.getConsoleSender(), String.format("fill %d %d %d %d %d %d %s", from.x, from.y, from.z, to.x, to.y, to.z, block));
-        for (Point p : loaded) {
-            world.unloadChunk(p.x, p.y);
-        }
     }
 
     public static void WallSign(Point3i p, BlockFace facing, String line1, String line2, String line3) {
@@ -85,7 +73,6 @@ public class Editor {
         }
         int cx = p.x >> 4;
         int cz = p.z >> 4;
-        boolean loaded = world.isChunkLoaded(cx, cz);
         world.loadChunk(cx, cz);
         BlockData blockData = Material.BIRCH_WALL_SIGN.createBlockData("[facing=" + facing.name().toLowerCase() + "]");
         world.setBlockData(p.x, p.y, p.z, blockData);
@@ -106,9 +93,6 @@ public class Editor {
             sign.setLine(3, line3);
         }
         sign.update();
-        if (!loaded) {
-            world.unloadChunk(cx, cz);
-        }
     }
 
     public static void WallSign(Point3i p, BlockFace facing, String line1) {

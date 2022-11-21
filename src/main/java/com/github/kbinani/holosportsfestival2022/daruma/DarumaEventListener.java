@@ -418,19 +418,12 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         Block block = world.getBlockAt(position.x, position.y, position.z);
         BlockState state = block.getState();
         if (!(state instanceof Container)) {
-            if (!loaded) {
-                world.unloadChunk(cx, cz);
-            }
             return;
         }
         Dispenser dispenser = (Dispenser) state;
         Inventory inventory = dispenser.getInventory();
         inventory.clear();
-        if (!loaded) {
-            world.unloadChunk(cx, cz);
-        }
     }
-
 
     private void setStatus(Status status) {
         if (_status == status) {
