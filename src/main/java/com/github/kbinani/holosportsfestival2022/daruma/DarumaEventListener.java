@@ -728,11 +728,11 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void setStartGateOpened(boolean open) {
-        stroke(new Point3i(104, -59, -123), new Point3i(144, -59, -123), open ? "air" : "iron_bars");
+        stroke(new Point3i(104, -59, -123), new Point3i(144, -59, -123), open ? "air" : "iron_bars[east=true,west=true]");
     }
 
     private void setEntranceOpened(boolean open) {
-        String block = open ? "air" : "iron_bars";
+        String block = open ? "air" : "iron_bars[east=true,west=true]";
         stroke(new Point3i(103, -58, -118), new Point3i(145, -58, -118), block);
         stroke(new Point3i(144, -59, -118), new Point3i(104, -59, -118), block);
     }
