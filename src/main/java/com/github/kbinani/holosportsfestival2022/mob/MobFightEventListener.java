@@ -4,7 +4,6 @@ import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -555,27 +554,23 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     }
 
     private void resetField() {
-        World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
-        Loader.LoadChunk(world, offset(kAnnounceBounds));
+        delegate.mainUsingChunk(offset(kAnnounceBounds), world -> {
+            Editor.WallSign(offset(kButtonWhiteLeave), BlockFace.SOUTH, "エントリー解除");
+            Editor.WallSign(offset(kButtonWhiteJoinArrow), BlockFace.SOUTH, "白組", "エントリー", "（弓）");
+            Editor.WallSign(offset(kButtonWhiteJoinSword), BlockFace.SOUTH, "白組", "エントリー", "（剣）");
 
-        Editor.WallSign(offset(kButtonWhiteLeave), BlockFace.SOUTH, "エントリー解除");
-        Editor.WallSign(offset(kButtonWhiteJoinArrow), BlockFace.SOUTH, "白組", "エントリー", "（弓）");
-        Editor.WallSign(offset(kButtonWhiteJoinSword), BlockFace.SOUTH, "白組", "エントリー", "（剣）");
+            Editor.WallSign(offset(kButtonRedLeave), BlockFace.SOUTH, "エントリー解除");
+            Editor.WallSign(offset(kButtonRedJoinArrow), BlockFace.SOUTH, "赤組", "エントリー", "（弓）");
+            Editor.WallSign(offset(kButtonRedJoinSword), BlockFace.SOUTH, "赤組", "エントリー", "（剣）");
 
-        Editor.WallSign(offset(kButtonRedLeave), BlockFace.SOUTH, "エントリー解除");
-        Editor.WallSign(offset(kButtonRedJoinArrow), BlockFace.SOUTH, "赤組", "エントリー", "（弓）");
-        Editor.WallSign(offset(kButtonRedJoinSword), BlockFace.SOUTH, "赤組", "エントリー", "（剣）");
+            Editor.WallSign(offset(kButtonYellowLeave), BlockFace.SOUTH, "エントリー解除");
+            Editor.WallSign(offset(kButtonYellowJoinArrow), BlockFace.SOUTH, "黃組", "エントリー", "（弓）");
+            Editor.WallSign(offset(kButtonYellowJoinSword), BlockFace.SOUTH, "黃組", "エントリー", "（剣）");
 
-        Editor.WallSign(offset(kButtonYellowLeave), BlockFace.SOUTH, "エントリー解除");
-        Editor.WallSign(offset(kButtonYellowJoinArrow), BlockFace.SOUTH, "黃組", "エントリー", "（弓）");
-        Editor.WallSign(offset(kButtonYellowJoinSword), BlockFace.SOUTH, "黃組", "エントリー", "（剣）");
-
-        for (TeamColor tc : kColors) {
-            ensureLevel(tc);
-        }
+            for (TeamColor tc : kColors) {
+                ensureLevel(tc);
+            }
+        });
     }
 
     private Point3i offset(Point3i p) {

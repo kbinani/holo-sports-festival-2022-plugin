@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -90,6 +91,14 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     public void mainClearCompetitionItems(Player player) {
         for (Competition competition : competitions) {
             competition.competitionClearItems(player);
+        }
+    }
+
+    @Override
+    public void mainUsingChunk(BoundingBox box, Consumer<World> callback) {
+        World world = overworld().orElse(null);
+        if (world != null) {
+            Loader.UsingChunk(world, box, this, callback);
         }
     }
 

@@ -6,6 +6,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -29,4 +30,6 @@ public interface MainDelegate {
     void mainCountdownThen(BoundingBox[] box, Predicate<Integer> countdown, Supplier<Boolean> task, long delay);
 
     void mainClearCompetitionItems(Player player);
+
+    void mainUsingChunk(BoundingBox box, Consumer<World> callback);
 }

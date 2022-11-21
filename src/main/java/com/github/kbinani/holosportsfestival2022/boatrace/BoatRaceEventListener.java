@@ -414,12 +414,9 @@ public class BoatRaceEventListener implements Competition {
         }
         initialized = true;
         delegate.mainRunTaskLater(() -> {
-            World world = delegate.mainGetWorld();
-            if (world == null) {
-                return;
-            }
-            Loader.LoadChunk(world, getFieldBounds());
-            resetField();
+            delegate.mainUsingChunk(getFieldBounds(), world -> {
+                resetField();
+            });
         }, loadDelay);
     }
 
