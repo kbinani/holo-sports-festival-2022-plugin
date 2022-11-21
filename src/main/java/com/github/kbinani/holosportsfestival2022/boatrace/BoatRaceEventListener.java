@@ -475,8 +475,8 @@ public class BoatRaceEventListener implements Competition {
 
     private void broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBoundsNorth)), msg);
-        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBoundsSouth)), msg);
+        execute("execute if entity @a[%s] run tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBoundsNorth)), TargetSelector.Of(offset(kAnnounceBoundsNorth)), msg);
+        execute("execute if entity @a[%s] run tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBoundsSouth)), TargetSelector.Of(offset(kAnnounceBoundsSouth)), msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する

@@ -616,9 +616,14 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         delegate.mainExecute(format, args);
     }
 
+    private void sendMessage(String message, String selectorArgFormat, Object ...args) {
+        String selector = String.format(selectorArgFormat, args);
+        levelExecute("execute if entity @a[%s] run tellraw @a[%s] \"%s\"", selector, selector, message);
+    }
+
     private void broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        levelExecute("tellraw @a[%s] \"%s\"", TargetSelector.Of(offset(kAnnounceBounds)), msg);
+        sendMessage(msg, TargetSelector.Of(offset(kAnnounceBounds)));
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する

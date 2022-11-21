@@ -335,7 +335,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             Point3i pos = offset(button);
             if (pos.equals(location)) {
                 BoundingBox box = new BoundingBox(pos.x - 6, pos.y - 6, pos.z - 6, pos.x + 6, pos.y + 6, pos.z + 6);
-                execute("tellraw @a[%s,gamemode=creative] \"%s\"", TargetSelector.Of(box), ChatColor.RED + "このボタンは無効になっています. 代わりに看板を右クリックしてください. op のみ操作可能です");
+                sendMessage(ChatColor.RED + "このボタンは無効になっています. 代わりに看板を右クリックしてください. op のみ操作可能です", "%s,gamemode=creative", TargetSelector.Of(box));
                 e.setNewCurrent(0);
                 return;
             }
@@ -655,9 +655,14 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         return "";
     }
 
+    private void sendMessage(String message, String selectorArgFormat, Object ...args) {
+        String selector = String.format(selectorArgFormat, args);
+        execute("execute if entity @a[%s] run tellraw @a[%s] \"%s\"", selector, selector, message);
+    }
+
     private void broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(getAnnounceBounds()), msg);
+        sendMessage(msg, TargetSelector.Of(getAnnounceBounds()));
     }
 
     private void broadcastUnofficial(String msg, Object... args) {
