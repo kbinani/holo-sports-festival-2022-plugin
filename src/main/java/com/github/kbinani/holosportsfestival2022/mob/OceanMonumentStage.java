@@ -1,5 +1,6 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
+import com.github.kbinani.holosportsfestival2022.Kill;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
@@ -88,7 +89,7 @@ class OceanMonumentStage extends Stage {
 
     @Override
     void onReset() {
-        execute("kill @e[type=trident,%s]", TargetSelector.Of(getBounds()));
+        Kill.Entities("type=trident,%s", TargetSelector.Of(getBounds()));
         remainingMobCount = 10;
     }
 

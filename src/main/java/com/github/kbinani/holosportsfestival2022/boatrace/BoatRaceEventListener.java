@@ -118,7 +118,7 @@ public class BoatRaceEventListener implements Competition {
         }
 
         // 競技用のエンティティを削除する. 競技場内に居るアイテム化したボート.
-        execute("kill @e[tag=%s,%s]", kItemTag, TargetSelector.Of(getFieldBounds()));
+        Kill.Entities("tag=%s,%s", kItemTag, TargetSelector.Of(getFieldBounds()));
     }
 
     private void setLeverPowered(Point3i pos, boolean powered) {
