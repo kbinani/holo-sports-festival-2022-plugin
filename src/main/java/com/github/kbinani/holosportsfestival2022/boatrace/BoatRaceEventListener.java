@@ -36,28 +36,10 @@ public class BoatRaceEventListener implements Competition {
     private static final String kPrimaryShootItemDisplayName = "[水上レース専用] 暗闇（弱）";
     private static final String kSecondaryShootItemDisplayName = "[水上レース専用] 暗闇（強）";
 
-    enum TeamColor {
-        RED,
-        WHITE,
-        YELLOW,
-    }
-
     static void AllTeamColors(Consumer<TeamColor> callback) {
         callback.accept(TeamColor.RED);
         callback.accept(TeamColor.WHITE);
         callback.accept(TeamColor.YELLOW);
-    }
-
-    enum Role {
-        DRIVER,
-        SHOOTER,
-    }
-
-    enum Status {
-        IDLE,
-        AWAIT_START,
-        COUNTDOWN,
-        RUN,
     }
 
     private Status _status = Status.IDLE;
@@ -204,117 +186,6 @@ public class BoatRaceEventListener implements Competition {
         }
     }
 
-    static class Participation {
-        final TeamColor color;
-        final Role role;
-
-        Participation(TeamColor color, Role role) {
-            this.color = color;
-            this.role = role;
-        }
-    }
-
-    static class Team {
-        private @Nullable Player shooter;
-        private @Nullable Player driver;
-
-        enum PlayerStatus {
-            IDLE,
-            STARTED,
-            CLEARED_CHECKPOINT1,
-            CLEARED_START_LINE1,
-            CLEARED_CHECKPOINT2,
-            FINISHED,
-        }
-
-        private static int RemainingRound(PlayerStatus s) {
-            switch (s) {
-                case IDLE:
-                case STARTED:
-                case CLEARED_CHECKPOINT1:
-                    return 2;
-                case CLEARED_START_LINE1:
-                case CLEARED_CHECKPOINT2:
-                    return 1;
-                case FINISHED:
-                    return 0;
-            }
-            return 2;
-        }
-
-        private final Map<Role, PlayerStatus> status = new HashMap<>();
-
-        void setPlayer(Role role, @Nullable Player player) {
-            if (role == Role.DRIVER) {
-                this.driver = player;
-            } else {
-                this.shooter = player;
-            }
-        }
-
-        @Nullable
-        Role getCurrentRole(@Nonnull Player player) {
-            if (driver != null && driver.getUniqueId().equals(player.getUniqueId())) {
-                return Role.DRIVER;
-            }
-            if (shooter != null && shooter.getUniqueId().equals(player.getUniqueId())) {
-                return Role.SHOOTER;
-            }
-            return null;
-        }
-
-        int getPlayerCount() {
-            // 一人でもメンバーが居れば準備済み扱いにする
-            int result = 0;
-            if (driver != null && driver.isOnline()) {
-                result++;
-            }
-            if (shooter != null && shooter.isOnline()) {
-                result++;
-            }
-            return result;
-        }
-
-        @Nullable
-        PlayerStatus getPlayerStatus(Player player) {
-            Role role = getCurrentRole(player);
-            if (role == null) {
-                return null;
-            }
-            return status.getOrDefault(role, PlayerStatus.IDLE);
-        }
-
-        void updatePlayerStatus(Role role, PlayerStatus status) {
-            this.status.put(role, status);
-            if (status == PlayerStatus.FINISHED) {
-                setPlayer(role, null);
-            }
-        }
-
-        int getRemainingRound() {
-            PlayerStatus driverStatus = status.computeIfAbsent(Role.DRIVER, it -> PlayerStatus.IDLE);
-            PlayerStatus shooterStatus = status.computeIfAbsent(Role.SHOOTER, it -> PlayerStatus.IDLE);
-            int driverRound = 0;
-            if (driver != null && driver.isOnline()) {
-                driverRound = RemainingRound(driverStatus);
-            }
-            int shooterRound = 0;
-            if (shooter != null && shooter.isOnline()) {
-                shooterRound = RemainingRound(shooterStatus);
-            }
-            return Math.max(driverRound, shooterRound);
-        }
-
-        void eachPlayer(TriConsumer<Player, Role, PlayerStatus> consumer) {
-            if (driver != null) {
-                consumer.accept(driver, Role.DRIVER, status.getOrDefault(Role.DRIVER, PlayerStatus.IDLE));
-            }
-            if (shooter != null) {
-                consumer.accept(shooter, Role.SHOOTER, status.getOrDefault(Role.SHOOTER, PlayerStatus.IDLE));
-            }
-        }
-    }
-
     private final Map<TeamColor, Team> teams = new HashMap<>();
 
     private @Nonnull Team ensureTeam(TeamColor color) {
@@ -379,7 +250,7 @@ public class BoatRaceEventListener implements Competition {
         int y = location.getBlockY();
         int z = location.getBlockZ();
         Team team = ensureTeam(participation.color);
-        Team.PlayerStatus playerStatus = team.getPlayerStatus(player);
+        PlayerStatus playerStatus = team.getPlayerStatus(player);
         if (playerStatus == null) {
             return;
         }
@@ -389,14 +260,14 @@ public class BoatRaceEventListener implements Competition {
             case STARTED:
                 if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
                     // 滝の頂上を通過
-                    team.updatePlayerStatus(participation.role, Team.PlayerStatus.CLEARED_CHECKPOINT1);
+                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT1);
                     delegate.mainInfo("[水上レース] %s %s%sが1周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                 }
                 break;
             case CLEARED_CHECKPOINT1:
                 if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
                     // ゴールラインを通過
-                    team.updatePlayerStatus(participation.role, Team.PlayerStatus.CLEARED_START_LINE1);
+                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_START_LINE1);
                     delegate.mainInfo("[水上レース] %s %s%sが1周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                     if (team.getRemainingRound() == 1) {
                         broadcast("%s あと1周！", ToColoredString(participation.color));
@@ -406,14 +277,14 @@ public class BoatRaceEventListener implements Competition {
             case CLEARED_START_LINE1:
                 if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
                     // 滝の頂上を通過
-                    team.updatePlayerStatus(participation.role, Team.PlayerStatus.CLEARED_CHECKPOINT2);
+                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT2);
                     delegate.mainInfo("[水上レース] %s %s%sが2周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                 }
                 break;
             case CLEARED_CHECKPOINT2:
                 if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
                     // ゴールラインを通過
-                    team.updatePlayerStatus(participation.role, Team.PlayerStatus.FINISHED);
+                    team.updatePlayerStatus(participation.role, PlayerStatus.FINISHED);
                     delegate.mainInfo("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                     if (team.getRemainingRound() == 0) {
                         broadcast("%s GOAL !!", ToColoredString(participation.color));
@@ -511,7 +382,7 @@ public class BoatRaceEventListener implements Competition {
                             continue;
                         }
                         team.eachPlayer((p, role, status) -> {
-                            if (status == Team.PlayerStatus.FINISHED || status == Team.PlayerStatus.IDLE) {
+                            if (status == PlayerStatus.FINISHED || status == PlayerStatus.IDLE) {
                                 return;
                             }
                             effect.apply(p);
@@ -738,8 +609,8 @@ public class BoatRaceEventListener implements Competition {
         }
         AllTeamColors(color -> {
             Team team = ensureTeam(color);
-            team.updatePlayerStatus(Role.DRIVER, Team.PlayerStatus.STARTED);
-            team.updatePlayerStatus(Role.SHOOTER, Team.PlayerStatus.STARTED);
+            team.updatePlayerStatus(Role.DRIVER, PlayerStatus.STARTED);
+            team.updatePlayerStatus(Role.SHOOTER, PlayerStatus.STARTED);
             if (team.getPlayerCount() > 0) {
                 finishedServerTime.put(color, (long) -1);
             }
