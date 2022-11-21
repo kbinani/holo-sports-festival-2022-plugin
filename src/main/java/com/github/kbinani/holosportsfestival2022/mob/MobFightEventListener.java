@@ -4,6 +4,7 @@ import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.boss.BarColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -80,11 +81,11 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             delegate.mainRunTaskLater(() -> {
                 BoundingBox box = offset(kAnnounceBounds);
                 Bossbar red = new Bossbar(delegate, kBossbarRed, "", box);
-                red.setColor("red");
+                red.setColor(BarColor.RED);
                 Bossbar yellow = new Bossbar(delegate, kBossbarYellow, "", box);
-                yellow.setColor("yellow");
+                yellow.setColor(BarColor.YELLOW);
                 Bossbar white = new Bossbar(delegate, kBossbarWhite, "", box);
-                white.setColor("white");
+                white.setColor(BarColor.WHITE);
                 bossbars.put(TeamColor.RED, red);
                 bossbars.put(TeamColor.YELLOW, yellow);
                 bossbars.put(TeamColor.WHITE, white);

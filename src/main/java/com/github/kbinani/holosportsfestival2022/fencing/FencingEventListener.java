@@ -6,6 +6,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.boss.BarColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -369,12 +370,12 @@ public class FencingEventListener implements Listener, Competition {
             bossbarLeft = new Bossbar(delegate, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
             bossbarLeft.setMax(3);
             bossbarLeft.setValue(3);
-            bossbarLeft.setColor("green");
+            bossbarLeft.setColor(BarColor.GREEN);
 
             bossbarRight = new Bossbar(delegate, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>", bounds);
             bossbarRight.setMax(3);
             bossbarRight.setValue(3);
-            bossbarRight.setColor("green");
+            bossbarRight.setColor(BarColor.GREEN);
 
             clearField();
         }, loadDelay);
