@@ -10,6 +10,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class Editor {
@@ -25,22 +26,46 @@ public class Editor {
         int cz = p.z >> 4;
         world.loadChunk(cx, cz);
         Server server = Bukkit.getServer();
-        server.dispatchCommand(server.getConsoleSender(), String.format("setblock %d %d %d %s", p.x, p.y, p.z, block));
-    }
-
-    public static void Stroke(String block, Point3i... points) {
-        for (int i = 0; i < points.length - 1; i++) {
-            Point3i from = points[i];
-            Point3i to = points[i + 1];
-            Fill(from, to, block);
+        BlockData blockData = null;
+        try {
+            blockData = server.createBlockData(block);
+        } catch (Throwable e) {
+            e.printStackTrace(System.err);
+            return;
         }
+        world.setBlockData(p.x, p.y, p.z, blockData);
     }
 
-    public static void Fill(Point3i from, Point3i to, String block) {
+    public static void Fill(Point3i from, Point3i to, String blockDataString) {
         World world = Overworld();
         if (world == null) {
             return;
         }
+        Load(world, from, to);
+        Server server = Bukkit.getServer();
+        BlockData blockData = null;
+        try {
+            blockData = server.createBlockData(blockDataString);
+        } catch (Throwable e) {
+            e.printStackTrace(System.err);
+            return;
+        }
+        int x0 = Math.min(from.x, to.x);
+        int y0 = Math.min(from.y, to.y);
+        int z0 = Math.min(from.z, to.z);
+        int x1 = Math.max(from.x, to.x);
+        int y1 = Math.max(from.y, to.y);
+        int z1 = Math.max(from.z, to.z);
+        for (int y = y0; y <= y1; y++) {
+            for (int z = z0; z <= z1; z++) {
+                for (int x = x0; x <= x1; x++) {
+                    world.setBlockData(x, y, z, blockData);
+                }
+            }
+        }
+    }
+
+    private static void Load(@Nonnull World world, Point3i from, Point3i to) {
         int cx0 = from.x >> 4;
         int cz0 = from.z >> 4;
         int cx1 = to.x >> 4;
@@ -62,8 +87,6 @@ public class Editor {
                 }
             }
         }
-        Server server = Bukkit.getServer();
-        server.dispatchCommand(server.getConsoleSender(), String.format("fill %d %d %d %d %d %d %s", from.x, from.y, from.z, to.x, to.y, to.z, block));
     }
 
     public static void WallSign(Point3i p, BlockFace facing, String line1, String line2, String line3) {

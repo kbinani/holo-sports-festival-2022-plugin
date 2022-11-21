@@ -330,14 +330,65 @@ public class RelayEventListener implements Listener, Competition {
         } else {
             block = "air";
         }
+
+        // 第1コーナー内側
         stroke(block, kCorner1stInner);
+        if (enable) {
+            setBlock(new Point3i(62, -60, -179), "birch_fence[north=true,west=true]");
+            setBlock(new Point3i(63, -60, -180), "birch_fence[north=true,west=true]");
+            setBlock(new Point3i(64, -60, -181), "birch_fence[north=true,west=true]");
+        }
+
+        // 第1コーナー外側
         stroke(block, kCorner1stOuter);
+        if (enable) {
+            setBlock(new Point3i(70, -60, -171), "birch_fence[north=true,west=true]");
+            setBlock(new Point3i(72, -60, -173), "birch_fence[north=true,west=true]");
+            setBlock(new Point3i(71, -60, -172), "birch_fence[north=true,west=true]");
+        }
+
+        // 第2コーナー内側
         stroke(block, kCorner2ndInner);
+        if (enable) {
+            setBlock(new Point3i(62, -60, -226), "birch_fence[south=true,west=true]");
+            setBlock(new Point3i(64, -60, -224), "birch_fence[south=true,west=true]");
+        }
+
+        // 第2コーナー外側
         stroke(block, kCorner2ndOuter);
+        if (enable) {
+            setBlock(new Point3i(72, -60, -232), "birch_fence[south=true,west=true]");
+            setBlock(new Point3i(70, -60, -234), "birch_fence[south=true,west=true]");
+        }
+
+        // 第3コーナー内側
         stroke(block, kCorner3rdInner);
+        if (enable) {
+            setBlock(new Point3i(11, -60, -225), "birch_fence[north=true,west=true]");
+            setBlock(new Point3i(11, -60, -226), "birch_fence[east=true,south=true]");
+            setBlock(new Point3i(10, -60, -224), "birch_fence[north=true,west=true]");
+        }
+
+        // 第3コーナー外側
         stroke(block, kCorner3rdOuter);
+        if (enable) {
+            setBlock(new Point3i(3, -60, -234), "birch_fence[east=true,south=true]");
+            setBlock(new Point3i(2, -60, -232), "birch_fence[north=true,west=true]");
+        }
+
+        // 第4コーナー内側
         stroke(block, kCorner4thInner);
+        if (enable) {
+            setBlock(new Point3i(10, -60, -180), "birch_fence[east=true,north=true]");
+            setBlock(new Point3i(9, -60, -181), "birch_fence[east=true,north=true]");
+        }
+
+        // 第4コーナー外側
         stroke(block, kCorner4thOuter);
+        if (enable) {
+            setBlock(new Point3i(2, -60, -173), "birch_fence[south=true,west=true]");
+            setBlock(new Point3i(1, -60, -173), "birch_fence[east=true,north=true]");
+        }
     }
 
     private void setEnableStartGate(boolean enable) {
@@ -356,6 +407,9 @@ public class RelayEventListener implements Listener, Competition {
             fill(new Point3i(39, -60, -174), new Point3i(40, -60, -172), "birch_fence");
             setBlock(new Point3i(39, -61, -173), "command_block[facing=north]");
             setBlock(new Point3i(39, -60, -173), "birch_button[face=floor,facing=east]");
+
+            setBlock(new Point3i(38, -60, -176), "birch_fence[east=true,north=true,west=true]");
+            setBlock(new Point3i(39, -60, -174), "birch_fence[east=true,north=true,west=true]");
         } else {
             fill(new Point3i(37, -60, -178), new Point3i(40, -60, -172), "air");
             fill(new Point3i(40, -61, -172), new Point3i(37, -61, -178), "dirt_path");
