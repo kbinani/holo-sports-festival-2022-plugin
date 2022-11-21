@@ -50,20 +50,7 @@ public class FencingEventListener implements Listener, Competition {
         this.delegate = delegate;
     }
 
-    enum Status {
-        IDLE,
-        AWAIT_COUNTDOWN,
-        COUNTDOWN,
-        RUN,
-        AWAIT_DEATH,
-    }
-
-    enum Team {
-        LEFT,
-        RIGHT,
-    }
-
-    private FencingEventListener.Status _status = FencingEventListener.Status.IDLE;
+    private Status _status = Status.IDLE;
 
     private void setStatus(Status status) {
         if (status == _status) {
