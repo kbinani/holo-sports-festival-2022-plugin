@@ -125,12 +125,12 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             order.sort(Comparator.comparingDouble(a -> a.tick));
             enumerateInOrder((order, p) -> {
                 if (p.getUniqueId().equals(player.getUniqueId())) {
-                    announcer.broadcast("%sが %d位 でクリア！", player.getName(), order);
+                    announcer.announcerBroadcast("%sが %d位 でクリア！", player.getName(), order);
                     announcedOrder.put(player.getUniqueId(), order);
                 } else {
                     Integer prev = announcedOrder.get(p.getUniqueId());
                     if (prev != null && order != prev) {
-                        announcer.broadcastUnofficial("判定の結果 %s の順位が %d位 から %d位 に変わりました", p.getName(), prev, order);
+                        announcer.announcerBroadcastUnofficial("判定の結果 %s の順位が %d位 から %d位 に変わりました", p.getName(), prev, order);
                         announcedOrder.put(p.getUniqueId(), order);
                     }
                 }
@@ -139,19 +139,19 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
         void announceOrders(Announcer announcer) {
             if (running.size() == 0) {
-                announcer.broadcast("");
-                announcer.broadcast("-----------------------");
-                announcer.broadcast("[試合終了]");
+                announcer.announcerBroadcast("");
+                announcer.announcerBroadcast("-----------------------");
+                announcer.announcerBroadcast("[試合終了]");
                 AtomicBoolean anyoneFinished = new AtomicBoolean(false);
                 enumerateInOrder((order, player) -> {
-                    announcer.broadcast("%d位 : %s", order, player.getName());
+                    announcer.announcerBroadcast("%d位 : %s", order, player.getName());
                     anyoneFinished.set(true);
                 });
                 if (!anyoneFinished.get()) {
-                    announcer.broadcastUnofficial("全員失格");
+                    announcer.announcerBroadcastUnofficial("全員失格");
                 }
-                announcer.broadcast("-----------------------");
-                announcer.broadcast("");
+                announcer.announcerBroadcast("-----------------------");
+                announcer.announcerBroadcast("");
             }
         }
 
@@ -796,15 +796,23 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         return "";
     }
 
-    @Override
-    public void broadcast(String format, Object... args) {
+    private void broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         execute("tellraw @a[%s] \"%s\"", TargetSelector.Of(getAnnounceBounds()), msg);
     }
 
-    @Override
-    public void broadcastUnofficial(String msg, Object... args) {
+    private void broadcastUnofficial(String msg, Object... args) {
         broadcast(msg, args);
+    }
+
+    @Override
+    public void announcerBroadcast(String format, Object... args) {
+        broadcast(format, args);
+    }
+
+    @Override
+    public void announcerBroadcastUnofficial(String format, Object... args) {
+        broadcastUnofficial(format, args);
     }
 
     private @Nonnull Team ensureTeam(TeamColor color) {
