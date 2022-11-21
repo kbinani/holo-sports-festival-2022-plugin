@@ -571,6 +571,9 @@ public class BoatRaceEventListener implements Competition {
         if (inventory.contains(Material.SPLASH_POTION)) {
             execute("clear %s splash_potion{tag:{%s:1b}}", player.getName(), kItemTag);
         }
+        if (inventory.contains(Material.FIREWORK_ROCKET)) {
+            execute("clear %s firework_rocket{tag:{%s:1b}}", player.getName(), kItemTag);
+        }
         for (Material material : new Material[]{Boat(TeamColor.RED), Boat(TeamColor.YELLOW), Boat(TeamColor.WHITE)}) {
             if (inventory.contains(material)) {
                 execute("clear %s %s{tag:{%s:1b}}", player.getName(), material.name().toLowerCase(), kItemTag);
