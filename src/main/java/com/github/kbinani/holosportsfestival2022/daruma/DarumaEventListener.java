@@ -590,10 +590,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void setTitle(@Nullable String title, @Nullable String subtitle) {
-        String selector = TargetSelector.Of(getAnnounceBounds());
-        execute("title @a[%s] reset", selector);
-        execute("title @a[%s] title \"%s\"", selector, title == null ? "" : title);
-        execute("title @a[%s] subtitle \"%s\"", selector, subtitle == null ? "" : subtitle);
+        Players.Within(getAnnounceBounds(), player -> {
+            player.sendTitle(title == null ? "" : title, subtitle == null ? "" : subtitle, 10, 70, 20);
+        });
     }
 
     private void onClickTriggerRed(Player player) {
