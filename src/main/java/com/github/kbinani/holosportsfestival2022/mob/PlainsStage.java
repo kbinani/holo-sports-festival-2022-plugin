@@ -86,9 +86,9 @@ class PlainsStage extends Stage {
                 break;
             case 1:
                 // 1F
-                summonZombieBoss(x(0), y(-59), z(-274));
+                summonZombieBoss(0, -59, -274);
                 // 2F
-                summonZombieBoss(x(-8), y(-48), z(-268));
+                summonZombieBoss(-8, -48, -268);
                 addGlowingEffect();
                 // BOSS 戦の様子 (60fps)
                 // https://www.youtube.com/watch?v=TiSgN3lvfrM
@@ -135,7 +135,7 @@ class PlainsStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Zombie zombie = (Zombie) it;
             if (baby) {
                 zombie.setBaby();
@@ -158,7 +158,7 @@ class PlainsStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Zombie zombie = (Zombie) it;
             zombie.setAdult();
             EntityEquipment equipment = zombie.getEquipment();

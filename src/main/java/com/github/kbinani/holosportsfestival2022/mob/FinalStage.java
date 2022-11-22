@@ -81,7 +81,7 @@ class FinalStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.CREEPER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.CREEPER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Creeper creeper = (Creeper) it;
             EntityEquipment equipment = creeper.getEquipment();
             DisableDrop(equipment);

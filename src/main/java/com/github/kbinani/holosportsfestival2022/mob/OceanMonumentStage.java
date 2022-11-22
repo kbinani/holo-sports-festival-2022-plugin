@@ -64,8 +64,8 @@ class OceanMonumentStage extends Stage {
                 summonGuardian(9, -57, -294);
                 break;
             case 1:
-                summonDrownedBoss(x(-3), y(-59), z(-299));
-                summonDrownedBoss(x(5), y(-43), z(-297));
+                summonDrownedBoss(-3, -59, -299);
+                summonDrownedBoss(5, -43, -297);
                 addGlowingEffect();
                 break;
         }
@@ -76,7 +76,7 @@ class OceanMonumentStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.DROWNED, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.DROWNED, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Drowned drowned = (Drowned) it;
             EntityEquipment equipment = drowned.getEquipment();
             DisableDrop(equipment);
@@ -93,7 +93,7 @@ class OceanMonumentStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.DROWNED, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.DROWNED, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Drowned drowned = (Drowned) it;
             drowned.setAdult();
             EntityEquipment equipment = drowned.getEquipment();
@@ -117,7 +117,7 @@ class OceanMonumentStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.GUARDIAN, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.GUARDIAN, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Guardian guardian = (Guardian) it;
             EntityEquipment equipment = guardian.getEquipment();
             DisableDrop(equipment);

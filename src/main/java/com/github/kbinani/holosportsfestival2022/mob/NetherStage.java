@@ -60,7 +60,7 @@ class NetherStage extends Stage {
                 summonWitherSkeleton(8, -49, -314);
                 summonWitherSkeleton(9, -55, -318);
 
-                summonGhast(x(-5), y(-47), z(-312));
+                summonGhast(-5, -47, -312);
 
                 addGlowingEffect();
                 break;
@@ -72,7 +72,7 @@ class NetherStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.GHAST, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.GHAST, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Ghast ghast = (Ghast) it;
             EntityEquipment equipment = ghast.getEquipment();
             DisableDrop(equipment);
@@ -91,7 +91,7 @@ class NetherStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.WITHER_SKELETON, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.WITHER_SKELETON, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             WitherSkeleton witherSkeleton = (WitherSkeleton) it;
             EntityEquipment equipment = witherSkeleton.getEquipment();
             DisableDrop(equipment);
@@ -118,7 +118,7 @@ class NetherStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.BLAZE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.BLAZE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Blaze blaze = (Blaze) it;
             EntityEquipment equipment = blaze.getEquipment();
             DisableDrop(equipment);
@@ -135,7 +135,7 @@ class NetherStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.ZOMBIFIED_PIGLIN, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.ZOMBIFIED_PIGLIN, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             PigZombie zombifiedPiglin = (PigZombie) it;
             zombifiedPiglin.setAdult();
             EntityEquipment equipment = zombifiedPiglin.getEquipment();

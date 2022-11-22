@@ -55,7 +55,7 @@ class WoodlandMansionStage extends Stage {
                 summonWitch(5, -49, -332);
                 break;
             case 1:
-                summonRavager(x(-1), y(-59), z(-349));
+                summonRavager(-1, -59, -349);
                 addGlowingEffect();
                 break;
         }
@@ -66,7 +66,7 @@ class WoodlandMansionStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.RAVAGER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.RAVAGER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Ravager ravager = (Ravager) it;
             EntityEquipment equipment = ravager.getEquipment();
             DisableDrop(equipment);
@@ -83,7 +83,7 @@ class WoodlandMansionStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.VINDICATOR, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.VINDICATOR, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Vindicator vindicator = (Vindicator) it;
             EntityEquipment equipment = vindicator.getEquipment();
             DisableDrop(equipment);
@@ -101,7 +101,7 @@ class WoodlandMansionStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.WITCH, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.WITCH, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Witch witch = (Witch) it;
             EntityEquipment equipment = witch.getEquipment();
             DisableDrop(equipment);
@@ -118,7 +118,7 @@ class WoodlandMansionStage extends Stage {
         if (world == null) {
             return;
         }
-        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.PILLAGER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+        world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.PILLAGER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Pillager pillager = (Pillager) it;
             EntityEquipment equipment = pillager.getEquipment();
             DisableDrop(equipment);
