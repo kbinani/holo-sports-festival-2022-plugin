@@ -501,14 +501,15 @@ public class FencingEventListener implements Listener, Competition {
         }
     }
 
-    private void broadcast(String format, Object... args) {
+    private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         Players.Within(getAnnounceBounds(), player -> player.sendMessage(msg));
+        return new ConsoleLogger(msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
-    private void broadcastUnofficial(String format, Object... args) {
-        broadcast(format, args);
+    private ConsoleLogger broadcastUnofficial(String format, Object... args) {
+        return broadcast(format, args);
     }
 
     private void onClickJoin(@Nonnull Player player, Team team) {

@@ -683,14 +683,15 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         return delegate.mainGetWorld();
     }
 
-    private void broadcast(String format, Object... args) {
+    private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         Players.Within(offset(kAnnounceBounds), player -> player.sendMessage(msg));
+        return new ConsoleLogger(msg);
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
-    private void broadcastUnofficial(String msg, Object... args) {
-        broadcast(msg, args);
+    private ConsoleLogger broadcastUnofficial(String msg, Object... args) {
+        return broadcast(msg, args);
     }
 
     @Override

@@ -666,23 +666,24 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         return "";
     }
 
-    private void broadcast(String format, Object... args) {
+    private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         Players.Within(getAnnounceBounds(), player -> player.sendMessage(msg));
+        return new ConsoleLogger(msg);
     }
 
-    private void broadcastUnofficial(String msg, Object... args) {
-        broadcast(msg, args);
-    }
-
-    @Override
-    public void announcerBroadcast(String format, Object... args) {
-        broadcast(format, args);
+    private ConsoleLogger broadcastUnofficial(String msg, Object... args) {
+        return broadcast(msg, args);
     }
 
     @Override
-    public void announcerBroadcastUnofficial(String format, Object... args) {
-        broadcastUnofficial(format, args);
+    public ConsoleLogger announcerBroadcast(String format, Object... args) {
+        return broadcast(format, args);
+    }
+
+    @Override
+    public ConsoleLogger announcerBroadcastUnofficial(String format, Object... args) {
+        return broadcastUnofficial(format, args);
     }
 
     private @Nonnull Team ensureTeam(TeamColor color) {
