@@ -4,6 +4,7 @@ import com.github.kbinani.holosportsfestival2022.*;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.boss.BarColor;
@@ -19,16 +20,18 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.UUID;
 
 public class FencingEventListener implements Listener, Competition {
     private @Nullable Player left;
@@ -461,29 +464,20 @@ public class FencingEventListener implements Listener, Competition {
             left = player;
         }
         delegate.mainClearCompetitionItems(player);
-        execute("give @p[name=\"%s\"] %s", player.getName(), Weapon());
+        ItemStack sword = ItemBuilder.For(Material.IRON_SWORD)
+                .amount(1)
+                .customByteTag(kWeaponCustomTag, (byte) 1)
+                .enchant(Enchantment.KNOCKBACK, 10)
+                .attributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, "", 0, AttributeModifier.Operation.ADD_NUMBER)
+                .flags(ItemFlag.HIDE_ATTRIBUTES)
+                .build();
+        player.getInventory().addItem(sword);
         broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
         if (right == null && left == null) {
             setStatus(Status.IDLE);
         } else {
             setStatus(Status.AWAIT_COUNTDOWN);
         }
-    }
-
-    private String Weapon() {
-        UUID attributeUid = UUID.randomUUID();
-        return String.format("iron_sword{tag:{%s:1b},HideFlags:2,Enchantments:[{id:knockback,lvl:10}],AttributeModifiers:[{AttributeName:\"generic.attack_damage\",Amount:0,Operation:0,UUID:%s}]}", kWeaponCustomTag, UUIDString(attributeUid));
-    }
-
-    // [I;-519191173,-134519044,310236205,-136580550]
-    static String UUIDString(UUID uid) {
-        byte[] bytes = new byte[16];
-        ByteBuffer bb = ByteBuffer.wrap(bytes);
-        bb.order(ByteOrder.BIG_ENDIAN);
-        bb.putLong(uid.getMostSignificantBits());
-        bb.putLong(uid.getLeastSignificantBits());
-        bb.flip();
-        return "[I;" + bb.getInt(0) + "," + bb.getInt(1) + "," + bb.getInt(2) + "," + bb.getInt(3) + "]";
     }
 
     private void clearPlayer(Team team) {
@@ -499,7 +493,7 @@ public class FencingEventListener implements Listener, Competition {
         }
     }
 
-    private void sendMessage(String message, String selectorArgFormat, Object ...args) {
+    private void sendMessage(String message, String selectorArgFormat, Object... args) {
         String selector = String.format(selectorArgFormat, args);
         execute("execute if entity @a[%s] run tellraw @a[%s] \"%s\"", selector, selector, message);
     }
@@ -568,8 +562,20 @@ public class FencingEventListener implements Listener, Competition {
     }
 
     private void clearItem(Player player) {
-        if (player.getInventory().contains(Material.IRON_SWORD)) {
-            execute("clear %s iron_sword{tag:{%s:1b}}", player.getName(), kWeaponCustomTag);
+        PlayerInventory inventory = player.getInventory();
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack item = inventory.getItem(i);
+            if (item == null) {
+                continue;
+            }
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) {
+                continue;
+            }
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            if (container.has(NamespacedKey.minecraft(kWeaponCustomTag), PersistentDataType.BYTE)) {
+                inventory.clear(i);
+            }
         }
     }
 

@@ -3,7 +3,10 @@ package com.github.kbinani.holosportsfestival2022;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -12,6 +15,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
+
+import java.util.UUID;
 
 public class ItemBuilder {
     private final ItemStack item;
@@ -70,7 +75,25 @@ public class ItemBuilder {
     }
 
     public ItemBuilder enchant(Enchantment ench, int level) {
-        item.addEnchantment(ench, level);
+        item.addUnsafeEnchantment(ench, level);
+        return this;
+    }
+
+    public ItemBuilder attributeModifier(Attribute attribute, String name, double amount, AttributeModifier.Operation op) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.addAttributeModifier(attribute, new AttributeModifier(UUID.randomUUID(), name, amount, op));
+            item.setItemMeta(meta);
+        }
+        return this;
+    }
+
+    public ItemBuilder flags(ItemFlag ...flags) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.addItemFlags(flags);
+            item.setItemMeta(meta);
+        }
         return this;
     }
 
