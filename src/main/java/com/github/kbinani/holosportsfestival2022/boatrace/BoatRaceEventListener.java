@@ -17,8 +17,11 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
@@ -363,7 +366,7 @@ public class BoatRaceEventListener implements Competition {
         if (_status == Status.RUN && item != null && (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {
             ItemMeta meta = item.getItemMeta();
             Participation participation = getCurrentParticipation(player);
-            if (participation != null && meta != null && participation.role == Role.SHOOTER) {
+            if (participation != null && meta != null && participation.role == Role.SHOOTER && meta.getPersistentDataContainer().has(NamespacedKey.minecraft(kItemTag), PersistentDataType.BYTE)) {
                 PotionEffect candidate = null;
                 if (kPrimaryShootItemDisplayName.equals(meta.getDisplayName())) {
                     item.setAmount(0);
@@ -522,14 +525,46 @@ public class BoatRaceEventListener implements Competition {
             Team p = ensureTeam(color);
             p.setPlayer(role, player);
             delegate.mainClearCompetitionItems(player);
+            PlayerInventory inventory = player.getInventory();
             if (role == Role.DRIVER) {
-                execute("give @p[name=\"%s\"] %s{tag:{%s:1b}}", player.getName(), Boat(color).name().toLowerCase(), kItemTag);
+                ItemStack boat =
+                        ItemBuilder.For(Boat(color))
+                                .amount(1)
+                                .customByteTag(kItemTag, (byte)1)
+                                .build();
+                inventory.addItem(boat);
             } else {
-                execute("give @p[name=\"%s\"] snowball{tag:{%s:1b},display:{Name:'[{\"text\":\"%s\"}]'}}", player.getName(), kItemTag, kPrimaryShootItemDisplayName);
-                execute("give @p[name=\"%s\"] crossbow{tag:{%s:1b}}", player.getName(), kItemTag);
-                execute("give @p[name=\"%s\"] splash_potion{Potion:darkness,tag:{%s:1b},display:{Name:'[{\"text\":\"%s\"}]'}}", player.getName(), kItemTag, kSecondaryShootItemDisplayName);
-                int c = FireworkRocketColor(color);
-                execute("give @p[name=\"%s\"] firework_rocket{tag:{%s:1b},Fireworks:{Explosions:[{Type:0,Flicker:0b,Trail:0b,Colors:[I;%d],FadeColors:[I;%d],Flight:3}]}} 3", player.getName(), kItemTag, c, c);
+                ItemStack snowball =
+                        ItemBuilder.For(Material.SNOWBALL)
+                                .amount(1)
+                                .displayName(kPrimaryShootItemDisplayName)
+                                .customByteTag(kItemTag, (byte)1)
+                                .build();
+                ItemStack crossbow =
+                        ItemBuilder.For(Material.CROSSBOW)
+                                .amount(1)
+                                .customByteTag(kItemTag, (byte)1)
+                                .build();
+                ItemStack splashPotion =
+                        ItemBuilder.For(Material.SPLASH_POTION)
+                                .amount(1)
+                                .displayName(kSecondaryShootItemDisplayName)
+                                .customByteTag(kItemTag, (byte)1)
+                                .potion(PotionType.UNCRAFTABLE)
+                                .build();
+                Color c = Color.fromRGB(FireworkRocketColor(color));
+                FireworkEffect effect = FireworkEffect.builder().withColor(c).withFade(c).build();
+                ItemStack fireworkRocket =
+                        ItemBuilder.For(Material.FIREWORK_ROCKET)
+                                .amount(3)
+                                .customByteTag(kItemTag, (byte)1)
+                                .firework(effect)
+                                .build();
+
+                inventory.addItem(snowball);
+                inventory.addItem(crossbow);
+                inventory.addItem(splashPotion);
+                inventory.addItem(fireworkRocket);
             }
             broadcast("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role));
             setStatus(Status.AWAIT_START);
@@ -562,21 +597,18 @@ public class BoatRaceEventListener implements Competition {
 
     private void clearItems(Player player) {
         PlayerInventory inventory = player.getInventory();
-        if (inventory.contains(Material.SNOWBALL)) {
-            execute("clear %s snowball{tag:{%s:1b}}", player.getName(), kItemTag);
-        }
-        if (inventory.contains(Material.CROSSBOW)) {
-            execute("clear %s crossbow{tag:{%s:1b}}", player.getName(), kItemTag);
-        }
-        if (inventory.contains(Material.SPLASH_POTION)) {
-            execute("clear %s splash_potion{tag:{%s:1b}}", player.getName(), kItemTag);
-        }
-        if (inventory.contains(Material.FIREWORK_ROCKET)) {
-            execute("clear %s firework_rocket{tag:{%s:1b}}", player.getName(), kItemTag);
-        }
-        for (Material material : new Material[]{Boat(TeamColor.RED), Boat(TeamColor.YELLOW), Boat(TeamColor.WHITE)}) {
-            if (inventory.contains(material)) {
-                execute("clear %s %s{tag:{%s:1b}}", player.getName(), material.name().toLowerCase(), kItemTag);
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack item = inventory.getItem(i);
+            if (item == null) {
+                continue;
+            }
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) {
+                continue;
+            }
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            if (container.has(NamespacedKey.minecraft(kItemTag), PersistentDataType.BYTE)) {
+                inventory.clear(i);
             }
         }
     }
