@@ -517,7 +517,7 @@ public class BoatRaceEventListener implements Competition {
         }
         CompetitionType type = delegate.mainGetCurrentCompetition(player);
         if (type != null && type != CompetitionType.BOAT_RACE) {
-            broadcastUnofficial("[水上レース] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            player.sendMessage(String.format("[水上レース] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type)));
             return;
         }
         if (player.getGameMode() != GameMode.ADVENTURE && player.getGameMode() != GameMode.SURVIVAL) {
@@ -643,7 +643,7 @@ public class BoatRaceEventListener implements Competition {
             totalPlayerCount += team.getPlayerCount();
         }
         if (totalPlayerCount < 1) {
-            broadcastUnofficial(ChatColor.RED + "[水上レース] 参加者が 0 人です").log();
+            broadcastUnofficial(ChatColor.RED + "[水上レース] 参加者が 0 人です");
             return;
         }
         broadcast("");
@@ -652,7 +652,7 @@ public class BoatRaceEventListener implements Competition {
             Team team = ensureTeam(color);
             int count = team.getPlayerCount();
             if (count < 1) {
-                broadcast("%sの参加者が見つかりません", ToString(color)).log(kLogPrefix);
+                broadcast("%sの参加者が見つかりません", ToString(color));
             } else {
                 broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count).log(kLogPrefix);
             }
