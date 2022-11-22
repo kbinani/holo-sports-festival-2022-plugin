@@ -665,7 +665,14 @@ public class BoatRaceEventListener implements Competition {
         setStatus(Status.COUNTDOWN);
 
         // 場内に居るボートに tag を付ける. 競技終了した時このタグが付いているボートを kill する.
-        execute("tag @e[type=boat,%s] add %s", TargetSelector.Of(getFieldBounds()), kItemTag);
+        World world = delegate.mainGetWorld();
+        if (world != null) {
+            world.getNearbyEntities(getFieldBounds()).forEach(entity -> {
+                if (entity.getType() == EntityType.BOAT) {
+                    entity.addScoreboardTag(kItemTag);
+                }
+            });
+        }
 
         delegate.mainCountdownThen(new BoundingBox[]{offset(kAnnounceBoundsNorth), offset(kAnnounceBoundsSouth)}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
@@ -714,11 +721,7 @@ public class BoatRaceEventListener implements Competition {
         // 座標が間違っていたらここでオフセットする
         return z;
     }
-
-    private void execute(String format, Object... args) {
-        delegate.mainExecute(format, args);
-    }
-
+    
     @Override
     public boolean competitionIsJoined(Player player) {
         return getCurrentParticipation(player) != null;
