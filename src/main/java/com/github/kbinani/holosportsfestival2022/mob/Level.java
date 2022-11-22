@@ -159,12 +159,16 @@ class Level implements StageDelegate {
     }
 
     void launchFireworkRockets(int color) {
-        FireworkRocket.Launch(x(-3) + 0.5, y(-49) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
-        FireworkRocket.Launch(x(-2) + 0.5, y(-47) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
-        FireworkRocket.Launch(x(-1) + 0.5, y(-46) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
-        FireworkRocket.Launch(x(2) + 0.5, y(-46) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
-        FireworkRocket.Launch(x(3) + 0.5, y(-47) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
-        FireworkRocket.Launch(x(4) + 0.5, y(-49) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        World world = delegate.levelGetWorld();
+        if (world == null) {
+            return;
+        }
+        FireworkRocket.Launch(world, x(-3) + 0.5, y(-49) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(-2) + 0.5, y(-47) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(-1) + 0.5, y(-46) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(2) + 0.5, y(-46) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(3) + 0.5, y(-47) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(4) + 0.5, y(-49) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
     }
 
     // 黄色チーム用 Level 原点: (-9, -59, -254)

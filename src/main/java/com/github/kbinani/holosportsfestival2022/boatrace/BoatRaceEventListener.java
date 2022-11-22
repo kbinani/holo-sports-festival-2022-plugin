@@ -154,10 +154,14 @@ public class BoatRaceEventListener implements Competition {
     }
 
     private void launchFireworkRockets(TeamColor color) {
+        World world = delegate.mainGetWorld();
+        if (world == null) {
+            return;
+        }
         int c = FireworkRocketColor(color);
         for (int i = 0; i < 5; i++) {
             Point3i pos = offset(new Point3i(-51 + i * 6, -50, -196));
-            FireworkRocket.Launch(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, new int[]{c}, new int[]{c}, 10, 1, false, false);
+            FireworkRocket.Launch(world, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, new int[]{c}, new int[]{c}, 10, 1, false, false);
         }
     }
 
@@ -528,7 +532,7 @@ public class BoatRaceEventListener implements Competition {
                 ItemStack boat =
                         ItemBuilder.For(Boat(color))
                                 .amount(1)
-                                .customByteTag(kItemTag, (byte)1)
+                                .customByteTag(kItemTag, (byte) 1)
                                 .build();
                 inventory.addItem(boat);
             } else {
@@ -536,18 +540,18 @@ public class BoatRaceEventListener implements Competition {
                         ItemBuilder.For(Material.SNOWBALL)
                                 .amount(1)
                                 .displayName(kPrimaryShootItemDisplayName)
-                                .customByteTag(kItemTag, (byte)1)
+                                .customByteTag(kItemTag, (byte) 1)
                                 .build();
                 ItemStack crossbow =
                         ItemBuilder.For(Material.CROSSBOW)
                                 .amount(1)
-                                .customByteTag(kItemTag, (byte)1)
+                                .customByteTag(kItemTag, (byte) 1)
                                 .build();
                 ItemStack splashPotion =
                         ItemBuilder.For(Material.SPLASH_POTION)
                                 .amount(1)
                                 .displayName(kSecondaryShootItemDisplayName)
-                                .customByteTag(kItemTag, (byte)1)
+                                .customByteTag(kItemTag, (byte) 1)
                                 .potion(PotionType.UNCRAFTABLE)
                                 .build();
                 Color c = Color.fromRGB(FireworkRocketColor(color));
@@ -555,7 +559,7 @@ public class BoatRaceEventListener implements Competition {
                 ItemStack fireworkRocket =
                         ItemBuilder.For(Material.FIREWORK_ROCKET)
                                 .amount(3)
-                                .customByteTag(kItemTag, (byte)1)
+                                .customByteTag(kItemTag, (byte) 1)
                                 .firework(effect)
                                 .build();
 
@@ -721,7 +725,7 @@ public class BoatRaceEventListener implements Competition {
         // 座標が間違っていたらここでオフセットする
         return z;
     }
-    
+
     @Override
     public boolean competitionIsJoined(Player player) {
         return getCurrentParticipation(player) != null;

@@ -267,7 +267,11 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void launchFireworkRocket(double x, double y, double z, int color) {
-        FireworkRocket.Launch(x, y, z, new int[]{color}, new int[]{color}, 20, 1, false, false);
+        World world = delegate.mainGetWorld();
+        if (world == null) {
+            return;
+        }
+        FireworkRocket.Launch(world, x, y, z, new int[]{color}, new int[]{color}, 20, 1, false, false);
     }
 
     @EventHandler

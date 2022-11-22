@@ -230,6 +230,10 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     private void launchFireworkRocket(TeamColor color) {
+        World world = delegate.mainGetWorld();
+        if (world == null) {
+            return;
+        }
         int c = 0;
         switch (color) {
             case WHITE:
@@ -244,11 +248,11 @@ public class RelayEventListener implements Listener, Competition {
             default:
                 return;
         }
-        FireworkRocket.Launch(x(41) + 0.5, y(-50) + 0.5, z(-171) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
-        FireworkRocket.Launch(x(41) + 0.5, y(-48) + 0.5, z(-173) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
-        FireworkRocket.Launch(x(41) + 0.5, y(-50) + 0.5, z(-175) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
-        FireworkRocket.Launch(x(41) + 0.5, y(-48) + 0.5, z(-177) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
-        FireworkRocket.Launch(x(41) + 0.5, y(-50) + 0.5, z(-179) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(41) + 0.5, y(-50) + 0.5, z(-171) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(41) + 0.5, y(-48) + 0.5, z(-173) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(41) + 0.5, y(-50) + 0.5, z(-175) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(41) + 0.5, y(-48) + 0.5, z(-177) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
+        FireworkRocket.Launch(world, x(41) + 0.5, y(-50) + 0.5, z(-179) + 0.5, new int[]{c}, new int[]{c}, 20, 1, false, false);
     }
 
     @EventHandler

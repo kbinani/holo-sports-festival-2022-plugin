@@ -17,7 +17,7 @@ public class FireworkRocket {
         public static final int WHITE = 15790320;
     }
 
-    public static void Launch(double x, double y, double z, int[] colors, int[] fadeColors, int lifeTime, int type, boolean flicker, boolean trail) {
+    public static void Launch(@Nonnull World world, double x, double y, double z, int[] colors, int[] fadeColors, int lifeTime, int type, boolean flicker, boolean trail) {
         Server server = Bukkit.getServer();
         String colorsString = Arrays.stream(colors).mapToObj((i) -> String.format("%d", i)).collect(Collectors.joining(","));
         String fadeColorsString = Arrays.stream(fadeColors).mapToObj(i -> String.format("%d", i)).collect(Collectors.joining(","));

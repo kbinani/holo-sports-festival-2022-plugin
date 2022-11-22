@@ -286,6 +286,10 @@ public class FencingEventListener implements Listener, Competition {
     }
 
     private void launchWinnerFireworkRocket(Team team) {
+        World world = delegate.mainGetWorld();
+        if (world == null) {
+            return;
+        }
         int[] colors = new int[]{FireworkRocket.Color.LIGHT_BLUE, FireworkRocket.Color.PINK, FireworkRocket.Color.YELLOW};
         int x = team == Team.RIGHT ? 99 : 139;
         int index = team == Team.RIGHT ? 2 : 0;
@@ -293,14 +297,18 @@ public class FencingEventListener implements Listener, Competition {
             int y = i % 2 == 0 ? -11 : -6;
             Point3i pos = offset(new Point3i(x + i * 5, y, -254));
             int color = colors[index % 3];
-            FireworkRocket.Launch(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, new int[]{color}, new int[]{}, 10, 1, false, false);
+            FireworkRocket.Launch(world, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, new int[]{color}, new int[]{}, 10, 1, false, false);
         }
     }
 
     private void launchLoserFireworkRocket(Location loc) {
-        FireworkRocket.Launch(loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.PINK}, new int[]{FireworkRocket.Color.PINK}, 0, 1, false, false);
-        FireworkRocket.Launch(loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.WHITE}, new int[]{FireworkRocket.Color.WHITE}, 0, 0, true, false);
-        FireworkRocket.Launch(loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.YELLOW}, new int[]{FireworkRocket.Color.YELLOW}, 0, 4, false, false);
+        World world = delegate.mainGetWorld();
+        if (world == null) {
+            return;
+        }
+        FireworkRocket.Launch(world, loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.PINK}, new int[]{FireworkRocket.Color.PINK}, 0, 1, false, false);
+        FireworkRocket.Launch(world, loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.WHITE}, new int[]{FireworkRocket.Color.WHITE}, 0, 0, true, false);
+        FireworkRocket.Launch(world, loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.YELLOW}, new int[]{FireworkRocket.Color.YELLOW}, 0, 4, false, false);
     }
 
     private void clearField() {
