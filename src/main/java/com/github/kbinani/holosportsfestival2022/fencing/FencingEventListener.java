@@ -642,10 +642,6 @@ public class FencingEventListener implements Listener, Competition {
         return new BoundingBox(x(box.getMinX()), y(box.getMinY()), z(box.getMinZ()), x(box.getMaxX()), y(box.getMaxY()), z(box.getMaxZ()));
     }
 
-    private void execute(String format, Object... args) {
-        delegate.mainExecute(format, args);
-    }
-
     @Override
     public boolean competitionIsJoined(Player player) {
         return getCurrentTeam(player) != null;

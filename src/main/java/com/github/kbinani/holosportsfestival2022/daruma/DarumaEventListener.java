@@ -766,10 +766,6 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         Editor.Fill(offset(from), offset(to), block);
     }
 
-    public void execute(String format, Object... args) {
-        delegate.mainExecute(format, args);
-    }
-
     private Point3i getEntryButtonPosition(TeamColor color) {
         switch (color) {
             case RED:
