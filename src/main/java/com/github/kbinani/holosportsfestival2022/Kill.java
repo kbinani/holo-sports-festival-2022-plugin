@@ -1,7 +1,8 @@
 package com.github.kbinani.holosportsfestival2022;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
+import org.bukkit.World;
+import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
 
 public class Kill {
@@ -9,10 +10,31 @@ public class Kill {
 
     }
 
-    public static void Entities(BoundingBox box, String format, Object... args) {
-        Server server = Bukkit.getServer();
-        String selectorArg = String.format(format, args);
-        String command = String.format("execute if entity @e[%s,%s] run kill @e[%s,%s]", selectorArg, TargetSelector.Of(box), selectorArg, TargetSelector.Of(box));
-        server.dispatchCommand(server.getConsoleSender(), command);
+    public static void EntitiesByType(BoundingBox box, EntityType type) {
+        World world = Overworld();
+        if (world == null) {
+            return;
+        }
+        world.getNearbyEntities(box).forEach(entity -> {
+            if (entity.getType() == type) {
+                entity.remove();
+            }
+        });
+    }
+
+    public static void EntitiesByScoreboardTag(BoundingBox box, String scoreboardTag) {
+        World world = Overworld();
+        if (world == null) {
+            return;
+        }
+        world.getNearbyEntities(box).forEach(entity -> {
+            if (entity.getScoreboardTags().contains(scoreboardTag)) {
+                entity.remove();
+            }
+        });
+    }
+
+    private static World Overworld() {
+        return Bukkit.getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst().orElse(null);
     }
 }

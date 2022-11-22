@@ -6,6 +6,7 @@ import com.github.kbinani.holosportsfestival2022.Point3i;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -97,8 +98,8 @@ class ShootingStage extends Stage {
 
     @Override
     void onReset() {
-        Kill.Entities(getBounds(), "type=item");
-        Kill.Entities(getBounds(), "type=arrow");
+        Kill.EntitiesByType(getBounds(), EntityType.DROPPED_ITEM);
+        Kill.EntitiesByType(getBounds(), EntityType.ARROW);
         remainingMobCount = 16;
     }
 

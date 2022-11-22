@@ -120,7 +120,7 @@ public class BoatRaceEventListener implements Competition {
         }
 
         // 競技用のエンティティを削除する. 競技場内に居るアイテム化したボート.
-        Kill.Entities(getFieldBounds(), "tag=%s", kItemTag);
+        Kill.EntitiesByScoreboardTag(getFieldBounds(), kItemTag);
     }
 
     private void setLeverPowered(Point3i pos, boolean powered) {

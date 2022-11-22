@@ -4,6 +4,7 @@ import com.github.kbinani.holosportsfestival2022.Kill;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
@@ -89,7 +90,7 @@ class OceanMonumentStage extends Stage {
 
     @Override
     void onReset() {
-        Kill.Entities(getBounds(), "type=trident");
+        Kill.EntitiesByType(getBounds(), EntityType.TRIDENT);
         remainingMobCount = 10;
     }
 

@@ -72,7 +72,7 @@ public abstract class Stage {
     void reset() {
         setExitOpened(false);
         setEntranceOpened(false);
-        Kill.Entities(getBounds(), "tag=%s", kEntityTag);
+        Kill.EntitiesByScoreboardTag(getBounds(), kEntityTag);
         onReset();
     }
 
