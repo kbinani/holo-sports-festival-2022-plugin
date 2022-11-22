@@ -493,14 +493,9 @@ public class FencingEventListener implements Listener, Competition {
         }
     }
 
-    private void sendMessage(String message, String selectorArgFormat, Object... args) {
-        String selector = String.format(selectorArgFormat, args);
-        execute("execute if entity @a[%s] run tellraw @a[%s] \"%s\"", selector, selector, message);
-    }
-
     private void broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        sendMessage(msg, TargetSelector.Of(getAnnounceBounds()));
+        Players.Within(getAnnounceBounds(), player -> player.sendMessage(msg));
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
