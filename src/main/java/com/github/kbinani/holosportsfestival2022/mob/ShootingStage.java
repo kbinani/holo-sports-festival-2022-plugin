@@ -1,10 +1,15 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
+import com.github.kbinani.holosportsfestival2022.ItemBuilder;
 import com.github.kbinani.holosportsfestival2022.Kill;
 import com.github.kbinani.holosportsfestival2022.Point3i;
 import com.github.kbinani.holosportsfestival2022.TargetSelector;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -116,8 +121,21 @@ class ShootingStage extends Stage {
     @Override
     void onStart(List<Player> players) {
         for (Player player : players) {
-            execute("give %s arrow{tag:{%s:1b}}", player.getName(), MobFightEventListener.kItemTag);
-            execute("give %s bow{tag:{%s:1b},Enchantments:[{id:unbreaking,lvl:3},{id:infinity,lvl:1}]}", player.getName(), MobFightEventListener.kItemTag);
+            PlayerInventory inventory = player.getInventory();
+            ItemStack arrow =
+                    ItemBuilder.For(Material.ARROW)
+                            .amount(1)
+                            .customByteTag(MobFightEventListener.kItemTag, (byte) 1)
+                            .build();
+            ItemStack bow =
+                    ItemBuilder.For(Material.BOW)
+                            .amount(1)
+                            .customByteTag(MobFightEventListener.kItemTag, (byte) 1)
+                            .enchant(Enchantment.ARROW_INFINITE, 1)
+                            .enchant(Enchantment.DURABILITY, 3)
+                            .build();
+            inventory.addItem(arrow);
+            inventory.addItem(bow);
         }
     }
 

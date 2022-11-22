@@ -5,6 +5,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.boss.BarColor;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,7 +14,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -398,20 +403,71 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         broadcast("[MOB討伐レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role));
 
         delegate.mainClearCompetitionItems(player);
-        levelExecute("give %s iron_leggings{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
-        levelExecute("give %s iron_chestplate{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
-        levelExecute("give %s iron_helmet{tag:{%s:1b},Enchantments:[{id:protection,lvl:4},{id:respiration,lvl:3},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
-        levelExecute("give %s iron_boots{tag:{%s:1b},Enchantments:[{id:depth_strider,lvl:3},{id:protection,lvl:4},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
-        levelExecute("give %s golden_apple{tag:{%s:1b}} 35", player.getName(), kItemTag);
-        levelExecute("give %s cooked_beef{tag:{%s:1b}} 35", player.getName(), kItemTag);
+        PlayerInventory inventory = player.getInventory();
+        ItemStack leggings = ItemBuilder.For(Material.IRON_LEGGINGS)
+                .amount(1)
+                .customByteTag(kItemTag, (byte) 1)
+                .enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 4)
+                .enchant(Enchantment.DURABILITY, 3)
+                .build();
+        ItemStack chestplate = ItemBuilder.For(Material.IRON_CHESTPLATE)
+                .amount(1)
+                .customByteTag(kItemTag, (byte) 1)
+                .enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 4)
+                .enchant(Enchantment.DURABILITY, 3)
+                .build();
+        ItemStack helmet = ItemBuilder.For(Material.IRON_HELMET)
+                .amount(1)
+                .customByteTag(kItemTag, (byte) 1)
+                .enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 4)
+                .enchant(Enchantment.OXYGEN, 3)
+                .enchant(Enchantment.DURABILITY, 3)
+                .build();
+        ItemStack boots = ItemBuilder.For(Material.IRON_BOOTS)
+                .amount(1)
+                .customByteTag(kItemTag, (byte) 1)
+                .enchant(Enchantment.DEPTH_STRIDER, 3)
+                .enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 4)
+                .enchant(Enchantment.DURABILITY, 3)
+                .build();
+        ItemStack goldenApple = ItemBuilder.For(Material.GOLDEN_APPLE)
+                .amount(35)
+                .customByteTag(kItemTag, (byte) 1)
+                .build();
+        ItemStack cookedBeef = ItemBuilder.For(Material.COOKED_BEEF)
+                .amount(35)
+                .customByteTag(kItemTag, (byte) 1)
+                .build();
+        inventory.addItem(leggings, chestplate, helmet, boots, goldenApple, cookedBeef);
         switch (role) {
             case ARROW:
-                levelExecute("give %s bow{tag:{%s:1b},Enchantments:[{id:infinity,lvl:1},{id:power,lvl:5},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
-                levelExecute("give %s arrow{tag:{%s:1b}}", player.getName(), kItemTag);
+                ItemStack bow = ItemBuilder.For(Material.BOW)
+                        .amount(1)
+                        .customByteTag(kItemTag, (byte) 1)
+                        .enchant(Enchantment.ARROW_INFINITE, 1)
+                        .enchant(Enchantment.ARROW_DAMAGE, 5)
+                        .enchant(Enchantment.DURABILITY, 3)
+                        .build();
+                ItemStack arrow = ItemBuilder.For(Material.ARROW)
+                        .amount(1)
+                        .customByteTag(kItemTag, (byte) 1)
+                        .build();
+                inventory.addItem(bow, arrow);
                 break;
             case SWORD:
-                levelExecute("give %s shield{tag:{%s:1b},Enchantments:[{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
-                levelExecute("give %s iron_sword{tag:{%s:1b},Enchantments:[{id:knockback,lvl:1},{id:smite,lvl:5},{id:unbreaking,lvl:3}]}", player.getName(), kItemTag);
+                ItemStack shield = ItemBuilder.For(Material.SHIELD)
+                        .amount(1)
+                        .customByteTag(kItemTag, (byte) 1)
+                        .enchant(Enchantment.DURABILITY, 3)
+                        .build();
+                ItemStack sword = ItemBuilder.For(Material.IRON_SWORD)
+                        .amount(1)
+                        .customByteTag(kItemTag, (byte) 1)
+                        .enchant(Enchantment.KNOCKBACK, 1)
+                        .enchant(Enchantment.DAMAGE_UNDEAD, 5)
+                        .enchant(Enchantment.DURABILITY, 3)
+                        .build();
+                inventory.addItem(shield, sword);
                 break;
         }
         setStatus(Status.AWAIT_COUNTDOWN);
@@ -517,9 +573,18 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
 
     void clearItem(Player player) {
         PlayerInventory inventory = player.getInventory();
-        for (Material material : new Material[]{Material.IRON_LEGGINGS, Material.IRON_CHESTPLATE, Material.IRON_HELMET, Material.IRON_BOOTS, Material.GOLDEN_APPLE, Material.COOKED_BEEF, Material.BOW, Material.ARROW, Material.SHIELD, Material.IRON_SWORD}) {
-            if (inventory.contains(material)) {
-                levelExecute("clear %s %s{tag:{%s:1b}}", player.getName(), material.name().toLowerCase(), kItemTag);
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack item = inventory.getItem(i);
+            if (item == null) {
+                continue;
+            }
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) {
+                continue;
+            }
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            if (container.has(NamespacedKey.minecraft(kItemTag), PersistentDataType.BYTE)) {
+                inventory.clear(i);
             }
         }
     }
