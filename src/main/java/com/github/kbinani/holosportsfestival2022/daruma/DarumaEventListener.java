@@ -16,6 +16,9 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -655,7 +658,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         return "";
     }
 
-    private void sendMessage(String message, String selectorArgFormat, Object ...args) {
+    private void sendMessage(String message, String selectorArgFormat, Object... args) {
         String selector = String.format(selectorArgFormat, args);
         execute("execute if entity @a[%s] run tellraw @a[%s] \"%s\"", selector, selector, message);
     }
@@ -717,13 +720,28 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
     private void clearItem(Player player) {
         PlayerInventory inventory = player.getInventory();
-        if (inventory.contains(Material.GOLDEN_APPLE)) {
-            execute("clear %s golden_apple{tag:{%s:1b}}", player.getName(), kItemTag);
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack item = inventory.getItem(i);
+            if (item == null) {
+                continue;
+            }
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) {
+                continue;
+            }
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            if (container.has(NamespacedKey.minecraft(kItemTag), PersistentDataType.BYTE)) {
+                inventory.clear(i);
+            }
         }
     }
 
     private void giveItem(Player player) {
-        execute("give @p[name=\"%s\"] golden_apple{tag:{%s:1b}}", player.getName(), kItemTag);
+        ItemStack goldenApple = ItemBuilder.For(Material.GOLDEN_APPLE)
+                .amount(1)
+                .customByteTag(kItemTag, (byte) 1)
+                .build();
+        player.getInventory().addItem(goldenApple);
     }
 
     private void resetField() {
