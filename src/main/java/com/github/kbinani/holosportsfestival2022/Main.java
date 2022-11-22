@@ -27,6 +27,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main extends JavaPlugin implements Listener, MainDelegate {
     private final List<Competition> competitions = new ArrayList<>();
@@ -70,9 +71,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     }
 
     @Override
-    public void mainInfo(String format, Object... args) {
-        getLogger().info(String.format(format, args));
-    }
+    public Logger mainGetLogger() { return getLogger(); }
 
     @Override
     public void mainCountdownThen(BoundingBox[] boxes, Predicate<Integer> countdown, Supplier<Boolean> task, long delay) {

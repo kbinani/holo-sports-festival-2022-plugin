@@ -669,7 +669,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         Players.Within(getAnnounceBounds(), player -> player.sendMessage(msg));
-        return new ConsoleLogger(msg);
+        return new ConsoleLogger(msg, delegate.mainGetLogger());
     }
 
     private ConsoleLogger broadcastUnofficial(String msg, Object... args) {

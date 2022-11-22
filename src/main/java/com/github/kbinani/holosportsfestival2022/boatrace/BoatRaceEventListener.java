@@ -269,14 +269,14 @@ public class BoatRaceEventListener implements Competition {
                 if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
                     // 滝の頂上を通過
                     team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT1);
-                    delegate.mainInfo("[水上レース] %s %s%sが1周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role));
+                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
                 }
                 break;
             case CLEARED_CHECKPOINT1:
                 if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
                     // ゴールラインを通過
                     team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_START_LINE1);
-                    delegate.mainInfo("[水上レース] %s %s%sが1周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role));
+                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
                     if (team.getRemainingRound() == 1) {
                         broadcast("%s あと1周！", ToColoredString(participation.color)).log(kLogPrefix);
                     }
@@ -286,14 +286,14 @@ public class BoatRaceEventListener implements Competition {
                 if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
                     // 滝の頂上を通過
                     team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT2);
-                    delegate.mainInfo("[水上レース] %s %s%sが2周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role));
+                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
                 }
                 break;
             case CLEARED_CHECKPOINT2:
                 if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
                     // ゴールラインを通過
                     team.updatePlayerStatus(participation.role, PlayerStatus.FINISHED);
-                    delegate.mainInfo("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role));
+                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
                     if (team.getRemainingRound() == 0) {
                         broadcast("%s GOAL !!", ToColoredString(participation.color)).log(kLogPrefix);
                         launchFireworkRockets(participation.color);
@@ -483,7 +483,7 @@ public class BoatRaceEventListener implements Competition {
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         Players.Within(new BoundingBox[]{offset(kAnnounceBoundsNorth), offset(kAnnounceBoundsSouth)}, player -> player.sendMessage(msg));
-        return new ConsoleLogger(msg);
+        return new ConsoleLogger(msg, delegate.mainGetLogger());
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
@@ -573,7 +573,8 @@ public class BoatRaceEventListener implements Competition {
             broadcast("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role)).log();
             setStatus(Status.AWAIT_START);
         } else {
-            broadcast("[水上レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(color));
+            // NOTE: 本家は全チャになる
+            player.sendMessage(String.format("[水上レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(color)));
         }
     }
 

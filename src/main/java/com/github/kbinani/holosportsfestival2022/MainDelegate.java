@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 public interface MainDelegate {
     @Nullable
@@ -23,7 +24,7 @@ public interface MainDelegate {
     @Nullable
     World mainGetWorld();
 
-    void mainInfo(String format, Object... args);
+    Logger mainGetLogger();
 
     void mainCountdownThen(BoundingBox[] box, Predicate<Integer> countdown, Supplier<Boolean> task, long delay);
 

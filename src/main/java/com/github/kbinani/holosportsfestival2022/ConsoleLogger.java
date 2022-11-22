@@ -1,18 +1,20 @@
 package com.github.kbinani.holosportsfestival2022;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Server;
+import org.bukkit.ChatColor;
+
+import java.util.logging.Logger;
 
 public class ConsoleLogger {
+    private final Logger logger;
     private final String message;
 
-    public ConsoleLogger(String message) {
+    public ConsoleLogger(String message, Logger logger) {
         this.message = message;
+        this.logger = logger;
     }
 
     public void log(String prefix) {
-        Server server = Bukkit.getServer();
-        server.getLogger().info(prefix + message);
+        logger.info(ChatColor.stripColor(prefix + message));
     }
 
     public void log() {
