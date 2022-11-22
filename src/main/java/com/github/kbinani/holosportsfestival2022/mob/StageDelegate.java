@@ -5,7 +5,6 @@ import org.bukkit.World;
 import javax.annotation.Nullable;
 
 public interface StageDelegate {
-    void stageExecute(String format, Object ...args);
     @Nullable
     World stageGetWorld();
 }

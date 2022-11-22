@@ -1,6 +1,9 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
-import com.github.kbinani.holosportsfestival2022.*;
+import com.github.kbinani.holosportsfestival2022.Editor;
+import com.github.kbinani.holosportsfestival2022.FireworkRocket;
+import com.github.kbinani.holosportsfestival2022.Players;
+import com.github.kbinani.holosportsfestival2022.Point3i;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
@@ -132,10 +135,6 @@ class Level implements StageDelegate {
         return new Progress(progress.stage, progress.step);
     }
 
-    String getTargetSelector() {
-        return String.format("@a[%s]", TargetSelector.Of(bounds));
-    }
-
     void showTitle(String text, Color color) {
         Component title = Component.text(text, Style.style(TextColor.color(color.asRGB()), TextDecoration.BOLD));
         Component subtitle = Component.empty();
@@ -143,11 +142,6 @@ class Level implements StageDelegate {
         Players.Within(bounds, player -> {
             player.showTitle(t);
         });
-    }
-
-    @Override
-    public void stageExecute(String format, Object... args) {
-        delegate.levelExecute(format, args);
     }
 
     @Nullable

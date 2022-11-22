@@ -7,6 +7,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
@@ -113,10 +114,6 @@ public abstract class Stage {
         Editor.Fill(new Point3i(x1, y1, z1), new Point3i(x2, y2, z2), block);
     }
 
-    protected void execute(String format, Object... args) {
-        delegate.stageExecute(format, args);
-    }
-
     protected void addGlowingEffect() {
         World world = delegate.stageGetWorld();
         if (world == null) {
@@ -128,5 +125,14 @@ public abstract class Stage {
                 entity.addPotionEffect(effect);
             }
         });
+    }
+
+    protected static void DisableDrop(EntityEquipment e) {
+        e.setHelmetDropChance(0);
+        e.setItemInMainHandDropChance(0);
+        e.setItemInOffHandDropChance(0);
+        e.setChestplateDropChance(0);
+        e.setLeggingsDropChance(0);
+        e.setBootsDropChance(0);
     }
 }

@@ -1,8 +1,14 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
-import org.bukkit.entity.Entity;
-import org.bukkit.util.BoundingBox;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.entity.*;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.loot.LootTables;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -49,22 +55,80 @@ class WoodlandMansionStage extends Stage {
                 summonWitch(5, -49, -332);
                 break;
             case 1:
-                execute("summon ravager %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-1), y(-59), z(-349), kEntityTag, stageEntityTag);
+                summonRavager(x(-1), y(-59), z(-349));
                 addGlowingEffect();
                 break;
         }
     }
 
+    private void summonRavager(int x, int y, int z) {
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.RAVAGER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Ravager ravager = (Ravager) it;
+            EntityEquipment equipment = ravager.getEquipment();
+            DisableDrop(equipment);
+            equipment.clear();
+            ravager.addScoreboardTag(kEntityTag);
+            ravager.addScoreboardTag(stageEntityTag);
+            ravager.setLootTable(LootTables.EMPTY.getLootTable());
+            ravager.setPersistent(true);
+        });
+    }
+
     private void summonVindicator(int x, int y, int z) {
-        execute("summon vindicator %d %d %d {HandItems:[{id:iron_axe,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.VINDICATOR, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Vindicator vindicator = (Vindicator) it;
+            EntityEquipment equipment = vindicator.getEquipment();
+            DisableDrop(equipment);
+            equipment.clear();
+            equipment.setItemInMainHand(new ItemStack(Material.IRON_AXE));
+            vindicator.addScoreboardTag(kEntityTag);
+            vindicator.addScoreboardTag(stageEntityTag);
+            vindicator.setLootTable(LootTables.EMPTY.getLootTable());
+            vindicator.setPersistent(true);
+        });
     }
 
     private void summonWitch(int x, int y, int z) {
-        execute("summon witch %d %d %d {ArmorItems:[{},{},{},{}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.WITCH, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Witch witch = (Witch) it;
+            EntityEquipment equipment = witch.getEquipment();
+            DisableDrop(equipment);
+            equipment.clear();
+            witch.addScoreboardTag(kEntityTag);
+            witch.addScoreboardTag(stageEntityTag);
+            witch.setLootTable(LootTables.EMPTY.getLootTable());
+            witch.setPersistent(true);
+        });
     }
 
     private void summonPillager(int x, int y, int z) {
-        execute("summon pillager %d %d %d {HandItems:[{id:crossbow,Count:1}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.PILLAGER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Pillager pillager = (Pillager) it;
+            EntityEquipment equipment = pillager.getEquipment();
+            DisableDrop(equipment);
+            equipment.clear();
+            equipment.setItemInMainHand(new ItemStack(Material.CROSSBOW));
+            pillager.addScoreboardTag(kEntityTag);
+            pillager.addScoreboardTag(stageEntityTag);
+            pillager.setLootTable(LootTables.EMPTY.getLootTable());
+            pillager.setPersistent(true);
+        });
     }
 
     @Override

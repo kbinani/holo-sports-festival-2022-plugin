@@ -2,8 +2,19 @@ package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Kill;
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.entity.Drowned;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Guardian;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.loot.LootTables;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
@@ -53,19 +64,69 @@ class OceanMonumentStage extends Stage {
                 summonGuardian(9, -57, -294);
                 break;
             case 1:
-                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\",\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-3), y(-59), z(-299), kEntityTag, stageEntityTag);
-                execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\",\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(5), y(-43), z(-297), kEntityTag, stageEntityTag);
+                summonDrownedBoss(x(-3), y(-59), z(-299));
+                summonDrownedBoss(x(5), y(-43), z(-297));
                 addGlowingEffect();
                 break;
         }
     }
 
     private void summonDrowned(int x, int y, int z) {
-        execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.DROWNED, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Drowned drowned = (Drowned) it;
+            EntityEquipment equipment = drowned.getEquipment();
+            DisableDrop(equipment);
+            equipment.clear();
+            drowned.addScoreboardTag(kEntityTag);
+            drowned.addScoreboardTag(stageEntityTag);
+            drowned.setLootTable(LootTables.EMPTY.getLootTable());
+            drowned.setPersistent(true);
+        });
+    }
+
+    private void summonDrownedBoss(int x, int y, int z) {
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.DROWNED, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Drowned drowned = (Drowned) it;
+            drowned.setAdult();
+            EntityEquipment equipment = drowned.getEquipment();
+            DisableDrop(equipment);
+            equipment.clear();
+            equipment.setItemInMainHand(new ItemStack(Material.TRIDENT));
+            drowned.addScoreboardTag(kEntityTag);
+            drowned.addScoreboardTag(stageEntityTag);
+            drowned.setLootTable(LootTables.EMPTY.getLootTable());
+            drowned.setPersistent(true);
+            AttributeInstance maxHealth = drowned.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            if (maxHealth != null) {
+                maxHealth.setBaseValue(200);
+            }
+            drowned.setHealth(200);
+        });
     }
 
     private void summonGuardian(int x, int y, int z) {
-        execute("summon guardian %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\",\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag, stageEntityTag);
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.GUARDIAN, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Guardian guardian = (Guardian) it;
+            EntityEquipment equipment = guardian.getEquipment();
+            DisableDrop(equipment);
+            equipment.clear();
+            guardian.addScoreboardTag(kEntityTag);
+            guardian.addScoreboardTag(stageEntityTag);
+            guardian.setLootTable(LootTables.EMPTY.getLootTable());
+            guardian.setPersistent(true);
+        });
     }
 
     @Override

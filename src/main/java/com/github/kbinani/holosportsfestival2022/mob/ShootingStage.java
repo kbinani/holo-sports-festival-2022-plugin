@@ -3,13 +3,19 @@ package com.github.kbinani.holosportsfestival2022.mob;
 import com.github.kbinani.holosportsfestival2022.ItemBuilder;
 import com.github.kbinani.holosportsfestival2022.Kill;
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.loot.LootTables;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -71,11 +77,67 @@ class ShootingStage extends Stage {
     }
 
     private void summonSkeleton(int x, int y, int z) {
-        execute("summon minecart %d %d %d {Passengers:[{id:skeleton,Tags:[\"%s\",\"%s\"],HandItems:[{id:bow,Count:1},{}],HandDropChances:[0.0f,0.0f],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"_ookamimio\"}}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag, stageEntityTag, kEntityTag);
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.MINECART, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Minecart minecart = (Minecart) it;
+            minecart.addScoreboardTag(stageEntityTag);
+
+            world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.SKELETON, CreatureSpawnEvent.SpawnReason.COMMAND, e -> {
+                Skeleton skeleton = (Skeleton) e;
+                EntityEquipment equipment = skeleton.getEquipment();
+                DisableDrop(equipment);
+                equipment.clear();
+                equipment.setItemInMainHand(new ItemStack(Material.BOW));
+                ItemStack helmet = new ItemStack(Material.PLAYER_HEAD);
+                ItemMeta meta = helmet.getItemMeta();
+                if (meta instanceof SkullMeta skullMeta) {
+                    skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer("_ookamimio"));
+                    helmet.setItemMeta(skullMeta);
+                }
+                equipment.setHelmet(helmet);
+                skeleton.addScoreboardTag(kEntityTag);
+                skeleton.addScoreboardTag(stageEntityTag);
+                skeleton.setLootTable(LootTables.EMPTY.getLootTable());
+                skeleton.setPersistent(true);
+
+                minecart.addPassenger(skeleton);
+            });
+        });
     }
 
     private void summonZombie(int x, int y, int z) {
-        execute("summon minecart %d %d %d {Passengers:[{id:zombie,Tags:[\"%s\",\"%s\"],ArmorItems:[{},{},{},{id:player_head,Count:1,tag:{SkullOwner:\"sakuramiko35\"}}],ArmorDropChances:[0.0f,0.0f,0.0f,0.0f],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}],Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\"}", x(x), y(y), z(z), kEntityTag, stageEntityTag, kEntityTag);
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.MINECART, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Minecart minecart = (Minecart) it;
+            minecart.addScoreboardTag(stageEntityTag);
+
+            world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.COMMAND, e -> {
+                Zombie zombie = (Zombie) e;
+                zombie.setAdult();
+                EntityEquipment equipment = zombie.getEquipment();
+                DisableDrop(equipment);
+                equipment.clear();
+                ItemStack helmet = new ItemStack(Material.PLAYER_HEAD);
+                ItemMeta meta = helmet.getItemMeta();
+                if (meta instanceof SkullMeta skullMeta) {
+                    skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer("sakuramiko35"));
+                    helmet.setItemMeta(skullMeta);
+                }
+                equipment.setHelmet(helmet);
+                zombie.addScoreboardTag(kEntityTag);
+                zombie.addScoreboardTag(stageEntityTag);
+                zombie.setLootTable(LootTables.EMPTY.getLootTable());
+                zombie.setPersistent(true);
+
+                minecart.addPassenger(zombie);
+            });
+        });
     }
 
     @Override

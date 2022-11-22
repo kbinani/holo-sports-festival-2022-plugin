@@ -677,11 +677,6 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         return null;
     }
 
-    @Override
-    public void levelExecute(String format, Object... args) {
-        delegate.mainExecute(format, args);
-    }
-
     @Nullable
     @Override
     public World levelGetWorld() {

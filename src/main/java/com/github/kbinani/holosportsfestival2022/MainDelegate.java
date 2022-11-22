@@ -14,8 +14,6 @@ public interface MainDelegate {
     @Nullable
     CompetitionType mainGetCurrentCompetition(Player player);
 
-    void mainExecute(String format, Object... args);
-
     void mainRunTask(Runnable task);
 
     void mainRunTaskLater(Runnable task, long delay);

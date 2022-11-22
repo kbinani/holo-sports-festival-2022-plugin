@@ -7,7 +7,6 @@ import com.github.kbinani.holosportsfestival2022.mob.MobFightEventListener;
 import com.github.kbinani.holosportsfestival2022.relay.RelayEventListener;
 import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
-import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -44,13 +43,6 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
             }
         }
         return null;
-    }
-
-    @Override
-    public void mainExecute(String format, Object... args) {
-        Server server = getServer();
-        String command = String.format(format, args);
-        server.dispatchCommand(server.getConsoleSender(), command);
     }
 
     @Override

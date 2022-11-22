@@ -1,7 +1,14 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.loot.LootTables;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -70,7 +77,19 @@ class FinalStage extends Stage {
     }
 
     private void summonCreeper(int x, int y, int z) {
-        execute("summon creeper %d %d %d {Tags:[\"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(x), y(y), z(z), kEntityTag);
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.CREEPER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Creeper creeper = (Creeper) it;
+            EntityEquipment equipment = creeper.getEquipment();
+            DisableDrop(equipment);
+            equipment.clear();
+            creeper.addScoreboardTag(kEntityTag);
+            creeper.setLootTable(LootTables.EMPTY.getLootTable());
+            creeper.setPersistent(true);
+        });
     }
 
     @Override
