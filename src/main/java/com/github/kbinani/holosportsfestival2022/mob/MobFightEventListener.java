@@ -221,15 +221,15 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
-        Participation participation = getCurrentParticipation(player);
-        if (participation == null) {
-            return;
-        }
         Vector location = player.getLocation().toVector();
-        if (!offset(kAnnounceBounds).contains(location)) {
-            player.sendMessage(ChatColor.RED + "[MOB討伐レース] 場外に出たためエントリー解除となります");
-            onClickLeave(player);
-            return;
+
+        Participation participation = getCurrentParticipation(player);
+        if (participation != null) {
+            if (!offset(kAnnounceBounds).contains(location)) {
+                player.sendMessage(ChatColor.RED + "[MOB討伐レース] 場外に出たためエントリー解除となります");
+                onClickLeave(player);
+                return;
+            }
         }
 
         if (_status != Status.RUN) {
