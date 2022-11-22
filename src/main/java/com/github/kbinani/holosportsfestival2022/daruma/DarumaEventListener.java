@@ -37,6 +37,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private final MainDelegate delegate;
     private final Map<UUID, Point3i> respawn = new HashMap<>();
     private final Random random;
+    private final String kLogPrefix = "[だるまさんがころんだ]";
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
 
@@ -322,7 +323,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         Point3i pos = getEntryButtonPosition(color);
         respawn.put(player.getUniqueId(), pos);
 
-        broadcast("%s失格！", player.getName());
+        broadcast("%s失格！", player.getName()).log(kLogPrefix);
 
         if (race.getRunningPlayerCount() == 0) {
             // 最後の走者が失格になったので試合終了
@@ -504,7 +505,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
         CompetitionType type = delegate.mainGetCurrentCompetition(player);
         if (type != null && type != CompetitionType.DARUMA) {
-            broadcastUnofficial("[だるまさんがころんだ] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            player.sendMessage(String.format("[だるまさんがころんだ] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type)));
             return;
         }
         if (player.getGameMode() != GameMode.ADVENTURE && player.getGameMode() != GameMode.SURVIVAL) {
@@ -519,9 +520,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             delegate.mainClearCompetitionItems(player);
             giveItem(player);
 
-            broadcast("[だるまさんがころんだ] %sが%sにエントリーしました", player.getName(), ToColoredString(color));
+            broadcast("[だるまさんがころんだ] %sが%sにエントリーしました", player.getName(), ToColoredString(color)).log();
         } else {
-            broadcast("[だるまさんがころんだ] %sは%sにエントリー済みです", player.getName(), ToColoredString(current));
+            //NOTE: 本家では全チャになる
+            player.sendMessage(String.format("[だるまさんがころんだ] %sは%sにエントリー済みです", player.getName(), ToColoredString(current)));
         }
     }
 
@@ -544,7 +546,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         int total = getPlayerCount();
         if (total < 1) {
             if (manual) {
-                broadcastUnofficial("[だるまさんがころんだ] 参加者が見つかりません");
+                broadcastUnofficial("[だるまさんがころんだ] 参加者が見つかりません").log();
             } else {
                 Calendar next = getNextAutoStart();
                 next.add(Calendar.MINUTE, kAutoStartIntervalMinutes);
@@ -561,7 +563,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             if (count < 1) {
                 broadcast("%sの参加者が見つかりません", ToString(color));
             } else {
-                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count);
+                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count).log(kLogPrefix);
             }
         }
         broadcast("-----------------------");
@@ -716,7 +718,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         if (race != null) {
             race.withdraw(player);
         }
-        broadcast("[だるまさんがころんだ] %sがエントリー解除しました", player.getName());
+        broadcast("[だるまさんがころんだ] %sがエントリー解除しました", player.getName()).log();
         if (getPlayerCount() == 0) {
             setStatus(Status.IDLE);
         }
