@@ -1,10 +1,16 @@
 package com.github.kbinani.holosportsfestival2022;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Server;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.inventory.meta.FireworkMeta;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.List;
 
 public class FireworkRocket {
     private FireworkRocket() {
@@ -18,11 +24,34 @@ public class FireworkRocket {
     }
 
     public static void Launch(@Nonnull World world, double x, double y, double z, int[] colors, int[] fadeColors, int lifeTime, int type, boolean flicker, boolean trail) {
-        Server server = Bukkit.getServer();
-        String colorsString = Arrays.stream(colors).mapToObj((i) -> String.format("%d", i)).collect(Collectors.joining(","));
-        String fadeColorsString = Arrays.stream(fadeColors).mapToObj(i -> String.format("%d", i)).collect(Collectors.joining(","));
-        // https://symtm.blog.fc2.com/blog-entry-96.html
-        String command = String.format("summon firework_rocket %f %f %f {LifeTime:%d,FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:%d,Flicker:%db,Trail:%db,Colors:[I;%s],FadeColors:[I;%s]}],Flight:1}}}}", x, y, z, lifeTime, type, flicker ? 1 : 0, trail ? 1 : 0, colorsString, fadeColorsString);
-        server.dispatchCommand(server.getConsoleSender(), command);
+        FireworkEffect.Type t = FireworkEffect.Type.BALL;
+        switch (type) {
+            case 0:
+                t = FireworkEffect.Type.BALL;
+                break;
+            case 1:
+                t = FireworkEffect.Type.BALL_LARGE;
+                break;
+            case 4:
+                t = FireworkEffect.Type.BURST;
+                break;
+        }
+        final FireworkEffect.Type effectType = t;
+        List<org.bukkit.Color> colorList = Arrays.stream(colors).mapToObj(org.bukkit.Color::fromRGB).toList();
+        List<org.bukkit.Color> fadeColorList = Arrays.stream(fadeColors).mapToObj(org.bukkit.Color::fromRGB).toList();
+        world.spawnEntity(new Location(world, x, y, z), EntityType.FIREWORK, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+            Firework firework = (Firework) it;
+            FireworkMeta meta = firework.getFireworkMeta();
+            FireworkEffect effect = FireworkEffect.builder()
+                    .flicker(flicker)
+                    .trail(trail)
+                    .with(effectType)
+                    .withColor(colorList)
+                    .withFade(fadeColorList)
+                    .build();
+            meta.addEffect(effect);
+            firework.setFireworkMeta(meta);
+            firework.setTicksToDetonate(lifeTime);
+        });
     }
 }
