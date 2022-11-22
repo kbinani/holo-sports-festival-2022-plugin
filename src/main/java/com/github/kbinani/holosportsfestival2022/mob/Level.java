@@ -1,15 +1,19 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
-import com.github.kbinani.holosportsfestival2022.Editor;
-import com.github.kbinani.holosportsfestival2022.FireworkRocket;
-import com.github.kbinani.holosportsfestival2022.Point3i;
-import com.github.kbinani.holosportsfestival2022.TargetSelector;
+import com.github.kbinani.holosportsfestival2022.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
+import org.bukkit.Color;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -131,8 +135,13 @@ class Level implements StageDelegate {
         return String.format("@a[%s]", TargetSelector.Of(bounds));
     }
 
-    void showTitle(String text, String color) {
-        stageExecute("title %s title {\"text\": \"%s\", \"bold\": true, \"color\": \"%s\"}", getTargetSelector(), text, color);
+    void showTitle(String text, Color color) {
+        Component title = Component.text(text, Style.style(TextColor.color(color.asRGB()), TextDecoration.BOLD));
+        Component subtitle = Component.empty();
+        Title t = Title.title(title, subtitle, Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3500), Duration.ofMillis(1000)));
+        Players.Within(bounds, player -> {
+            player.showTitle(t);
+        });
     }
 
     @Override

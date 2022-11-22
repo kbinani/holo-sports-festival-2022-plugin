@@ -153,7 +153,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 }, 20 * 3);
             } else {
                 // 次の stage へ
-                level.showTitle("WAVE CLEAR !", "yellow");
+                level.showTitle("WAVE CLEAR !", Color.YELLOW);
                 broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString());
                 delegate.mainRunTaskLater(() -> {
                     if (this.race == null) {
@@ -272,7 +272,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 int finishedPlayerCount = team.setFinished(player);
                 if (finishedPlayerCount == team.getPlayerCount()) {
                     broadcast("%s GAME CLEAR !!", ToColoredString(color));
-                    level.showTitle("GAME CLEAR !!", "gold");
+                    level.showTitle("GAME CLEAR !!", Color.fromRGB(0xFFAA00)); // gold
                     level.launchFireworkRockets(FireworkRocketColor(color));
                     applyBossbarValue(color, new BossbarValue(team.getPlayerCount(), team.getPlayerCount(), "GAME CLEAR !!"));
                     race.pushOrder(color);
