@@ -89,7 +89,7 @@ class OceanMonumentStage extends Stage {
 
     @Override
     void onReset() {
-        Kill.Entities("type=trident,%s", TargetSelector.Of(getBounds()));
+        Kill.Entities(getBounds(), "type=trident");
         remainingMobCount = 10;
     }
 

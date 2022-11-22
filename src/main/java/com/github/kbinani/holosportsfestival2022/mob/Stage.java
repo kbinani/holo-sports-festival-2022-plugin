@@ -3,7 +3,6 @@ package com.github.kbinani.holosportsfestival2022.mob;
 import com.github.kbinani.holosportsfestival2022.Editor;
 import com.github.kbinani.holosportsfestival2022.Kill;
 import com.github.kbinani.holosportsfestival2022.Point3i;
-import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -73,7 +72,7 @@ public abstract class Stage {
     void reset() {
         setExitOpened(false);
         setEntranceOpened(false);
-        Kill.Entities("tag=%s,%s", kEntityTag, TargetSelector.Of(getBounds()));
+        Kill.Entities(getBounds(), "tag=%s", kEntityTag);
         onReset();
     }
 

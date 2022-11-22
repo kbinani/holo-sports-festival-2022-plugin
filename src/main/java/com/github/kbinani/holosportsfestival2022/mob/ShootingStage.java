@@ -3,7 +3,6 @@ package com.github.kbinani.holosportsfestival2022.mob;
 import com.github.kbinani.holosportsfestival2022.ItemBuilder;
 import com.github.kbinani.holosportsfestival2022.Kill;
 import com.github.kbinani.holosportsfestival2022.Point3i;
-import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -98,8 +97,8 @@ class ShootingStage extends Stage {
 
     @Override
     void onReset() {
-        Kill.Entities("type=item,%s", TargetSelector.Of(getBounds()));
-        Kill.Entities("type=arrow,%s", TargetSelector.Of(getBounds()));
+        Kill.Entities(getBounds(), "type=item");
+        Kill.Entities(getBounds(), "type=arrow");
         remainingMobCount = 16;
     }
 

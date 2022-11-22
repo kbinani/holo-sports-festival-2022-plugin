@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class BoatRaceEventListener implements Competition {
     private final long loadDelay;
@@ -121,7 +120,7 @@ public class BoatRaceEventListener implements Competition {
         }
 
         // 競技用のエンティティを削除する. 競技場内に居るアイテム化したボート.
-        Kill.Entities("tag=%s,%s", kItemTag, TargetSelector.Of(getFieldBounds()));
+        Kill.Entities(getFieldBounds(), "tag=%s", kItemTag);
     }
 
     private void setLeverPowered(Point3i pos, boolean powered) {
@@ -309,7 +308,7 @@ public class BoatRaceEventListener implements Competition {
                                 long timeA = finishedServerTime.get(a);
                                 long timeB = finishedServerTime.get(b);
                                 return (int) (timeA - timeB);
-                            }).collect(Collectors.toList());
+                            }).toList();
                             for (int i = 0; i < ordered.size(); i++) {
                                 broadcast("%d位: %s", i + 1, ToColoredString(ordered.get(i)));
                             }
