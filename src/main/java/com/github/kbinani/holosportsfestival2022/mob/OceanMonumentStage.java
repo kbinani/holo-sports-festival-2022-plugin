@@ -2,7 +2,6 @@ package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Kill;
 import com.github.kbinani.holosportsfestival2022.Point3i;
-import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.BoundingBox;
@@ -56,7 +55,7 @@ class OceanMonumentStage extends Stage {
             case 1:
                 execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\",\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-3), y(-59), z(-299), kEntityTag, stageEntityTag);
                 execute("summon drowned %d %d %d {ArmorItems:[{},{},{},{}],HandItems:[{id:trident,Count:1}],HandDropChances:[0.0f,0.0f],Tags:[\"%s\",\"%s\"],Health:200.0f,Attributes:[{Name:\"generic.max_health\",Base:200.0d}],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(5), y(-43), z(-297), kEntityTag, stageEntityTag);
-                execute("effect give @e[tag=%s,%s] glowing 86400 1 true", kEntityTag, TargetSelector.Of(box));
+                addGlowingEffect();
                 break;
         }
     }

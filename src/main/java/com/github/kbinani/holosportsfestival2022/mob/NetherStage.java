@@ -1,9 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.mob;
 
 import com.github.kbinani.holosportsfestival2022.Point3i;
-import com.github.kbinani.holosportsfestival2022.TargetSelector;
 import org.bukkit.entity.Entity;
-import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -55,8 +53,7 @@ class NetherStage extends Stage {
 
                 execute("summon ghast %d %d %d {ArmorItems:[{},{},{},{}],Tags:[\"%s\", \"%s\"],DeathLootTable:\"minecraft:empty\",PersistenceRequired:1b}", x(-5), y(-47), z(-312), kEntityTag, stageEntityTag);
 
-                BoundingBox box = getBounds();
-                execute("effect give @e[tag=%s,%s] glowing 86400 1 true", kEntityTag, TargetSelector.Of(box));
+                addGlowingEffect();
                 break;
         }
     }

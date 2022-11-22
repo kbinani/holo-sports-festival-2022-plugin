@@ -682,6 +682,12 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         delegate.mainExecute(format, args);
     }
 
+    @Nullable
+    @Override
+    public World levelGetWorld() {
+        return delegate.mainGetWorld();
+    }
+
     private void broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         Players.Within(offset(kAnnounceBounds), player -> player.sendMessage(msg));

@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Color;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -147,6 +148,12 @@ class Level implements StageDelegate {
     @Override
     public void stageExecute(String format, Object... args) {
         delegate.levelExecute(format, args);
+    }
+
+    @Nullable
+    @Override
+    public World stageGetWorld() {
+        return delegate.levelGetWorld();
     }
 
     void setExitOpened(boolean opened) {

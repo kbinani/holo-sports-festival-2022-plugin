@@ -3,8 +3,12 @@ package com.github.kbinani.holosportsfestival2022.mob;
 import com.github.kbinani.holosportsfestival2022.Editor;
 import com.github.kbinani.holosportsfestival2022.Kill;
 import com.github.kbinani.holosportsfestival2022.Point3i;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
@@ -111,5 +115,18 @@ public abstract class Stage {
 
     protected void execute(String format, Object... args) {
         delegate.stageExecute(format, args);
+    }
+
+    protected void addGlowingEffect() {
+        World world = delegate.stageGetWorld();
+        if (world == null) {
+            return;
+        }
+        world.getNearbyEntities(getBounds(), it -> it.getScoreboardTags().contains(kEntityTag)).forEach(it -> {
+            if (it instanceof LivingEntity entity) {
+                PotionEffect effect = new PotionEffect(PotionEffectType.GLOWING, 86400, 1, false, false);
+                entity.addPotionEffect(effect);
+            }
+        });
     }
 }
