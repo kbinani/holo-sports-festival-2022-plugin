@@ -14,6 +14,11 @@ import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -485,13 +490,30 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     private void clearBatons(Player player) {
-        if (player.getInventory().contains(Material.BLAZE_ROD)) {
-            execute("clear %s blaze_rod{tag:{%s:1b}}", player.getName(), kItemTag);
+        PlayerInventory inventory = player.getInventory();
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack item = inventory.getItem(i);
+            if (item == null) {
+                continue;
+            }
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) {
+                continue;
+            }
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            if (container.has(NamespacedKey.minecraft(kItemTag), PersistentDataType.BYTE)) {
+                inventory.clear(i);
+            }
         }
     }
 
     private void giveBaton(Player player) {
-        execute("give %s blaze_rod{tag:{%s:1b},display:{Name:'[{\"text\":\"バトン\"}]'}}", player.getName(), kItemTag);
+        ItemStack baton = ItemBuilder.For(Material.BLAZE_ROD)
+                .amount(1)
+                .customByteTag(kItemTag, (byte) 1)
+                .displayName("バトン")
+                .build();
+        player.getInventory().addItem(baton);
     }
 
     private void onClickStart() {
@@ -604,7 +626,7 @@ public class RelayEventListener implements Listener, Competition {
                 team.clearOrder();
             });
             firstRunners.forEach((teamColor, runner) -> {
-                execute("give %s blaze_rod{tag:{%s:1b},display:{Name:'[{\"text\":\"バトン\"}]'}}", runner.getName(), kItemTag);
+                giveBaton(runner);
                 broadcast("%s 第一走者 : %sがスタート！", ToColoredString(teamColor), runner.getName());
                 Team team = ensureTeam(teamColor);
                 team.pushRunner(runner);
@@ -708,7 +730,7 @@ public class RelayEventListener implements Listener, Competition {
         }
     }
 
-    private void sendMessage(String message, String selectorArgFormat, Object ...args) {
+    private void sendMessage(String message, String selectorArgFormat, Object... args) {
         String selector = String.format(selectorArgFormat, args);
         execute("execute if entity @a[%s] run tellraw @a[%s] \"%s\"", selector, selector, message);
     }
