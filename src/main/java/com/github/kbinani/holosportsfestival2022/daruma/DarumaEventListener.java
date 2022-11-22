@@ -35,7 +35,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private boolean manual = true;
     private final long loadDelay;
     private final MainDelegate delegate;
-    private Map<UUID, Point3i> respawn = new HashMap<>();
+    private final Map<UUID, Point3i> respawn = new HashMap<>();
     private final Random random;
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
