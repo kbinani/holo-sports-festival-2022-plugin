@@ -64,7 +64,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             case AWAIT_COUNTDOWN:
                 for (Level level : levels.values()) {
                     Point3i safe = level.getSafeSpawnLocation();
-                    levelExecute("tp %s %d %d %d", level.getTargetSelector(), safe.x, safe.y, safe.z);
+                    Players.Within(level.getBounds(), player -> player.teleport(player.getLocation().set(safe.x, safe.y, safe.z)));
                     level.reset();
                 }
                 for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
@@ -102,7 +102,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             for (Level level : levels.values()) {
                 if (level.getBounds().contains(player.getLocation().toVector())) {
                     Point3i safe = level.getSafeSpawnLocation();
-                    levelExecute("tp %s %d %d %d", player.getName(), safe.x, safe.y, safe.z);
+                    player.teleport(player.getLocation().set(safe.x, safe.y, safe.z));
                 }
             }
         }
@@ -535,7 +535,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         setStatus(Status.COUNTDOWN);
         for (Level level : levels.values()) {
             Point3i safe = level.getSafeSpawnLocation();
-            levelExecute("tp %s %d %d %d", level.getTargetSelector(), safe.x, safe.y, safe.z);
+            Players.Within(level.getBounds(), player -> player.teleport(player.getLocation().set(safe.x, safe.y, safe.z)));
         }
         delegate.mainCountdownThen(new BoundingBox[]{offset(kAnnounceBounds)}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
