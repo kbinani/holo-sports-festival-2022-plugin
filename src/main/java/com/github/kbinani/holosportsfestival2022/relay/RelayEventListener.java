@@ -563,6 +563,11 @@ public class RelayEventListener implements Listener, Competition {
                 broadcastUnofficial(ChatColor.RED + "[リレー] 同じチームの人が複数人ゲートに入っています");
                 return;
             }
+            GameMode mode = player.getGameMode();
+            if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
+                broadcastUnofficial(ChatColor.RED + "[リレー] %sの第一走者はゲームモードをサバイバルかアドベンチャーに切り替えてください", ToColoredString(tc));
+                return;
+            }
             firstRunners.put(tc, player);
             lanes[i] = player;
         }
@@ -677,6 +682,13 @@ public class RelayEventListener implements Listener, Competition {
             if (tc == null || tc != teamColor) {
                 return;
             }
+        }
+        GameMode mode = to.getGameMode();
+        if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
+            // 殴れないからここには来ないはず
+            from.sendMessage(ChatColor.RED + "バトンパス相手のゲームモードがアドベンチャーまたはサバイバルの時だけパスできます");
+            to.sendMessage(ChatColor.RED + "ゲームモードがアドベンチャーまたはサバイバルでないためバトンを受け取れません");
+            return;
         }
 
         // 殴った人がチームの現在の走者かどうかを確かめる
