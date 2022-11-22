@@ -38,6 +38,7 @@ public class BoatRaceEventListener implements Competition {
     private final MainDelegate delegate;
     private static final String kPrimaryShootItemDisplayName = "[水上レース専用] 暗闇（弱）";
     private static final String kSecondaryShootItemDisplayName = "[水上レース専用] 暗闇（強）";
+    private static final String kLogPrefix = "[水上レース]";
 
     static void AllTeamColors(Consumer<TeamColor> callback) {
         callback.accept(TeamColor.RED);
@@ -277,7 +278,7 @@ public class BoatRaceEventListener implements Competition {
                     team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_START_LINE1);
                     delegate.mainInfo("[水上レース] %s %s%sが1周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                     if (team.getRemainingRound() == 1) {
-                        broadcast("%s あと1周！", ToColoredString(participation.color));
+                        broadcast("%s あと1周！", ToColoredString(participation.color)).log(kLogPrefix);
                     }
                 }
                 break;
@@ -294,7 +295,7 @@ public class BoatRaceEventListener implements Competition {
                     team.updatePlayerStatus(participation.role, PlayerStatus.FINISHED);
                     delegate.mainInfo("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role));
                     if (team.getRemainingRound() == 0) {
-                        broadcast("%s GOAL !!", ToColoredString(participation.color));
+                        broadcast("%s GOAL !!", ToColoredString(participation.color)).log(kLogPrefix);
                         launchFireworkRockets(participation.color);
                         finishedServerTime.put(participation.color, player.getWorld().getGameTime());
                         boolean cleared = true;
@@ -307,14 +308,14 @@ public class BoatRaceEventListener implements Competition {
                         if (cleared) {
                             broadcast("");
                             broadcast("-----------------------");
-                            broadcast("[結果発表]");
+                            broadcast("[結果発表]").log(kLogPrefix);
                             List<TeamColor> ordered = finishedServerTime.keySet().stream().sorted((a, b) -> {
                                 long timeA = finishedServerTime.get(a);
                                 long timeB = finishedServerTime.get(b);
                                 return (int) (timeA - timeB);
                             }).toList();
                             for (int i = 0; i < ordered.size(); i++) {
-                                broadcast("%d位: %s", i + 1, ToColoredString(ordered.get(i)));
+                                broadcast("%d位: %s", i + 1, ToColoredString(ordered.get(i))).log(kLogPrefix);
                             }
                             broadcast("-----------------------");
                             broadcast("");
@@ -373,11 +374,11 @@ public class BoatRaceEventListener implements Competition {
                 PotionEffect candidate = null;
                 if (kPrimaryShootItemDisplayName.equals(meta.getDisplayName())) {
                     item.setAmount(0);
-                    broadcast("%s が暗闇（弱）を発動！", ToColoredString(participation.color));
+                    broadcast("%s が暗闇（弱）を発動！", ToColoredString(participation.color)).log(kLogPrefix);
                     candidate = new PotionEffect(PotionEffectType.DARKNESS, 200, 1);
                 } else if (kSecondaryShootItemDisplayName.equals(meta.getDisplayName())) {
                     item.setAmount(0);
-                    broadcast("%s が暗闇（強）を発動！", ToColoredString(participation.color));
+                    broadcast("%s が暗闇（強）を発動！", ToColoredString(participation.color)).log(kLogPrefix);
                     candidate = new PotionEffect(PotionEffectType.BLINDNESS, 100, 1);
                 }
                 PotionEffect effect = candidate;
@@ -569,7 +570,7 @@ public class BoatRaceEventListener implements Competition {
                 inventory.addItem(splashPotion);
                 inventory.addItem(fireworkRocket);
             }
-            broadcast("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role));
+            broadcast("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role)).log();
             setStatus(Status.AWAIT_START);
         } else {
             broadcast("[水上レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(color));
@@ -586,7 +587,7 @@ public class BoatRaceEventListener implements Competition {
         Team team = ensureTeam(current.color);
         team.setPlayer(current.role, null);
         clearItems(player);
-        broadcast("[水上レース] %sがエントリー解除しました", player.getName());
+        broadcast("[水上レース] %sがエントリー解除しました", player.getName()).log();
 
         AtomicInteger totalPlayerCount = new AtomicInteger(0);
         AllTeamColors(t -> {
@@ -641,7 +642,7 @@ public class BoatRaceEventListener implements Competition {
             totalPlayerCount += team.getPlayerCount();
         }
         if (totalPlayerCount < 1) {
-            broadcastUnofficial(ChatColor.RED + "[水上レース] 参加者が 0 人です");
+            broadcastUnofficial(ChatColor.RED + "[水上レース] 参加者が 0 人です").log();
             return;
         }
         broadcast("");
@@ -650,9 +651,9 @@ public class BoatRaceEventListener implements Competition {
             Team team = ensureTeam(color);
             int count = team.getPlayerCount();
             if (count < 1) {
-                broadcast("%sの参加者が見つかりません", ToString(color));
+                broadcast("%sの参加者が見つかりません", ToString(color)).log(kLogPrefix);
             } else {
-                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count);
+                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count).log(kLogPrefix);
             }
         }
         AllTeamColors(color -> {
@@ -665,7 +666,7 @@ public class BoatRaceEventListener implements Competition {
         });
         broadcast("-----------------------");
         broadcast("");
-        broadcast("[水上レース] 競技を開始します！");
+        broadcast("[水上レース] 競技を開始します！").log();
         broadcast("");
         setStatus(Status.COUNTDOWN);
 

@@ -10,8 +10,12 @@ public class ConsoleLogger {
         this.message = message;
     }
 
-    public void log() {
+    public void log(String prefix) {
         Server server = Bukkit.getServer();
-        server.getLogger().info(message);
+        server.getLogger().info(prefix + message);
+    }
+
+    public void log() {
+        log("");
     }
 }
