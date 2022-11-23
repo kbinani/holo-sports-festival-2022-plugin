@@ -857,6 +857,17 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         race = null;
         respawn.clear();
         teams.clear();
+        evacuateNonParticipants();
+    }
+
+    private void evacuateNonParticipants() {
+        Point3i safe = offset(kSafeSpawnLocation);
+        Players.Within(delegate.mainGetWorld(), offset(kHabitableZone), player -> {
+            GameMode mode = player.getGameMode();
+            if (mode == GameMode.ADVENTURE || mode == GameMode.SURVIVAL) {
+                player.teleport(player.getLocation().set(safe.x + 0.5, safe.y, safe.z + 0.5));
+            }
+        });
     }
 
     private static final Point3i kButtonLeave = new Point3i(105, -60, -121);

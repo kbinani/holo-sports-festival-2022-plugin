@@ -745,6 +745,25 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         bossbars.forEach((color, bar) -> {
             bar.setVisible(false);
         });
+        evacuateNonParticipants();
+    }
+
+    private void evacuateNonParticipants() {
+        World world = delegate.mainGetWorld();
+        for (Level level : levels.values()) {
+            Point3i safe = level.getSafeSpawnLocation();
+            Players.Within(world, level.getBounds(), player -> {
+                GameMode mode = player.getGameMode();
+                if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
+                    return;
+                }
+                Location location = player.getLocation();
+                if (level.containsInBounds(location.toVector())) {
+                    location.set(safe.x + 0.5, safe.y, safe.z + 0.5);
+                    player.teleport(location);
+                }
+            });
+        }
     }
 
     static class Participation {
