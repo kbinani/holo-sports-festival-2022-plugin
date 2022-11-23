@@ -83,7 +83,7 @@ class ShootingStage extends Stage {
         }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.MINECART, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Minecart minecart = (Minecart) it;
-            minecart.addScoreboardTag(stageEntityTag);
+            minecart.addScoreboardTag(kEntityTag);
 
             world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.SKELETON, CreatureSpawnEvent.SpawnReason.COMMAND, e -> {
                 Skeleton skeleton = (Skeleton) e;
@@ -115,7 +115,7 @@ class ShootingStage extends Stage {
         }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.MINECART, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Minecart minecart = (Minecart) it;
-            minecart.addScoreboardTag(stageEntityTag);
+            minecart.addScoreboardTag(kEntityTag);
 
             world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.COMMAND, e -> {
                 Zombie zombie = (Zombie) e;
