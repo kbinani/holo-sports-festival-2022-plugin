@@ -646,6 +646,10 @@ public class RelayEventListener implements Listener, Competition {
                     ok = false;
                     broadcastUnofficial("[リレー] %sがゲート内に入っていません", runner.getName());
                 }
+                if (runner.getInventory().firstEmpty() < 0) {
+                    ok = false;
+                    broadcastUnofficial("[リレー] %sのインベントリに空きがなくバトンを持てません", runner.getName());
+                }
             }
             if (!ok) {
                 setStatus(Status.AWAIT_START);
@@ -720,6 +724,11 @@ public class RelayEventListener implements Listener, Competition {
             // 殴れないからここには来ないはず
             from.sendMessage(ChatColor.RED + "バトンパス相手のゲームモードがアドベンチャーまたはサバイバルの時だけパスできます");
             to.sendMessage(ChatColor.RED + "ゲームモードがアドベンチャーまたはサバイバルでないためバトンを受け取れません");
+            return;
+        }
+        if (to.getInventory().firstEmpty() < 0) {
+            from.sendMessage(ChatColor.RED + "バトンパス相手のインベントリに空きがないためバトンパスできません");
+            to.sendMessage(ChatColor.RED + "インベントリに空きがないためバトンパスできません");
             return;
         }
 
