@@ -727,7 +727,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             race.withdraw(player);
         }
         broadcast("[だるまさんがころんだ] %sがエントリー解除しました", player.getName()).log();
-        if (getPlayerCount() < 0) {
+        if (getPlayerCount() < 1) {
             setStatus(Status.IDLE);
         }
     }
