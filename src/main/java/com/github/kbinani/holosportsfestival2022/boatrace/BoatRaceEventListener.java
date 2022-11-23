@@ -48,6 +48,8 @@ public class BoatRaceEventListener implements Competition {
 
     private Status _status = Status.IDLE;
     private final Map<TeamColor, Long> finishedServerTime = new HashMap<>();
+    private boolean initialized = false;
+    private final Map<TeamColor, Team> teams = new HashMap<>();
 
     private void setStatus(Status status) {
         if (status == _status) {
@@ -192,8 +194,6 @@ public class BoatRaceEventListener implements Competition {
             return ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
         }
     }
-
-    private final Map<TeamColor, Team> teams = new HashMap<>();
 
     private @Nonnull Team ensureTeam(TeamColor color) {
         Team t = teams.get(color);
@@ -428,8 +428,6 @@ public class BoatRaceEventListener implements Competition {
         }
         onClickLeave(e.getPlayer());
     }
-
-    private boolean initialized = false;
 
     @EventHandler
     @SuppressWarnings("unused")
@@ -767,5 +765,13 @@ public class BoatRaceEventListener implements Competition {
     @Override
     public void competitionClearItems(Player player) {
         clearItems(player);
+    }
+
+    @Override
+    public void competitionReset() {
+        setStatus(Status.IDLE);
+        resetField();
+        finishedServerTime.clear();
+        teams.clear();
     }
 }

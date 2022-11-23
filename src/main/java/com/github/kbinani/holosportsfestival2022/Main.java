@@ -150,6 +150,11 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
         pluginManager.registerEvents(this, this);
     }
 
+    @Override
+    public void onDisable() {
+        competitions.forEach(Competition::competitionReset);
+    }
+
     @EventHandler
     @SuppressWarnings("unused")
     public void onCreatureSpawn(CreatureSpawnEvent e) {

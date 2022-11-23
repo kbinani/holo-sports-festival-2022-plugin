@@ -949,6 +949,14 @@ public class RelayEventListener implements Listener, Competition {
         clearBatons(player);
     }
 
+    @Override
+    public void competitionReset() {
+        setStatus(Status.IDLE);
+        resetField();
+        teams.clear();
+        race = null;
+    }
+
     private static final Point3i kButtonEntryRed = new Point3i(39, -60, -184);
     private static final Point3i kButtonEntryWhite = new Point3i(37, -60, -184);
     private static final Point3i kButtonEntryYellow = new Point3i(35, -60, -184);

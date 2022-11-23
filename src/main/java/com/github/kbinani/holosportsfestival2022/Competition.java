@@ -12,4 +12,6 @@ public interface Competition extends Listener {
 
     @Nonnull
     CompetitionType competitionGetType();
+
+    void competitionReset();
 }

@@ -733,6 +733,20 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         clearItem(player);
     }
 
+    @Override
+    public void competitionReset() {
+        setStatus(Status.IDLE);
+        resetField();
+        levels.forEach((color, level) -> {
+            level.reset();
+        });
+        teams.clear();
+        race = null;
+        bossbars.forEach((color, bar) -> {
+            bar.setVisible(false);
+        });
+    }
+
     static class Participation {
         final TeamColor color;
         final Role role;

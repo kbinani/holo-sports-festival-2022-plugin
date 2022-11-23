@@ -21,14 +21,23 @@ public class Loader {
         Set<Point> added = new HashSet<>();
         for (int cx = cx0; cx <= cx1; cx++) {
             for (int cz = cz0; cz <= cz1; cz++) {
-                if (world.addPluginChunkTicket(cx, cz, plugin)) {
+                if (plugin.isEnabled()) {
+                    if (world.addPluginChunkTicket(cx, cz, plugin)) {
+                        added.add(new Point(cx, cz));
+                    }
+                } else {
+                    world.loadChunk(cx, cz);
                     added.add(new Point(cx, cz));
                 }
             }
         }
         callback.accept(world);
         for (Point p : added) {
-            world.removePluginChunkTicket(p.x, p.y, plugin);
+            if (plugin.isEnabled()) {
+                world.removePluginChunkTicket(p.x, p.y, plugin);
+            } else {
+                world.unloadChunk(p.x, p.y);
+            }
         }
     }
 }

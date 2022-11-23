@@ -38,8 +38,8 @@ public class FencingEventListener implements Listener, Competition {
     private @Nullable Player right;
     private int hitpointLeft = 3;
     private int hitpointRight = 3;
-    private Bossbar bossbarLeft;
-    private Bossbar bossbarRight;
+    private @Nullable Bossbar bossbarLeft;
+    private @Nullable Bossbar bossbarRight;
     private boolean initialized = false;
     private final long loadDelay;
     private final MainDelegate delegate;
@@ -108,10 +108,10 @@ public class FencingEventListener implements Listener, Competition {
                 hitpointLeft = 3;
 
                 // bossbar 追加
-                bossbarLeft.setValue(3);
-                bossbarRight.setValue(3);
-                bossbarLeft.setVisible(true);
-                bossbarRight.setVisible(true);
+                ensureRightBossbar().setValue(3);
+                ensureRightBossbar().setVisible(true);
+                ensureLeftBossbar().setValue(3);
+                ensureLeftBossbar().setVisible(true);
 
                 broadcast("");
                 broadcast("[フェンシング] 競技を開始します！").log();
@@ -198,8 +198,8 @@ public class FencingEventListener implements Listener, Competition {
             shouldKill = hitpointLeft == 0;
         }
 
-        bossbarLeft.setValue(hitpointLeft);
-        bossbarRight.setValue(hitpointRight);
+        ensureLeftBossbar().setValue(hitpointLeft);
+        ensureRightBossbar().setValue(hitpointRight);
 
         if (shouldKill) {
             delegate.mainRunTaskLater(this::decideResult, 1);
@@ -319,8 +319,12 @@ public class FencingEventListener implements Listener, Competition {
 
     private void clearField() {
         fill(new Point3i(102, -16, -269), new Point3i(165, -18, -264), "air");
-        bossbarLeft.setVisible(false);
-        bossbarRight.setVisible(false);
+        if (bossbarLeft != null) {
+            bossbarLeft.setVisible(false);
+        }
+        if (bossbarRight != null) {
+            bossbarRight.setVisible(false);
+        }
         Bukkit.getServer().getOnlinePlayers().forEach(this::clearItem);
         World world = delegate.mainGetWorld();
         Editor.WallSign(world, offset(new Point3i(101, -19, -265)), BlockFace.NORTH, "右側エントリー");
@@ -392,18 +396,30 @@ public class FencingEventListener implements Listener, Competition {
 
         delegate.mainRunTaskLater(() -> {
             BoundingBox bounds = getAnnounceBounds();
-            bossbarLeft = new Bossbar(delegate, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", bounds);
+            ensureLeftBossbar();
+            ensureRightBossbar();
+            clearField();
+        }, loadDelay);
+    }
+
+    private @Nonnull Bossbar ensureLeftBossbar() {
+        if (bossbarLeft == null) {
+            bossbarLeft = new Bossbar(delegate, kBossbarLeft, "<<< " + TeamName(Team.LEFT) + " <<<", getAnnounceBounds());
             bossbarLeft.setMax(3);
             bossbarLeft.setValue(3);
             bossbarLeft.setColor(BarColor.GREEN);
+        }
+        return bossbarLeft;
+    }
 
-            bossbarRight = new Bossbar(delegate, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>", bounds);
+    private @Nonnull Bossbar ensureRightBossbar() {
+        if (bossbarRight == null) {
+            bossbarRight = new Bossbar(delegate, kBossbarRight, ">>> " + TeamName(Team.RIGHT) + " >>>", getAnnounceBounds());
             bossbarRight.setMax(3);
             bossbarRight.setValue(3);
             bossbarRight.setColor(BarColor.GREEN);
-
-            clearField();
-        }, loadDelay);
+        }
+        return bossbarRight;
     }
 
     @EventHandler
@@ -677,6 +693,22 @@ public class FencingEventListener implements Listener, Competition {
     @Override
     public void competitionClearItems(Player player) {
         clearItem(player);
+    }
+
+    @Override
+    public void competitionReset() {
+        setStatus(Status.IDLE);
+        clearField();
+        left = null;
+        right = null;
+        hitpointLeft = 3;
+        hitpointRight = 3;
+        if (bossbarLeft != null) {
+            bossbarLeft.setVisible(false);
+        }
+        if (bossbarRight != null) {
+            bossbarRight.setVisible(false);
+        }
     }
 
     private static final Point3i kButtonRightJoin = new Point3i(101, -19, -265);

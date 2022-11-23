@@ -850,6 +850,15 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         return CompetitionType.DARUMA;
     }
 
+    @Override
+    public void competitionReset() {
+        setStatus(Status.IDLE);
+        resetField();
+        race = null;
+        respawn.clear();
+        teams.clear();
+    }
+
     private static final Point3i kButtonLeave = new Point3i(105, -60, -121);
     private static final Point3i kButtonRedJoin = new Point3i(107, -60, -121);
     private static final Point3i kButtonWhiteJoin = new Point3i(109, -60, -121);
