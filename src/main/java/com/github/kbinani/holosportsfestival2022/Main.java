@@ -5,9 +5,14 @@ import com.github.kbinani.holosportsfestival2022.daruma.DarumaEventListener;
 import com.github.kbinani.holosportsfestival2022.fencing.FencingEventListener;
 import com.github.kbinani.holosportsfestival2022.mob.MobFightEventListener;
 import com.github.kbinani.holosportsfestival2022.relay.RelayEventListener;
+import org.bukkit.ChatColor;
 import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
 import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,6 +23,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -148,6 +154,75 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
             pluginManager.registerEvents(competition, this);
         }
         pluginManager.registerEvents(this, this);
+
+        PluginCommand command = getCommand(CommandTabCompleter.kCommandLabel);
+        if (command != null) {
+            command.setTabCompleter(new CommandTabCompleter());
+        }
+    }
+
+    @Override
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (sender instanceof ConsoleCommandSender) {
+            return handleCommand(sender, label, args);
+        } else if (sender instanceof Player player && player.isOp()) {
+            return handleCommand(sender, label, args);
+        } else {
+            return false;
+        }
+    }
+
+    private boolean handleCommand(CommandSender sender, String label, String[] args) {
+        if (!label.equals(CommandTabCompleter.kCommandLabel)) {
+            return false;
+        }
+        if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
+            sendHelp(sender);
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("reset")) {
+            if (args.length != 2) {
+                sender.sendMessage(ChatColor.RED + "too many arguments");
+                sendHelp(sender);
+                return false;
+            }
+            String name = args[1];
+            CompetitionType type = null;
+            if (name.equalsIgnoreCase("boatrace")) {
+                type = CompetitionType.BOAT_RACE;
+            } else if (name.equalsIgnoreCase("daruma")) {
+                type = CompetitionType.DARUMA;
+            } else if (name.equalsIgnoreCase("fencing")) {
+                type = CompetitionType.FENCING;
+            } else if (name.equalsIgnoreCase("mob")) {
+                type = CompetitionType.MOB;
+            } else if (name.equalsIgnoreCase("relay")) {
+                type = CompetitionType.RELAY;
+            } else {
+                sender.sendMessage(ChatColor.RED + "unknown mini-game");
+                sendHelp(sender);
+                return false;
+            }
+            final CompetitionType t = type;
+            Competition competition = competitions.stream().filter(c -> c.competitionGetType() == t).findFirst().orElse(null);
+            if (competition == null) {
+                sender.sendMessage(ChatColor.RED + "mini-game \"" + name + "\" does not exist");
+                return false;
+            }
+            competition.competitionReset();
+            getServer().broadcastMessage(CompetitionTypeHelper.ToString(t) + "をリセットしました");
+            return true;
+        } else {
+            sender.sendMessage(ChatColor.RED + "unknown sub command");
+            sendHelp(sender);
+            return false;
+        }
+    }
+
+    private void sendHelp(CommandSender sender) {
+        sender.sendMessage("Usage:");
+        sender.sendMessage(String.format("  %s help", CommandTabCompleter.kCommandLabel));
+        sender.sendMessage(String.format("  %s reset {%s}", CommandTabCompleter.kCommandLabel, String.join(",", CommandTabCompleter.kMiniGameNames)));
     }
 
     @Override

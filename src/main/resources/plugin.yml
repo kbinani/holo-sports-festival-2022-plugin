@@ -2,3 +2,5 @@ name: holo-sports-festival-2022
 api-version: 1.19
 version: ${version}
 main: com.github.kbinani.holosportsfestival2022.Main
+commands:
+  holosportsfestival2022:
