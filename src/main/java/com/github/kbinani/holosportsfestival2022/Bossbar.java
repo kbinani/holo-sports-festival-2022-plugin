@@ -1,10 +1,10 @@
 package com.github.kbinani.holosportsfestival2022;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
@@ -95,14 +95,8 @@ public class Bossbar {
         }
     }
 
-    private boolean isInField(Player player) {
-        Location location = player.getLocation();
-        return player.getWorld().getEnvironment() == World.Environment.NORMAL && box.contains(location.getX(), location.getY(), location.getZ());
-    }
-
     private void updatePlayers() {
-        Server server = Bukkit.getServer();
         instance.removeAll();
-        server.getOnlinePlayers().stream().filter(this::isInField).forEach(instance::addPlayer);
+        Players.Within(delegate.mainGetWorld(), box, instance::addPlayer);
     }
 }

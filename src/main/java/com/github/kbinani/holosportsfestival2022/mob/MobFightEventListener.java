@@ -64,7 +64,9 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             case AWAIT_COUNTDOWN:
                 for (Level level : levels.values()) {
                     Point3i safe = level.getSafeSpawnLocation();
-                    Players.Within(level.getBounds(), player -> player.teleport(player.getLocation().set(safe.x, safe.y, safe.z)));
+                    Players.Within(delegate.mainGetWorld(), level.getBounds(), player -> {
+                        player.teleport(player.getLocation().set(safe.x, safe.y, safe.z));
+                    });
                     level.reset();
                 }
                 for (Map.Entry<TeamColor, Bossbar> it : bossbars.entrySet()) {
@@ -221,6 +223,9 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
+        if (player.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         Vector location = player.getLocation().toVector();
 
         Participation participation = getCurrentParticipation(player);
@@ -536,7 +541,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         setStatus(Status.COUNTDOWN);
         for (Level level : levels.values()) {
             Point3i safe = level.getSafeSpawnLocation();
-            Players.Within(level.getBounds(), player -> player.teleport(player.getLocation().set(safe.x, safe.y, safe.z)));
+            Players.Within(delegate.mainGetWorld(), level.getBounds(), player -> player.teleport(player.getLocation().set(safe.x, safe.y, safe.z)));
         }
         delegate.mainCountdownThen(new BoundingBox[]{offset(kAnnounceBounds)}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
@@ -624,17 +629,17 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
 
     private void resetField() {
         delegate.mainUsingChunk(offset(kAnnounceBounds), world -> {
-            Editor.WallSign(offset(kButtonWhiteLeave), BlockFace.SOUTH, "エントリー解除");
-            Editor.WallSign(offset(kButtonWhiteJoinArrow), BlockFace.SOUTH, "白組", "エントリー", "（弓）");
-            Editor.WallSign(offset(kButtonWhiteJoinSword), BlockFace.SOUTH, "白組", "エントリー", "（剣）");
+            Editor.WallSign(world, offset(kButtonWhiteLeave), BlockFace.SOUTH, "エントリー解除");
+            Editor.WallSign(world, offset(kButtonWhiteJoinArrow), BlockFace.SOUTH, "白組", "エントリー", "（弓）");
+            Editor.WallSign(world, offset(kButtonWhiteJoinSword), BlockFace.SOUTH, "白組", "エントリー", "（剣）");
 
-            Editor.WallSign(offset(kButtonRedLeave), BlockFace.SOUTH, "エントリー解除");
-            Editor.WallSign(offset(kButtonRedJoinArrow), BlockFace.SOUTH, "赤組", "エントリー", "（弓）");
-            Editor.WallSign(offset(kButtonRedJoinSword), BlockFace.SOUTH, "赤組", "エントリー", "（剣）");
+            Editor.WallSign(world, offset(kButtonRedLeave), BlockFace.SOUTH, "エントリー解除");
+            Editor.WallSign(world, offset(kButtonRedJoinArrow), BlockFace.SOUTH, "赤組", "エントリー", "（弓）");
+            Editor.WallSign(world, offset(kButtonRedJoinSword), BlockFace.SOUTH, "赤組", "エントリー", "（剣）");
 
-            Editor.WallSign(offset(kButtonYellowLeave), BlockFace.SOUTH, "エントリー解除");
-            Editor.WallSign(offset(kButtonYellowJoinArrow), BlockFace.SOUTH, "黃組", "エントリー", "（弓）");
-            Editor.WallSign(offset(kButtonYellowJoinSword), BlockFace.SOUTH, "黃組", "エントリー", "（剣）");
+            Editor.WallSign(world, offset(kButtonYellowLeave), BlockFace.SOUTH, "エントリー解除");
+            Editor.WallSign(world, offset(kButtonYellowJoinArrow), BlockFace.SOUTH, "黃組", "エントリー", "（弓）");
+            Editor.WallSign(world, offset(kButtonYellowJoinSword), BlockFace.SOUTH, "黃組", "エントリー", "（剣）");
 
             for (TeamColor tc : kColors) {
                 ensureLevel(tc);
@@ -686,7 +691,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
 
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        Players.Within(offset(kAnnounceBounds), player -> player.sendMessage(msg));
+        Players.Within(delegate.mainGetWorld(), offset(kAnnounceBounds), player -> player.sendMessage(msg));
         return new ConsoleLogger(msg, delegate.mainGetLogger());
     }
 

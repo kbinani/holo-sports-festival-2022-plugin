@@ -97,18 +97,11 @@ public class FencingEventListener implements Listener, Competition {
                 fill(new Point3i(165, -17, -269), new Point3i(103, -17, -269), "barrier");
 
                 // 範囲内に居るプレイヤーを観客席側に排除する
-                Server server = Bukkit.getServer();
-                BoundingBox box = offset(kFieldBounds);
-                server.getOnlinePlayers().forEach(player -> {
+                Players.Within(delegate.mainGetWorld(), offset(kFieldBounds), player -> {
                     Location loc = player.getLocation();
-                    if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
-                        return;
-                    }
-                    if (box.contains(loc.toVector())) {
-                        loc.setZ(z(-273));
-                        loc.setY(y(-19));
-                        player.teleport(loc);
-                    }
+                    loc.setZ(z(-273));
+                    loc.setY(y(-19));
+                    player.teleport(loc);
                 });
 
                 hitpointRight = 3;
@@ -133,11 +126,11 @@ public class FencingEventListener implements Listener, Competition {
     }
 
     private void fill(Point3i from, Point3i to, String block) {
-        Editor.Fill(offset(from), offset(to), block);
+        Editor.Fill(delegate.mainGetWorld(), offset(from), offset(to), block);
     }
 
     private void setBlock(Point3i p, String block) {
-        Editor.SetBlock(offset(p), block);
+        Editor.SetBlock(delegate.mainGetWorld(), offset(p), block);
     }
 
     @EventHandler
@@ -304,9 +297,6 @@ public class FencingEventListener implements Listener, Competition {
 
     private void launchLoserFireworkRocket(Location loc) {
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
         FireworkRocket.Launch(world, loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.PINK}, new int[]{FireworkRocket.Color.PINK}, 0, 1, false, false);
         FireworkRocket.Launch(world, loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.WHITE}, new int[]{FireworkRocket.Color.WHITE}, 0, 0, true, false);
         FireworkRocket.Launch(world, loc.getX(), loc.getY(), loc.getZ(), new int[]{FireworkRocket.Color.YELLOW}, new int[]{FireworkRocket.Color.YELLOW}, 0, 4, false, false);
@@ -317,10 +307,11 @@ public class FencingEventListener implements Listener, Competition {
         bossbarLeft.setVisible(false);
         bossbarRight.setVisible(false);
         Bukkit.getServer().getOnlinePlayers().forEach(this::clearItem);
-        Editor.WallSign(offset(new Point3i(101, -19, -265)), BlockFace.NORTH, "右側エントリー");
-        Editor.WallSign(offset(new Point3i(99, -19, -265)), BlockFace.NORTH, "エントリー解除");
-        Editor.WallSign(offset(new Point3i(167, -19, -265)), BlockFace.NORTH, "左側エントリー");
-        Editor.WallSign(offset(new Point3i(169, -19, -265)), BlockFace.NORTH, "エントリー解除");
+        World world = delegate.mainGetWorld();
+        Editor.WallSign(world, offset(new Point3i(101, -19, -265)), BlockFace.NORTH, "右側エントリー");
+        Editor.WallSign(world, offset(new Point3i(99, -19, -265)), BlockFace.NORTH, "エントリー解除");
+        Editor.WallSign(world, offset(new Point3i(167, -19, -265)), BlockFace.NORTH, "左側エントリー");
+        Editor.WallSign(world, offset(new Point3i(169, -19, -265)), BlockFace.NORTH, "エントリー解除");
     }
 
     @EventHandler
@@ -504,7 +495,7 @@ public class FencingEventListener implements Listener, Competition {
 
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        Players.Within(getAnnounceBounds(), player -> player.sendMessage(msg));
+        Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> player.sendMessage(msg));
         return new ConsoleLogger(msg, delegate.mainGetLogger());
     }
 

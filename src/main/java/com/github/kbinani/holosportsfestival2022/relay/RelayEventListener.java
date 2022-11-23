@@ -66,10 +66,14 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     private void stroke(String block, Point3i... points) {
+        World world = delegate.mainGetWorld();
+        if (world == null) {
+            return;
+        }
         for (int i = 0; i < points.length - 1; i++) {
             Point3i from = points[i];
             Point3i to = points[i + 1];
-            Editor.Fill(offset(from), offset(to), block);
+            Editor.Fill(world, offset(from), offset(to), block);
         }
     }
 
@@ -320,10 +324,11 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     private void resetField() {
-        Editor.WallSign(offset(kButtonEntryRed), BlockFace.NORTH, "赤組", "エントリー");
-        Editor.WallSign(offset(kButtonEntryWhite), BlockFace.NORTH, "白組", "エントリー");
-        Editor.WallSign(offset(kButtonEntryYellow), BlockFace.NORTH, "黃組", "エントリー");
-        Editor.WallSign(offset(kButtonLeave), BlockFace.NORTH, "エントリー解除");
+        World world = delegate.mainGetWorld();
+        Editor.WallSign(world, offset(kButtonEntryRed), BlockFace.NORTH, "赤組", "エントリー");
+        Editor.WallSign(world, offset(kButtonEntryWhite), BlockFace.NORTH, "白組", "エントリー");
+        Editor.WallSign(world, offset(kButtonEntryYellow), BlockFace.NORTH, "黃組", "エントリー");
+        Editor.WallSign(world, offset(kButtonLeave), BlockFace.NORTH, "エントリー解除");
 
         setEnableStartGate(false);
         setEnableCornerFence(false);
@@ -423,11 +428,17 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     private void fill(Point3i from, Point3i to, String block) {
-        Editor.Fill(offset(from), offset(to), block);
+        World world = delegate.mainGetWorld();
+        if (world != null) {
+            Editor.Fill(world, offset(from), offset(to), block);
+        }
     }
 
     private void setBlock(Point3i p, String block) {
-        Editor.SetBlock(offset(p), block);
+        World world = delegate.mainGetWorld();
+        if (world != null) {
+            Editor.SetBlock(world, offset(p), block);
+        }
     }
 
     private void onClickJoin(Player player, TeamColor teamColor) {
@@ -749,7 +760,7 @@ public class RelayEventListener implements Listener, Competition {
 
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        Players.Within(getAnnounceBounds(), player -> player.sendMessage(msg));
+        Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> player.sendMessage(msg));
         return new ConsoleLogger(msg, delegate.mainGetLogger());
     }
 

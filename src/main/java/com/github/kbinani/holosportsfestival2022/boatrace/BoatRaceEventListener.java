@@ -85,29 +85,35 @@ public class BoatRaceEventListener implements Competition {
     }
 
     private void setStartGateOpened(boolean opened) {
+        World world = delegate.mainGetWorld();
+        if (world == null) {
+            return;
+        }
         String block = opened ? "air" : "bedrock";
-        fill(new Point3i(-26, -58, -186), new Point3i(-36, -58, -186), block);
-        fill(new Point3i(-37, -58, -187), new Point3i(-44, -58, -187), block);
-        fill(new Point3i(-45, -58, -188), new Point3i(-52, -58, -188), block);
+        fill(world, new Point3i(-26, -58, -186), new Point3i(-36, -58, -186), block);
+        fill(world, new Point3i(-37, -58, -187), new Point3i(-44, -58, -187), block);
+        fill(world, new Point3i(-45, -58, -188), new Point3i(-52, -58, -188), block);
     }
 
     private void setGoalGateOpened(boolean opened) {
-        fill(new Point3i(-52, -58, -196), new Point3i(-25, -58, -196), opened ? "air" : "bedrock");
+        fill(delegate.mainGetWorld(), new Point3i(-52, -58, -196), new Point3i(-25, -58, -196), opened ? "air" : "bedrock");
     }
 
-    private void fill(Point3i from, Point3i to, String block) {
-        Editor.Fill(offset(from), offset(to), block);
+    private void fill(@Nonnull World world, Point3i from, Point3i to, String block) {
+        Editor.Fill(delegate.mainGetWorld(), offset(from), offset(to), block);
     }
 
     private void resetField() {
+        World world = delegate.mainGetWorld();
+
         // 操作用の看板を設置
-        Editor.WallSign(offset(kYellowEntryShooter), BlockFace.WEST, "黄組", "エントリー", ToString(Role.SHOOTER));
-        Editor.WallSign(offset(kYellowEntryDriver), BlockFace.WEST, "黄組", "エントリー", ToString(Role.DRIVER));
-        Editor.WallSign(offset(kWhiteEntryShooter), BlockFace.WEST, "白組", "エントリー", ToString(Role.SHOOTER));
-        Editor.WallSign(offset(kWhiteEntryDriver), BlockFace.WEST, "白組", "エントリー", ToString(Role.DRIVER));
-        Editor.WallSign(offset(kRedEntryShooter), BlockFace.WEST, "赤組", "エントリー", ToString(Role.SHOOTER));
-        Editor.WallSign(offset(kRedEntryDriver), BlockFace.WEST, "赤組", "エントリー", ToString(Role.DRIVER));
-        Editor.WallSign(offset(kLeaveButton), BlockFace.WEST, "エントリー解除");
+        Editor.WallSign(world, offset(kYellowEntryShooter), BlockFace.WEST, "黄組", "エントリー", ToString(Role.SHOOTER));
+        Editor.WallSign(world, offset(kYellowEntryDriver), BlockFace.WEST, "黄組", "エントリー", ToString(Role.DRIVER));
+        Editor.WallSign(world, offset(kWhiteEntryShooter), BlockFace.WEST, "白組", "エントリー", ToString(Role.SHOOTER));
+        Editor.WallSign(world, offset(kWhiteEntryDriver), BlockFace.WEST, "白組", "エントリー", ToString(Role.DRIVER));
+        Editor.WallSign(world, offset(kRedEntryShooter), BlockFace.WEST, "赤組", "エントリー", ToString(Role.SHOOTER));
+        Editor.WallSign(world, offset(kRedEntryDriver), BlockFace.WEST, "赤組", "エントリー", ToString(Role.DRIVER));
+        Editor.WallSign(world, offset(kLeaveButton), BlockFace.WEST, "エントリー解除");
 
         // ゴールラインの柵を撤去
         setGoalGateOpened(true);
@@ -121,23 +127,19 @@ public class BoatRaceEventListener implements Competition {
         }
 
         // 競技用のエンティティを削除する. 競技場内に居るアイテム化したボート.
-        Kill.EntitiesByScoreboardTag(getFieldBounds(), kItemTag);
+        Kill.EntitiesByScoreboardTag(world, getFieldBounds(), kItemTag);
     }
 
     private void setLeverPowered(Point3i pos, boolean powered) {
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
         Block block = world.getBlockAt(pos.x, pos.y, pos.z);
         BlockData data = block.getBlockData();
         if (data.getMaterial() != Material.LEVER) {
             return;
         }
-        if (!(data instanceof Powerable)) {
+        if (!(data instanceof Powerable lever)) {
             return;
         }
-        Powerable lever = (Powerable) data;
         lever.setPowered(powered);
         world.setBlockData(pos.x, pos.y, pos.z, data);
     }
@@ -156,9 +158,6 @@ public class BoatRaceEventListener implements Competition {
 
     private void launchFireworkRockets(TeamColor color) {
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
         int c = FireworkRocketColor(color);
         for (int i = 0; i < 5; i++) {
             Point3i pos = offset(new Point3i(-51 + i * 6, -50, -196));
@@ -237,7 +236,8 @@ public class BoatRaceEventListener implements Competition {
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
-        if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
+        World world = delegate.mainGetWorld();
+        if (world != player.getWorld()) {
             return;
         }
         Participation participation = getCurrentParticipation(player);
@@ -482,7 +482,8 @@ public class BoatRaceEventListener implements Competition {
 
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        Players.Within(new BoundingBox[]{offset(kAnnounceBoundsNorth), offset(kAnnounceBoundsSouth)}, player -> player.sendMessage(msg));
+        World world = delegate.mainGetWorld();
+        Players.Within(world, new BoundingBox[]{offset(kAnnounceBoundsNorth), offset(kAnnounceBoundsSouth)}, player -> player.sendMessage(msg));
         return new ConsoleLogger(msg, delegate.mainGetLogger());
     }
 

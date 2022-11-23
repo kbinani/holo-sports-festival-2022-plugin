@@ -13,10 +13,10 @@ public class Players {
     private Players() {
     }
 
-    public static void Within(BoundingBox[] boxes, Consumer<Player> callback) {
+    public static void Within(World world, BoundingBox[] boxes, Consumer<Player> callback) {
         Server server = Bukkit.getServer();
         server.getOnlinePlayers().forEach(player -> {
-            if (player.getWorld().getEnvironment() != World.Environment.NORMAL) {
+            if (player.getWorld() != world) {
                 return;
             }
             Vector location = player.getLocation().toVector();
@@ -29,7 +29,7 @@ public class Players {
         });
     }
 
-    public static void Within(BoundingBox box, Consumer<Player> callback) {
-        Within(new BoundingBox[]{box}, callback);
+    public static void Within(World world, BoundingBox box, Consumer<Player> callback) {
+        Within(world, new BoundingBox[]{box}, callback);
     }
 }

@@ -78,9 +78,6 @@ class ShootingStage extends Stage {
 
     private void summonSkeleton(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.MINECART, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Minecart minecart = (Minecart) it;
             minecart.addScoreboardTag(kEntityTag);
@@ -110,9 +107,6 @@ class ShootingStage extends Stage {
 
     private void summonZombie(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.MINECART, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Minecart minecart = (Minecart) it;
             minecart.addScoreboardTag(kEntityTag);
@@ -160,8 +154,9 @@ class ShootingStage extends Stage {
 
     @Override
     void onReset() {
-        Kill.EntitiesByType(getBounds(), EntityType.DROPPED_ITEM);
-        Kill.EntitiesByType(getBounds(), EntityType.ARROW);
+        World world = delegate.stageGetWorld();
+        Kill.EntitiesByType(world, getBounds(), EntityType.DROPPED_ITEM);
+        Kill.EntitiesByType(world, getBounds(), EntityType.ARROW);
         remainingMobCount = 16;
     }
 

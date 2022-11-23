@@ -139,19 +139,20 @@ class Level implements StageDelegate {
         Component title = Component.text(text, Style.style(TextColor.color(color.asRGB()), TextDecoration.BOLD));
         Component subtitle = Component.empty();
         Title t = Title.title(title, subtitle, Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3500), Duration.ofMillis(1000)));
-        Players.Within(bounds, player -> {
+        Players.Within(delegate.levelGetWorld(), bounds, player -> {
             player.showTitle(t);
         });
     }
 
-    @Nullable
     @Override
+    @Nonnull
     public World stageGetWorld() {
         return delegate.levelGetWorld();
     }
 
     void setExitOpened(boolean opened) {
-        Editor.Fill(new Point3i(x(-2), y(-59), z(-412)), new Point3i(x(3), y(-57), z(-412)), opened ? "air" : "iron_bars");
+        World world = delegate.levelGetWorld();
+        Editor.Fill(world, new Point3i(x(-2), y(-59), z(-412)), new Point3i(x(3), y(-57), z(-412)), opened ? "air" : "iron_bars");
     }
 
     Point3i getSafeSpawnLocation() {
@@ -160,9 +161,6 @@ class Level implements StageDelegate {
 
     void launchFireworkRockets(int color) {
         World world = delegate.levelGetWorld();
-        if (world == null) {
-            return;
-        }
         FireworkRocket.Launch(world, x(-3) + 0.5, y(-49) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
         FireworkRocket.Launch(world, x(-2) + 0.5, y(-47) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
         FireworkRocket.Launch(world, x(-1) + 0.5, y(-46) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);

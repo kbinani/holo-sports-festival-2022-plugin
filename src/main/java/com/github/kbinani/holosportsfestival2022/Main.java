@@ -19,6 +19,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ import java.util.logging.Logger;
 
 public class Main extends JavaPlugin implements Listener, MainDelegate {
     private final List<Competition> competitions = new ArrayList<>();
-    private @Nullable Optional<World> overworld;
+    private World world;
 
     public Main() {
     }
@@ -62,20 +63,19 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     }
 
     @Override
-    @Nullable
+    @Nonnull
     public World mainGetWorld() {
-        if (overworld == null) {
-            overworld = getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
-        }
-        return overworld().orElse(null);
+        return world;
     }
 
     @Override
-    public Logger mainGetLogger() { return getLogger(); }
+    public Logger mainGetLogger() {
+        return getLogger();
+    }
 
     @Override
     public void mainCountdownThen(BoundingBox[] boxes, Predicate<Integer> countdown, Supplier<Boolean> task, long delay) {
-        Countdown.Then(boxes, this, countdown, task, delay);
+        Countdown.Then(world, boxes, this, countdown, task, delay);
     }
 
     @Override
@@ -87,40 +87,43 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
 
     @Override
     public void mainUsingChunk(BoundingBox box, Consumer<World> callback) {
-        World world = overworld().orElse(null);
-        if (world != null) {
-            Loader.UsingChunk(world, box, this, callback);
-        }
+        Loader.UsingChunk(world, box, this, callback);
     }
 
     @Override
     public void onEnable() {
+        Optional<World> overworld = getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
+        if (overworld.isEmpty()) {
+            getLogger().log(Level.SEVERE, "server should have at least one overworld dimension");
+            setEnabled(false);
+            return;
+        }
+        world = overworld.get();
+
         List<String> reasons = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
-        overworld().ifPresent(world -> {
-            Boolean mobGriefing = world.getGameRuleValue(GameRule.MOB_GRIEFING);
-            Boolean keepInventory = world.getGameRuleValue(GameRule.KEEP_INVENTORY);
-            Boolean showDeathMessages = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
-            Boolean announceAdvancements = world.getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
-            if (mobGriefing != null && mobGriefing) {
-                reasons.add("mobGriefing gamerule is set to true");
-            }
-            if (keepInventory != null && !keepInventory) {
-                reasons.add("keepInventory gamerule is set to false");
-            }
-            if (showDeathMessages != null && showDeathMessages) {
-                warnings.add("showDeathMessages gamerule is set to true");
-            }
-            if (announceAdvancements != null && announceAdvancements) {
-                warnings.add("announceAdvancements gamerule is set to true");
-            }
-            if (world.getDifficulty() == Difficulty.PEACEFUL) {
-                reasons.add("the \"mob\" mini game is not playable as the difficulty is set to peaceful");
-            }
-            if (!world.getPVP()) {
-                reasons.add("pvp is set to false");
-            }
-        });
+        Boolean mobGriefing = world.getGameRuleValue(GameRule.MOB_GRIEFING);
+        Boolean keepInventory = world.getGameRuleValue(GameRule.KEEP_INVENTORY);
+        Boolean showDeathMessages = world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES);
+        Boolean announceAdvancements = world.getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS);
+        if (mobGriefing != null && mobGriefing) {
+            reasons.add("mobGriefing gamerule is set to true");
+        }
+        if (keepInventory != null && !keepInventory) {
+            reasons.add("keepInventory gamerule is set to false");
+        }
+        if (showDeathMessages != null && showDeathMessages) {
+            warnings.add("showDeathMessages gamerule is set to true");
+        }
+        if (announceAdvancements != null && announceAdvancements) {
+            warnings.add("announceAdvancements gamerule is set to true");
+        }
+        if (world.getDifficulty() == Difficulty.PEACEFUL) {
+            reasons.add("the \"mob\" mini game is not playable as the difficulty is set to peaceful");
+        }
+        if (!world.getPVP()) {
+            reasons.add("pvp is set to false");
+        }
         if (!reasons.isEmpty()) {
             getLogger().log(Level.SEVERE, "Disabling the plugin because:");
             for (String reason : reasons) {
@@ -173,9 +176,5 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
         for (PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
-    }
-
-    private Optional<World> overworld() {
-        return getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     }
 }

@@ -81,9 +81,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                     }
                     final String title = titleString;
                     final String subtitle = subtitleString;
-                    Players.Within(getAnnounceBounds(), player -> {
-                        player.sendTitle(title, subtitle, 0, stay, 20);
-                    });
+                    Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> player.sendTitle(title, subtitle, 0, stay, 20));
                 }
                 break;
             case START:
@@ -269,9 +267,6 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
     private void launchFireworkRocket(double x, double y, double z, int color) {
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
         FireworkRocket.Launch(world, x, y, z, new int[]{color}, new int[]{color}, 20, 1, false, false);
     }
 
@@ -337,13 +332,17 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         if (e.getOldCurrent() != 0 || e.getNewCurrent() <= 0) {
             return;
         }
+        World world = delegate.mainGetWorld();
+        if (e.getBlock().getWorld() != world) {
+            return;
+        }
 
         Point3i location = new Point3i(e.getBlock().getLocation());
         for (Point3i button : kDummyButtons) {
             Point3i pos = offset(button);
             if (pos.equals(location)) {
                 BoundingBox box = new BoundingBox(pos.x - 6, pos.y - 6, pos.z - 6, pos.x + 6, pos.y + 6, pos.z + 6);
-                Players.Within(box, player -> {
+                Players.Within(world, box, player -> {
                     if (player.getGameMode() == GameMode.CREATIVE) {
                         player.sendMessage(ChatColor.RED + "このボタンは無効になっています. 代わりに看板を右クリックしてください. op のみ操作可能です");
                     }
@@ -369,13 +368,11 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         } else {
             return;
         }
-        World world = e.getBlock().getWorld();
         Block block = world.getBlockAt(location.x, location.y - 1, location.z);
         BlockState state = block.getState();
-        if (!(state instanceof Dispenser)) {
+        if (!(state instanceof Dispenser dispenser)) {
             return;
         }
-        Dispenser dispenser = (Dispenser) state;
         Inventory inventory = dispenser.getInventory();
         inventory.clear();
         inventory.setItem(0, new ItemStack(Material.TNT, 1));
@@ -407,9 +404,6 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
     private void clearDispensers() {
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
 
         final int y = -61;
         for (int x = 104; x <= 144; x += 2) {
@@ -463,8 +457,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 final BoundingBox habitable = offset(kHabitableZone);
                 final Point3i safeRespawn = offset(kSafeSpawnLocation);
                 Server server = Bukkit.getServer();
+                World world = delegate.mainGetWorld();
                 server.getOnlinePlayers().forEach(p -> {
-                    if (p.getWorld().getEnvironment() != World.Environment.NORMAL) {
+                    if (world != p.getWorld()) {
                         return;
                     }
                     Location location = p.getLocation();
@@ -604,9 +599,8 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void setTitle(@Nullable String title, @Nullable String subtitle) {
-        Players.Within(getAnnounceBounds(), player -> {
-            player.sendTitle(title == null ? "" : title, subtitle == null ? "" : subtitle, 10, 70, 20);
-        });
+        World world = delegate.mainGetWorld();
+        Players.Within(world, getAnnounceBounds(), player -> player.sendTitle(title == null ? "" : title, subtitle == null ? "" : subtitle, 10, 70, 20));
     }
 
     private void onClickTriggerRed(Player player) {
@@ -625,7 +619,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             if (_status != Status.COUNTDOWN_RED) {
                 return false;
             }
-            Play.Sound(Bukkit.getServer(), getAnnounceBounds(), Sound.ENTITY_GHAST_HURT, 0.25f, 1);
+            Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> {
+                player.playSound(player.getLocation(), Sound.ENTITY_GHAST_HURT, 0.25f, 1);
+            });
             setTitle("ころんだ！！！", "Red light!!!");
             setStatus(Status.RED);
             return true;
@@ -670,7 +666,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
-        Players.Within(getAnnounceBounds(), player -> player.sendMessage(msg));
+        Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> player.sendMessage(msg));
         return new ConsoleLogger(msg, delegate.mainGetLogger());
     }
 
@@ -751,10 +747,11 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void resetField() {
-        Editor.WallSign(offset(kButtonLeave), BlockFace.SOUTH, "エントリー解除");
-        Editor.WallSign(offset(kButtonRedJoin), BlockFace.SOUTH, "赤組", "エントリー");
-        Editor.WallSign(offset(kButtonWhiteJoin), BlockFace.SOUTH, "白組", "エントリー");
-        Editor.WallSign(offset(kButtonYellowJoin), BlockFace.SOUTH, "黃組", "エントリー");
+        World world = delegate.mainGetWorld();
+        Editor.WallSign(world, offset(kButtonLeave), BlockFace.SOUTH, "エントリー解除");
+        Editor.WallSign(world, offset(kButtonRedJoin), BlockFace.SOUTH, "赤組", "エントリー");
+        Editor.WallSign(world, offset(kButtonWhiteJoin), BlockFace.SOUTH, "白組", "エントリー");
+        Editor.WallSign(world, offset(kButtonYellowJoin), BlockFace.SOUTH, "黃組", "エントリー");
         setStartGateOpened(false);
         setEntranceOpened(true);
     }
@@ -770,7 +767,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void stroke(Point3i from, Point3i to, String block) {
-        Editor.Fill(offset(from), offset(to), block);
+        Editor.Fill(delegate.mainGetWorld(), offset(from), offset(to), block);
     }
 
     private Point3i getEntryButtonPosition(TeamColor color) {

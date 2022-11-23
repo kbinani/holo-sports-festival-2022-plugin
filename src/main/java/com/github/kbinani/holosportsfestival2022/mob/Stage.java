@@ -77,7 +77,7 @@ public abstract class Stage {
     void reset() {
         setExitOpened(false);
         setEntranceOpened(false);
-        Kill.EntitiesByScoreboardTag(getBounds(), kEntityTag);
+        Kill.EntitiesByScoreboardTag(delegate.stageGetWorld(), getBounds(), kEntityTag);
         onReset();
     }
 
@@ -111,14 +111,12 @@ public abstract class Stage {
     }
 
     protected void fill(int x1, int y1, int z1, int x2, int y2, int z2, String block) {
-        Editor.Fill(new Point3i(x1, y1, z1), new Point3i(x2, y2, z2), block);
+        World world = delegate.stageGetWorld();
+        Editor.Fill(world, new Point3i(x1, y1, z1), new Point3i(x2, y2, z2), block);
     }
 
     protected void addGlowingEffect() {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.getNearbyEntities(getBounds(), it -> it.getScoreboardTags().contains(kEntityTag)).forEach(it -> {
             if (it instanceof LivingEntity entity) {
                 PotionEffect effect = new PotionEffect(PotionEffectType.GLOWING, 86400, 1, false, false);

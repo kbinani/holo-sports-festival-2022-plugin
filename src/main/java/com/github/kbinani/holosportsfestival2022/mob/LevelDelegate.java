@@ -2,9 +2,9 @@ package com.github.kbinani.holosportsfestival2022.mob;
 
 import org.bukkit.World;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 public interface LevelDelegate {
-    @Nullable
+    @Nonnull
     World levelGetWorld();
 }

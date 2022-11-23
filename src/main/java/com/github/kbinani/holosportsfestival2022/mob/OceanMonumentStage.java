@@ -150,7 +150,7 @@ class OceanMonumentStage extends Stage {
 
     @Override
     void onReset() {
-        Kill.EntitiesByType(getBounds(), EntityType.TRIDENT);
+        Kill.EntitiesByType(delegate.stageGetWorld(), getBounds(), EntityType.TRIDENT);
         remainingMobCount = 10;
     }
 
