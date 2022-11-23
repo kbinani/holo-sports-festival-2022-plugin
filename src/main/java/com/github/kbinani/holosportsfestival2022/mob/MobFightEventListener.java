@@ -154,7 +154,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             } else {
                 // 次の stage へ
                 level.showTitle("WAVE CLEAR !", Color.YELLOW);
-                broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString());
+                broadcast("%s %s CLEAR !", ToColoredString(color), stage.getMessageDisplayString()).log(kLogPrefix);
                 delegate.mainRunTaskLater(() -> {
                     if (this.race == null) {
                         return;
@@ -271,7 +271,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             if (!team.isPlayerFinished(player) && stage.getGoalDetectionBounds().contains(location)) {
                 int finishedPlayerCount = team.setFinished(player);
                 if (finishedPlayerCount == team.getPlayerCount()) {
-                    broadcast("%s GAME CLEAR !!", ToColoredString(color));
+                    broadcast("%s GAME CLEAR !!", ToColoredString(color)).log(kLogPrefix);
                     level.showTitle("GAME CLEAR !!", Color.fromRGB(0xFFAA00)); // gold
                     level.launchFireworkRockets(FireworkRocketColor(color));
                     applyBossbarValue(color, new BossbarValue(team.getPlayerCount(), team.getPlayerCount(), "GAME CLEAR !!"));
@@ -298,10 +298,10 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
 
                         broadcast("");
                         broadcast("-----------------------");
-                        broadcast("[結果発表]");
+                        broadcast("[結果発表]").log(kLogPrefix);
                         for (int i = 0; i < race.order.size(); i++) {
                             Goal goal = race.order.get(i);
-                            broadcast("%d位 : %s (%.2f 秒)", i + 1, ToColoredString(goal.color), goal.seconds);
+                            broadcast("%d位 : %s (%.2f 秒)", i + 1, ToColoredString(goal.color), goal.seconds).log(kLogPrefix);
                         }
                         broadcast("-----------------------");
                         broadcast("");
@@ -395,12 +395,13 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         }
         Participation current = getCurrentParticipation(player);
         if (current != null) {
-            broadcast("[MOB討伐レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(current.color));
+            //NOTE: 本家では全チャになる
+            player.sendMessage(String.format("[MOB討伐レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(current.color)));
             return;
         }
         Team team = ensureTeam(color);
         team.add(player, role);
-        broadcast("[MOB討伐レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role));
+        broadcast("[MOB討伐レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role)).log();
 
         delegate.mainClearCompetitionItems(player);
         PlayerInventory inventory = player.getInventory();
@@ -481,7 +482,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         Team team = ensureTeam(current.color);
         team.remove(player);
         clearItem(player);
-        broadcast("[MOB討伐レース] %sがエントリー解除しました", player.getName());
+        broadcast("[MOB討伐レース] %sがエントリー解除しました", player.getName()).log();
 
         if (team.getPlayerCount() == 0) {
             if (race != null) {
@@ -522,7 +523,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             Team team = it.getValue();
             int count = team.getPlayerCount();
             if (count > 0) {
-                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count);
+                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count).log(kLogPrefix);
                 race.add(color);
             } else {
                 broadcast("%sの参加者が見つかりません", ToString(color));
@@ -530,7 +531,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         }
         broadcast("-----------------------");
         broadcast("");
-        broadcast("[MOB討伐レース] 競技を開始します！");
+        broadcast("[MOB討伐レース] 競技を開始します！").log();
         broadcast("");
         setStatus(Status.COUNTDOWN);
         for (Level level : levels.values()) {
@@ -791,4 +792,6 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     private static final String kBossbarRed = "hololive_sports_festival_2022_bossbar_red";
     private static final String kBossbarWhite = "hololive_sports_festival_2022_bossbar_white";
     private static final String kBossbarYellow = "hololive_sports_festival_2022_bossbar_yellow";
+
+    private static final String kLogPrefix = "[MOB討伐レース]";
 }
