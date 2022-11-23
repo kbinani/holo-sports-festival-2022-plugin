@@ -237,7 +237,7 @@ public class BoatRaceEventListener implements Competition {
     public void onPlayerMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
         World world = delegate.mainGetWorld();
-        if (world != player.getWorld()) {
+        if (player.getWorld() != world) {
             return;
         }
         Participation participation = getCurrentParticipation(player);
@@ -339,6 +339,9 @@ public class BoatRaceEventListener implements Competition {
     @SuppressWarnings("unused")
     public void onPlayerInteract(PlayerInteractEvent e) {
         Player player = e.getPlayer();
+        if (player.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         Block block = e.getClickedBlock();
         Action action = e.getAction();
         ItemStack item = e.getItem();
@@ -412,6 +415,20 @@ public class BoatRaceEventListener implements Competition {
         onClickLeave(player);
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerChangedWorld(PlayerChangedWorldEvent e) {
+        Player player = e.getPlayer();
+        if (e.getFrom() != delegate.mainGetWorld()) {
+            return;
+        }
+        @Nullable Participation current = getCurrentParticipation(player);
+        if (current == null) {
+            return;
+        }
+        onClickLeave(e.getPlayer());
+    }
+
     private boolean initialized = false;
 
     @EventHandler
@@ -434,8 +451,12 @@ public class BoatRaceEventListener implements Competition {
         if (e.getOldCurrent() != 0 || e.getNewCurrent() <= 0) {
             return;
         }
+        Block block = e.getBlock();
+        if (block.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
 
-        Location location = e.getBlock().getLocation();
+        Location location = block.getLocation();
         int bx = location.getBlockX();
         int by = location.getBlockY();
         int bz = location.getBlockZ();
@@ -452,6 +473,9 @@ public class BoatRaceEventListener implements Competition {
             return;
         }
         Boat boat = (Boat) e.getEntity();
+        if (boat.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         Point3i pos = new Point3i(boat.getLocation());
         Material material = boat.getBoatType().getMaterial();
         if (material != BoatType(TeamColor.RED) && material != BoatType(TeamColor.WHITE) && material != BoatType(TeamColor.YELLOW)) {

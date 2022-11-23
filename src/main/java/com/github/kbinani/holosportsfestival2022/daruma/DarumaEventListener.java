@@ -137,10 +137,6 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player player = e.getPlayer();
         onClickLeave(player);
-        if (getPlayerCount() < 1) {
-            // 参加者の最後の一人がログアウトした. 会場をリセットする
-            setStatus(Status.IDLE);
-        }
     }
 
     @EventHandler
@@ -152,6 +148,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             return;
         }
         if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        if (player.getWorld() != delegate.mainGetWorld()) {
             return;
         }
         Point3i location = new Point3i(block.getLocation());
@@ -181,7 +180,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     public void onPlayerMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
         World world = player.getWorld();
-        if (world.getEnvironment() != World.Environment.NORMAL) {
+        if (delegate.mainGetWorld() != world) {
             return;
         }
         TeamColor color = getCurrentColor(player);
@@ -279,10 +278,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             return;
         }
         respawn.remove(player.getUniqueId());
-        Location location = player.getLocation();
-        location.setX(pos.x + 0.5);
-        location.setY(pos.y);
-        location.setZ(pos.z + 6.5);
+        Location location = new Location(delegate.mainGetWorld(), pos.x + 0.5, pos.y, pos.z + 6.5);
         e.setRespawnLocation(location);
     }
 
@@ -389,7 +385,13 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             return;
         }
         Entity entity = e.getEntity();
+        if (entity.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         Entity damager = e.getDamager();
+        if (damager.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         if (entity.getType() != EntityType.PLAYER || damager.getType() != EntityType.PLAYER) {
             return;
         }
@@ -400,6 +402,16 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         if (race.isRunning(player)) {
             attacker.setHealth(0);
         }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerChangedWorld(PlayerChangedWorldEvent e) {
+        Player player = e.getPlayer();
+        if (e.getFrom() != delegate.mainGetWorld()) {
+            return;
+        }
+        onClickLeave(player);
     }
 
     private void clearDispensers() {
@@ -715,7 +727,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             race.withdraw(player);
         }
         broadcast("[だるまさんがころんだ] %sがエントリー解除しました", player.getName()).log();
-        if (getPlayerCount() == 0) {
+        if (getPlayerCount() < 0) {
             setStatus(Status.IDLE);
         }
     }

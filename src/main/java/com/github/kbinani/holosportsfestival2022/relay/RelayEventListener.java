@@ -88,8 +88,12 @@ public class RelayEventListener implements Listener, Competition {
         if (e.getOldCurrent() != 0 || e.getNewCurrent() <= 0) {
             return;
         }
+        Block block = e.getBlock();
+        if (block.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
 
-        Location location = e.getBlock().getLocation();
+        Location location = block.getLocation();
         int bx = location.getBlockX();
         int by = location.getBlockY();
         int bz = location.getBlockZ();
@@ -118,6 +122,9 @@ public class RelayEventListener implements Listener, Competition {
             return;
         }
         if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        if (player.getWorld() != delegate.mainGetWorld()) {
             return;
         }
         Point3i location = new Point3i(block.getLocation());
@@ -150,6 +157,9 @@ public class RelayEventListener implements Listener, Competition {
     @SuppressWarnings("unused")
     public void onPlayerMove(PlayerMoveEvent e) {
         Player player = e.getPlayer();
+        if (player.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         TeamColor color = getCurrentTeam(player);
         if (color == null) {
             return;
@@ -675,7 +685,13 @@ public class RelayEventListener implements Listener, Competition {
             return;
         }
         Entity damagerEntity = e.getDamager();
+        if (damagerEntity.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         Entity entity = e.getEntity();
+        if (entity.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         if (!(damagerEntity instanceof Player) || !(entity instanceof Player)) {
             return;
         }

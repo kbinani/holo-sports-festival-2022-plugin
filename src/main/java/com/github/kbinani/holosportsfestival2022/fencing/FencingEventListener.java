@@ -143,7 +143,13 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
         Entity entity = e.getEntity();
+        if (entity.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         Entity damager = e.getDamager();
+        if (damager.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         if (entity.getType() != EntityType.PLAYER || damager.getType() != EntityType.PLAYER) {
             return;
         }
@@ -197,6 +203,15 @@ public class FencingEventListener implements Listener, Competition {
 
         if (shouldKill) {
             delegate.mainRunTaskLater(this::decideResult, 1);
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerChangedWorld(PlayerChangedWorldEvent e) {
+        Player player = e.getPlayer();
+        if (e.getFrom() == delegate.mainGetWorld()) {
+            onClickLeave(player);
         }
     }
 
@@ -320,8 +335,12 @@ public class FencingEventListener implements Listener, Competition {
         if (e.getOldCurrent() != 0 || e.getNewCurrent() <= 0) {
             return;
         }
+        Block block = e.getBlock();
+        if (block.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
 
-        Point3i location = new Point3i(e.getBlock().getLocation());
+        Point3i location = new Point3i(block.getLocation());
         if (location.equals(offset(kButtonStart))) {
             onClickStart();
         }
@@ -331,6 +350,9 @@ public class FencingEventListener implements Listener, Competition {
     @SuppressWarnings("unused")
     public void onPlayerInteract(PlayerInteractEvent e) {
         Player player = e.getPlayer();
+        if (player.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         Block block = e.getClickedBlock();
         if (block == null) {
             return;
@@ -406,10 +428,7 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
         Point3i respawn = offset(kRespawnLocation);
-        Location location = player.getLocation();
-        location.setX(respawn.x);
-        location.setY(respawn.y);
-        location.setZ(respawn.z);
+        Location location = new Location(delegate.mainGetWorld(), respawn.x, respawn.y, respawn.z);
         e.setRespawnLocation(location);
 
         // ここで setStatus(Status.IDLE) すると相討ちの場合に後に onPlayerRespawn する側のリスポン位置が設定されない.
@@ -439,7 +458,7 @@ public class FencingEventListener implements Listener, Competition {
         }
         Player player = e.getPlayer();
         World world = player.getWorld();
-        if (world.getEnvironment() != World.Environment.NORMAL) {
+        if (delegate.mainGetWorld() != world) {
             return;
         }
         Team team = getCurrentTeam(player);

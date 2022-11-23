@@ -156,6 +156,9 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
         if (e.isCancelled()) {
             return;
         }
+        if (e.getEntity().getWorld() != world) {
+            return;
+        }
         switch (e.getSpawnReason()) {
             case NATURAL:
             case VILLAGE_INVASION:

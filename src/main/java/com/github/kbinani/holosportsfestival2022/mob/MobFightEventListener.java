@@ -111,12 +111,22 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     }
 
     @EventHandler
+    public void onPlayerChangedLevel(PlayerChangedWorldEvent e) {
+        if (e.getFrom() == delegate.mainGetWorld()) {
+            onClickLeave(e.getPlayer());
+        }
+    }
+
+    @EventHandler
     @SuppressWarnings("unused")
     public void onEntityDeathEvent(EntityDeathEvent e) {
         if (_status != Status.RUN || race == null) {
             return;
         }
         Entity entity = e.getEntity();
+        if (entity.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
         Vector location = entity.getLocation().toVector();
         for (Map.Entry<TeamColor, Level> it : levels.entrySet()) {
             Level level = it.getValue();
@@ -188,6 +198,9 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
+        if (delegate.mainGetWorld() != player.getWorld()) {
+            return;
+        }
         Point3i location = new Point3i(block.getLocation());
         if (location.equals(offset(kButtonYellowJoinArrow))) {
             onClickJoin(player, TeamColor.YELLOW, Role.ARROW);
@@ -212,8 +225,12 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         if (e.getOldCurrent() != 0 || e.getNewCurrent() <= 0) {
             return;
         }
+        Block block = e.getBlock();
+        if (block.getWorld() != delegate.mainGetWorld()) {
+            return;
+        }
 
-        Point3i location = new Point3i(e.getBlock().getLocation());
+        Point3i location = new Point3i(block.getLocation());
         if (location.equals(offset(kButtonYellowStart)) || location.equals(offset(kButtonRedStart)) || location.equals(offset(kButtonWhiteStart))) {
             onClickStart();
         }
