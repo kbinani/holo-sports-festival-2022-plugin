@@ -48,6 +48,7 @@ public class FencingEventListener implements Listener, Competition {
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
     static final String kWeaponCustomTag = "hololive_sports_festival_2022_fencing";
     static final int kWeaponKnockbackLevel = 10;
+    static final String kLogPrefix = "[フェンシング]";
 
     public FencingEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
@@ -120,7 +121,7 @@ public class FencingEventListener implements Listener, Competition {
                 bossbarRight.setVisible(true);
 
                 broadcast("");
-                broadcast("[フェンシング] 競技を開始します！");
+                broadcast("[フェンシング] 競技を開始します！").log();
                 broadcast("");
                 break;
             case RUN:
@@ -279,8 +280,8 @@ public class FencingEventListener implements Listener, Competition {
         // 結果を通知する
         broadcast("");
         broadcast("-----------------------");
-        broadcast("[試合終了]");
-        broadcast(message);
+        broadcast("[試合終了]").log(kLogPrefix);
+        broadcast(message).log(kLogPrefix);
         broadcast("-----------------------");
         broadcast("");
     }
@@ -480,7 +481,7 @@ public class FencingEventListener implements Listener, Competition {
                 .flags(ItemFlag.HIDE_ATTRIBUTES)
                 .build();
         player.getInventory().addItem(sword);
-        broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team));
+        broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team)).log();
         if (right == null && left == null) {
             setStatus(Status.IDLE);
         } else {
@@ -518,7 +519,8 @@ public class FencingEventListener implements Listener, Competition {
         }
         CompetitionType type = delegate.mainGetCurrentCompetition(player);
         if (type != null && type != CompetitionType.FENCING) {
-            broadcastUnofficial("[フェンシング] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type));
+            //NOTE: 本家では全チャになる
+            player.sendMessage(String.format("[フェンシング] %sは既に%sにエントリー済みです", player.getName(), CompetitionTypeHelper.ToString(type)));
             return;
         }
         if (player.getGameMode() != GameMode.ADVENTURE && player.getGameMode() != GameMode.SURVIVAL) {
@@ -562,7 +564,7 @@ public class FencingEventListener implements Listener, Competition {
         }
         clearPlayer(color);
         clearItem(player);
-        broadcast("[フェンシング] %sがエントリー解除しました", player.getName());
+        broadcast("[フェンシング] %sがエントリー解除しました", player.getName()).log();
     }
 
     private void clearItem(Player player) {
