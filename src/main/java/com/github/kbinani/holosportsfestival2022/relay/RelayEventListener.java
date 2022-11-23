@@ -67,9 +67,6 @@ public class RelayEventListener implements Listener, Competition {
 
     private void stroke(String block, Point3i... points) {
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
         for (int i = 0; i < points.length - 1; i++) {
             Point3i from = points[i];
             Point3i to = points[i + 1];
@@ -245,9 +242,6 @@ public class RelayEventListener implements Listener, Competition {
 
     private void launchFireworkRocket(TeamColor color) {
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
         int c = 0;
         switch (color) {
             case WHITE:
@@ -439,16 +433,12 @@ public class RelayEventListener implements Listener, Competition {
 
     private void fill(Point3i from, Point3i to, String block) {
         World world = delegate.mainGetWorld();
-        if (world != null) {
-            Editor.Fill(world, offset(from), offset(to), block);
-        }
+        Editor.Fill(world, offset(from), offset(to), block);
     }
 
     private void setBlock(Point3i p, String block) {
         World world = delegate.mainGetWorld();
-        if (world != null) {
-            Editor.SetBlock(world, offset(p), block);
-        }
+        Editor.SetBlock(world, offset(p), block);
     }
 
     private void onClickJoin(Player player, TeamColor teamColor) {
@@ -564,9 +554,6 @@ public class RelayEventListener implements Listener, Competition {
         // 第一走者を検出する
         Map<TeamColor, Player> firstRunners = new HashMap<>();
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
         Player[] lanes = new Player[]{null, null, null};
         BoundingBox[] laneBoundingBox = new BoundingBox[]{offset(kStartGateFirstLane), offset(kStartGateSecondLane), offset(kStartGateThirdLane)};
         for (int i = 0; i < 3; i++) {
@@ -771,16 +758,12 @@ public class RelayEventListener implements Listener, Competition {
     }
 
     static String ToColoredString(TeamColor color) {
-        switch (color) {
-            case WHITE:
-                return ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
-            case RED:
-                return ChatColor.RED + "TEAM RED" + ChatColor.RESET;
-            case YELLOW:
-                return ChatColor.YELLOW + "TEAM YELLOW" + ChatColor.RESET;
-            default:
-                return "";
-        }
+        return switch (color) {
+            case WHITE -> ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
+            case RED -> ChatColor.RED + "TEAM RED" + ChatColor.RESET;
+            case YELLOW -> ChatColor.YELLOW + "TEAM YELLOW" + ChatColor.RESET;
+            default -> "";
+        };
     }
 
     private ConsoleLogger broadcast(String format, Object... args) {
