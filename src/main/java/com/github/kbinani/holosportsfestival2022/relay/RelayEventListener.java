@@ -671,6 +671,7 @@ public class RelayEventListener implements Listener, Competition {
         World world = delegate.mainGetWorld();
         Player[] lanes = new Player[]{null, null, null};
         BoundingBox[] laneBoundingBox = new BoundingBox[]{offset(kStartGateFirstLane), offset(kStartGateSecondLane), offset(kStartGateThirdLane)};
+        AtomicBoolean isReady = new AtomicBoolean(true);
         for (int i = 0; i < 3; i++) {
             BoundingBox box = laneBoundingBox[i];
             Collection<Entity> entities = world.getNearbyEntities(box, it -> it.getType() == EntityType.PLAYER);
@@ -679,32 +680,41 @@ public class RelayEventListener implements Listener, Competition {
             }
             if (entities.size() > 1) {
                 broadcastUnofficial(ChatColor.RED + "[リレー] 一つのゲートに複数人入っています");
-                return;
+                isReady.set(false);
+                continue;
             }
             Player player = (Player) entities.stream().findFirst().get();
             TeamColor tc = getCurrentTeam(player);
             if (tc == null) {
                 broadcastUnofficial(ChatColor.RED + "[リレー] ゲートに競技者でないプレイヤーが入っています");
-                return;
+                isReady.set(false);
+                continue;
             }
             if (firstRunners.containsKey(tc)) {
                 broadcastUnofficial(ChatColor.RED + "[リレー] 同じチームの人が複数人ゲートに入っています");
-                return;
+                isReady.set(false);
+                continue;
             }
             GameMode mode = player.getGameMode();
             if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
                 broadcastUnofficial(ChatColor.RED + "[リレー] %sの第一走者はゲームモードをサバイバルかアドベンチャーに切り替えてください", ToColoredString(tc));
-                return;
+                isReady.set(false);
+                continue;
+            }
+            if (player.getInventory().firstEmpty() < 0) {
+                broadcastUnofficial("[リレー] %sの第一走者のインベントリに空きがなくバトンを持てません", ToColoredString(tc));
+                isReady.set(false);
+                continue;
             }
             firstRunners.put(tc, player);
             lanes[i] = player;
         }
-        AtomicBoolean isReady = new AtomicBoolean(true);
         teams.forEach((color, team) -> {
             if (team.getPlayerCount() < 1) {
                 return;
             }
-            if (!firstRunners.containsKey(color)) {
+            Player runner = firstRunners.getOrDefault(color, null);
+            if (runner == null) {
                 broadcast("%sの第一走者はスタート位置についてください！", ToColoredString(color));
                 isReady.set(false);
             }
@@ -730,6 +740,7 @@ public class RelayEventListener implements Listener, Competition {
         broadcast("[リレー] 競技を開始します！").log();
         broadcast("");
         setStatus(Status.COUNTDOWN);
+        firstRunners.values().forEach(this::giveBaton);
         delegate.mainCountdownThen(new BoundingBox[]{getAnnounceBounds()}, c -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
@@ -746,10 +757,6 @@ public class RelayEventListener implements Listener, Competition {
                     ok = false;
                     broadcastUnofficial("[リレー] %sがゲート内に入っていません", runner.getName());
                 }
-                if (runner.getInventory().firstEmpty() < 0) {
-                    ok = false;
-                    broadcastUnofficial("[リレー] %sのインベントリに空きがなくバトンを持てません", runner.getName());
-                }
             }
             if (!ok) {
                 setStatus(Status.AWAIT_START);
@@ -761,7 +768,6 @@ public class RelayEventListener implements Listener, Competition {
                 team.clearOrder();
             });
             firstRunners.forEach((teamColor, runner) -> {
-                giveBaton(runner);
                 broadcast("%s 第一走者 : %sがスタート！", ToColoredString(teamColor), runner.getName()).log(kLogPrefix);
                 Team team = ensureTeam(teamColor);
                 team.pushRunner(runner);
