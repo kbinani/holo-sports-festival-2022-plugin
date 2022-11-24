@@ -658,8 +658,6 @@ public class RelayEventListener implements Listener, Competition {
             int count = team.getPlayerCount();
             if (count < 1) {
                 // 不参加
-            } else if (count == 1) {
-                broadcastUnofficial(ChatColor.RED + "[リレー] %sの参加者が足りません", ToColoredString(color));
             } else {
                 canStart.set(true);
             }
@@ -703,8 +701,7 @@ public class RelayEventListener implements Listener, Competition {
         }
         AtomicBoolean isReady = new AtomicBoolean(true);
         teams.forEach((color, team) -> {
-            if (team.getPlayerCount() < 2) {
-                // リレーなので 1 回はバトンパスが必要, ということにする
+            if (team.getPlayerCount() < 1) {
                 return;
             }
             if (!firstRunners.containsKey(color)) {
@@ -721,8 +718,7 @@ public class RelayEventListener implements Listener, Competition {
         AtomicInteger numberOfLaps = new AtomicInteger(0);
         teams.forEach((color, team) -> {
             int c = team.getPlayerCount();
-            if (c < 2) {
-                // リレーなので 1 回はバトンパスが必要, ということにする
+            if (c < 1) {
                 return;
             }
             // 最も参加人数が多いチームの人数を周回数とする. 人数が足りないチームは複数回出走する
