@@ -14,7 +14,6 @@ class Race {
     // ゴール判定の結果順位が変わる可能性がある.
     // なので本人に通知した後に順位が変動した場合再アナウンスできるよう, アナウンスした順位を覚えておく.
     private final Map<UUID, Integer> announcedOrder = new HashMap<>();
-    private static final String kLogPrefix = "[だるまさんがころんだ]";
 
     void goal(Player player, double tick) {
         UUID uuid = player.getUniqueId();
@@ -46,12 +45,12 @@ class Race {
         order.sort(Comparator.comparingDouble(a -> a.tick));
         enumerateInOrder((order, p) -> {
             if (p.getUniqueId().equals(player.getUniqueId())) {
-                announcer.announcerBroadcast("%sが %d位 でクリア！", player.getName(), order).log(kLogPrefix);
+                announcer.announcerBroadcast("%sが %d位 でクリア！", player.getName(), order).log();
                 announcedOrder.put(player.getUniqueId(), order);
             } else {
                 Integer prev = announcedOrder.get(p.getUniqueId());
                 if (prev != null && order != prev) {
-                    announcer.announcerBroadcastUnofficial("判定の結果 %s の順位が %d位 から %d位 に変わりました", p.getName(), prev, order).log(kLogPrefix);
+                    announcer.announcerBroadcastUnofficial("判定の結果 %s の順位が %d位 から %d位 に変わりました", p.getName(), prev, order).log();
                     announcedOrder.put(p.getUniqueId(), order);
                 }
             }
@@ -62,14 +61,14 @@ class Race {
         if (running.size() == 0) {
             announcer.announcerBroadcast("");
             announcer.announcerBroadcast("-----------------------");
-            announcer.announcerBroadcast("[試合終了]").log(kLogPrefix);
+            announcer.announcerBroadcast("[試合終了]").log();
             AtomicBoolean anyoneFinished = new AtomicBoolean(false);
             enumerateInOrder((order, player) -> {
-                announcer.announcerBroadcast("%d位 : %s", order, player.getName()).log(kLogPrefix);
+                announcer.announcerBroadcast("%d位 : %s", order, player.getName()).log();
                 anyoneFinished.set(true);
             });
             if (!anyoneFinished.get()) {
-                announcer.announcerBroadcastUnofficial("全員失格").log(kLogPrefix);
+                announcer.announcerBroadcastUnofficial("全員失格").log();
             }
             announcer.announcerBroadcast("-----------------------");
             announcer.announcerBroadcast("");

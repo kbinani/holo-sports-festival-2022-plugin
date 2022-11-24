@@ -38,7 +38,6 @@ public class BoatRaceEventListener implements Competition {
     private final MainDelegate delegate;
     private static final String kPrimaryShootItemDisplayName = "[水上レース専用] 暗闇（弱）";
     private static final String kSecondaryShootItemDisplayName = "[水上レース専用] 暗闇（強）";
-    private static final String kLogPrefix = "[水上レース]";
 
     static void AllTeamColors(Consumer<TeamColor> callback) {
         callback.accept(TeamColor.RED);
@@ -88,9 +87,6 @@ public class BoatRaceEventListener implements Competition {
 
     private void setStartGateOpened(boolean opened) {
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
         String block = opened ? "air" : "bedrock";
         fill(world, new Point3i(-26, -58, -186), new Point3i(-36, -58, -186), block);
         fill(world, new Point3i(-37, -58, -187), new Point3i(-44, -58, -187), block);
@@ -278,7 +274,7 @@ public class BoatRaceEventListener implements Competition {
                     team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_START_LINE1);
                     delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
                     if (team.getRemainingRound() == 1) {
-                        broadcast("%s あと1周！", ToColoredString(participation.color)).log(kLogPrefix);
+                        broadcast("%s あと1周！", ToColoredString(participation.color)).log();
                     }
                 }
                 break;
@@ -295,7 +291,7 @@ public class BoatRaceEventListener implements Competition {
                     team.updatePlayerStatus(participation.role, PlayerStatus.FINISHED);
                     delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
                     if (team.getRemainingRound() == 0) {
-                        broadcast("%s GOAL !!", ToColoredString(participation.color)).log(kLogPrefix);
+                        broadcast("%s GOAL !!", ToColoredString(participation.color)).log();
                         launchFireworkRockets(participation.color);
                         finishedServerTime.put(participation.color, player.getWorld().getGameTime());
                         boolean cleared = true;
@@ -308,14 +304,14 @@ public class BoatRaceEventListener implements Competition {
                         if (cleared) {
                             broadcast("");
                             broadcast("-----------------------");
-                            broadcast("[結果発表]").log(kLogPrefix);
+                            broadcast("[結果発表]").log();
                             List<TeamColor> ordered = finishedServerTime.keySet().stream().sorted((a, b) -> {
                                 long timeA = finishedServerTime.get(a);
                                 long timeB = finishedServerTime.get(b);
                                 return (int) (timeA - timeB);
                             }).toList();
                             for (int i = 0; i < ordered.size(); i++) {
-                                broadcast("%d位: %s", i + 1, ToColoredString(ordered.get(i))).log(kLogPrefix);
+                                broadcast("%d位: %s", i + 1, ToColoredString(ordered.get(i))).log();
                             }
                             broadcast("-----------------------");
                             broadcast("");
@@ -377,11 +373,11 @@ public class BoatRaceEventListener implements Competition {
                 PotionEffect candidate = null;
                 if (kPrimaryShootItemDisplayName.equals(meta.getDisplayName())) {
                     item.setAmount(0);
-                    broadcast("%s が暗闇（弱）を発動！", ToColoredString(participation.color)).log(kLogPrefix);
+                    broadcast("%s が暗闇（弱）を発動！", ToColoredString(participation.color)).log();
                     candidate = new PotionEffect(PotionEffectType.DARKNESS, 200, 1);
                 } else if (kSecondaryShootItemDisplayName.equals(meta.getDisplayName())) {
                     item.setAmount(0);
-                    broadcast("%s が暗闇（強）を発動！", ToColoredString(participation.color)).log(kLogPrefix);
+                    broadcast("%s が暗闇（強）を発動！", ToColoredString(participation.color)).log();
                     candidate = new PotionEffect(PotionEffectType.BLINDNESS, 100, 1);
                 }
                 PotionEffect effect = candidate;
@@ -506,7 +502,7 @@ public class BoatRaceEventListener implements Competition {
         String msg = String.format(format, args);
         World world = delegate.mainGetWorld();
         Players.Within(world, new BoundingBox[]{offset(kAnnounceBoundsNorth), offset(kAnnounceBoundsSouth)}, player -> player.sendMessage(msg));
-        return new ConsoleLogger(msg, delegate.mainGetLogger());
+        return new ConsoleLogger(msg, "[水上レース]", delegate.mainGetLogger());
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
@@ -677,7 +673,7 @@ public class BoatRaceEventListener implements Competition {
             if (count < 1) {
                 broadcast("%sの参加者が見つかりません", ToString(color));
             } else {
-                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count).log(kLogPrefix);
+                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count).log();
             }
         }
         AllTeamColors(color -> {
@@ -696,13 +692,11 @@ public class BoatRaceEventListener implements Competition {
 
         // 場内に居るボートに tag を付ける. 競技終了した時このタグが付いているボートを kill する.
         World world = delegate.mainGetWorld();
-        if (world != null) {
-            world.getNearbyEntities(getFieldBounds()).forEach(entity -> {
-                if (entity.getType() == EntityType.BOAT) {
-                    entity.addScoreboardTag(kItemTag);
-                }
-            });
-        }
+        world.getNearbyEntities(getFieldBounds()).forEach(entity -> {
+            if (entity.getType() == EntityType.BOAT) {
+                entity.addScoreboardTag(kItemTag);
+            }
+        });
 
         delegate.mainCountdownThen(new BoundingBox[]{offset(kAnnounceBoundsNorth), offset(kAnnounceBoundsSouth)}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {

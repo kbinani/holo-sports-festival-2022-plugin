@@ -191,7 +191,7 @@ public class RelayEventListener implements Listener, Competition {
         BoundingBox northWhiteLine = offset(kFieldOuterJumpArea);
         BoundingBox southWhiteLine = offset(kFieldInnerJumpArea);
         if (!outer.contains(location) || inner.contains(location) || eastWhiteLine.contains(location) || westWhiteLine.contains(location) || northWhiteLine.contains(location) || southWhiteLine.contains(location)) {
-            broadcastUnofficial(ChatColor.RED + "%sの%sがコースから逸脱しました。失格とします", ToColoredString(color), player.getName()).log(kLogPrefix);
+            broadcastUnofficial(ChatColor.RED + "%sの%sがコースから逸脱しました。失格とします", ToColoredString(color), player.getName()).log();
             abstain(player);
             return;
         }
@@ -206,7 +206,7 @@ public class RelayEventListener implements Listener, Competition {
         if (team.getOrderLength() >= race.numberOfLaps && team.isRunnerPassedCheckPoint(player) && goal.contains(location)) {
             // チェックポイント通過済みの最終走者がゴールを通過した
             race.pushOrder(color);
-            broadcast("%s GOAL !!", ToColoredString(color)).log(kLogPrefix);
+            broadcast("%s GOAL !!", ToColoredString(color)).log();
             launchFireworkRocket(color);
 
             // 全てのチームがゴールしたら結果を表示して終了
@@ -222,10 +222,10 @@ public class RelayEventListener implements Listener, Competition {
             if (allTeamsFinished.get()) {
                 broadcast("");
                 broadcast("-----------------------");
-                broadcast("[結果発表]").log(kLogPrefix);
+                broadcast("[結果発表]").log();
                 for (int i = 0; i < race.order.size(); i++) {
                     TeamColor c = race.order.get(i);
-                    broadcast("%d位 : %s", i + 1, ToColoredString(c)).log(kLogPrefix);
+                    broadcast("%d位 : %s", i + 1, ToColoredString(c)).log();
                 }
                 broadcast("-----------------------");
                 broadcast("");
@@ -733,7 +733,7 @@ public class RelayEventListener implements Listener, Competition {
             }
             // 最も参加人数が多いチームの人数を周回数とする. 人数が足りないチームは複数回出走する
             numberOfLaps.set(Math.max(c, numberOfLaps.get()));
-            broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), c).log(kLogPrefix);
+            broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), c).log();
         });
         broadcast("-----------------------");
         broadcast("");
@@ -768,7 +768,7 @@ public class RelayEventListener implements Listener, Competition {
                 team.clearOrder();
             });
             firstRunners.forEach((teamColor, runner) -> {
-                broadcast("%s 第一走者 : %sがスタート！", ToColoredString(teamColor), runner.getName()).log(kLogPrefix);
+                broadcast("%s 第一走者 : %sがスタート！", ToColoredString(teamColor), runner.getName()).log();
                 Team team = ensureTeam(teamColor);
                 team.pushRunner(runner);
                 race.add(teamColor);
@@ -857,7 +857,7 @@ public class RelayEventListener implements Listener, Competition {
         team.pushRunner(to);
         clearBatons(from);
         giveBaton(to);
-        broadcast("%s バトンタッチ！%sがスタート！", ToColoredString(teamColor), to.getName()).log(kLogPrefix);
+        broadcast("%s バトンタッチ！%sがスタート！", ToColoredString(teamColor), to.getName()).log();
     }
 
     private boolean initialized = false;
@@ -888,7 +888,7 @@ public class RelayEventListener implements Listener, Competition {
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> player.sendMessage(msg));
-        return new ConsoleLogger(msg, delegate.mainGetLogger());
+        return new ConsoleLogger(msg, "[リレー]", delegate.mainGetLogger());
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
@@ -965,7 +965,6 @@ public class RelayEventListener implements Listener, Competition {
     private static final Point3i kButtonLeave = new Point3i(33, -60, -184);
 
     private static final String kItemTag = "hololive_sports_festival_2022_relay";
-    private static final String kLogPrefix = "[リレー]";
 
     // アナウンス etc. を行う範囲
     private static final BoundingBox kAnnounceBounds = new BoundingBox(-2, -61, -241, 82, 384, -115);

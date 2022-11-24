@@ -37,7 +37,6 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private final MainDelegate delegate;
     private final Map<UUID, Point3i> respawn = new HashMap<>();
     private final Random random;
-    private final String kLogPrefix = "[だるまさんがころんだ]";
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
 
@@ -314,7 +313,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         Point3i pos = getEntryButtonPosition(color);
         respawn.put(player.getUniqueId(), pos);
 
-        broadcast("%s失格！", player.getName()).log(kLogPrefix);
+        broadcast("%s失格！", player.getName()).log();
 
         if (race.getRunningPlayerCount() == 0) {
             // 最後の走者が失格になったので試合終了
@@ -570,7 +569,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             if (count < 1) {
                 broadcast("%sの参加者が見つかりません", ToString(color));
             } else {
-                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count).log(kLogPrefix);
+                broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count).log();
             }
         }
         broadcast("-----------------------");
@@ -679,7 +678,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> player.sendMessage(msg));
-        return new ConsoleLogger(msg, delegate.mainGetLogger());
+        return new ConsoleLogger(msg, "[だるまさんがころんだ]", delegate.mainGetLogger());
     }
 
     private ConsoleLogger broadcastUnofficial(String msg, Object... args) {

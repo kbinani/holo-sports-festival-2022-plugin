@@ -48,7 +48,6 @@ public class FencingEventListener implements Listener, Competition {
     static final String kBossbarRight = "sports_festival_2022_bossbar_right";
     static final String kWeaponCustomTag = "hololive_sports_festival_2022_fencing";
     static final int kWeaponKnockbackLevel = 10;
-    static final String kLogPrefix = "[フェンシング]";
 
     public FencingEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
@@ -288,17 +287,14 @@ public class FencingEventListener implements Listener, Competition {
         // 結果を通知する
         broadcast("");
         broadcast("-----------------------");
-        broadcast("[試合終了]").log(kLogPrefix);
-        broadcast(message).log(kLogPrefix);
+        broadcast("[試合終了]").log();
+        broadcast(message).log();
         broadcast("-----------------------");
         broadcast("");
     }
 
     private void launchWinnerFireworkRocket(Team team) {
         World world = delegate.mainGetWorld();
-        if (world == null) {
-            return;
-        }
         int[] colors = new int[]{FireworkRocket.Color.LIGHT_BLUE, FireworkRocket.Color.PINK, FireworkRocket.Color.YELLOW};
         int x = team == Team.RIGHT ? 99 : 139;
         int index = team == Team.RIGHT ? 2 : 0;
@@ -531,7 +527,7 @@ public class FencingEventListener implements Listener, Competition {
     private ConsoleLogger broadcast(String format, Object... args) {
         String msg = String.format(format, args);
         Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> player.sendMessage(msg));
-        return new ConsoleLogger(msg, delegate.mainGetLogger());
+        return new ConsoleLogger(msg, "[フェンシング]", delegate.mainGetLogger());
     }
 
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する

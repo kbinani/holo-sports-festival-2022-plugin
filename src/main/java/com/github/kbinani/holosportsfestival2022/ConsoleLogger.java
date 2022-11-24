@@ -7,17 +7,30 @@ import java.util.logging.Logger;
 public class ConsoleLogger {
     private final Logger logger;
     private final String message;
+    private final String prefix;
 
-    public ConsoleLogger(String message, Logger logger) {
+    public ConsoleLogger(String message, String prefix, Logger logger) {
         this.message = message;
         this.logger = logger;
-    }
-
-    public void log(String prefix) {
-        logger.info(ChatColor.stripColor(prefix + message));
+        this.prefix = prefix;
     }
 
     public void log() {
-        log("");
+        if (prefix.isEmpty()) {
+            logger.info(ChatColor.stripColor(message));
+        } else if (message.startsWith(prefix)) {
+            String body = message.substring(prefix.length());
+            if (body.startsWith(" ")) {
+                logger.info(ChatColor.stripColor(message));
+            } else {
+                logger.info(ChatColor.stripColor(prefix + " " + body));
+            }
+        } else {
+            if (message.startsWith(" ")) {
+                logger.info(ChatColor.stripColor(prefix + message));
+            } else {
+                logger.info(ChatColor.stripColor(prefix + " " + message));
+            }
+        }
     }
 }
