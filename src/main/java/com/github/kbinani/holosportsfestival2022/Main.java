@@ -210,7 +210,6 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
                 return false;
             }
             competition.competitionReset();
-            getServer().broadcastMessage(CompetitionTypeHelper.ToString(t) + "をリセットしました");
             return true;
         } else {
             sender.sendMessage(ChatColor.RED + "unknown sub command");

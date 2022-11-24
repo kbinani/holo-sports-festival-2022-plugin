@@ -957,6 +957,7 @@ public class RelayEventListener implements Listener, Competition {
         resetField();
         teams.clear();
         race = null;
+        Bukkit.getServer().broadcastMessage(CompetitionTypeHelper.ToString(competitionGetType()) + "をリセットしました");
     }
 
     private static final Point3i kButtonEntryRed = new Point3i(39, -60, -184);

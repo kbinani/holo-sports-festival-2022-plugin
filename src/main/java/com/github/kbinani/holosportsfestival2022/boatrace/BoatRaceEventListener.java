@@ -767,5 +767,6 @@ public class BoatRaceEventListener implements Competition {
         resetField();
         finishedServerTime.clear();
         teams.clear();
+        Bukkit.getServer().broadcastMessage(CompetitionTypeHelper.ToString(competitionGetType()) + "をリセットしました");
     }
 }

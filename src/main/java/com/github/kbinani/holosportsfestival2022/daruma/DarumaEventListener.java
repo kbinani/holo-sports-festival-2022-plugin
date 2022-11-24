@@ -857,6 +857,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         respawn.clear();
         teams.clear();
         evacuateNonParticipants();
+        Bukkit.getServer().broadcastMessage(CompetitionTypeHelper.ToString(competitionGetType()) + "をリセットしました");
     }
 
     private void evacuateNonParticipants() {

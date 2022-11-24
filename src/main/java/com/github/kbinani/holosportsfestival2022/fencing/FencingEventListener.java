@@ -705,6 +705,7 @@ public class FencingEventListener implements Listener, Competition {
         if (bossbarRight != null) {
             bossbarRight.setVisible(false);
         }
+        Bukkit.getServer().broadcastMessage(CompetitionTypeHelper.ToString(competitionGetType()) + "をリセットしました");
     }
 
     private static final Point3i kButtonRightJoin = new Point3i(101, -19, -265);
