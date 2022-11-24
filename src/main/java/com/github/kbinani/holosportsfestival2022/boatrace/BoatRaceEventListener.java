@@ -207,6 +207,8 @@ public class BoatRaceEventListener implements Competition {
     private static final Point3i kRedEntryShooter = new Point3i(-56, -59, -206);
     private static final Point3i kRedEntryDriver = new Point3i(-56, -59, -208);
     private static final Point3i kLeaveButton = new Point3i(-56, -59, -210);
+    private static final Point3i kResetButtonNorth = new Point3i(-55, -60, -210);
+    private static final Point3i kResetButtonSouth = new Point3i(-55, -60, -196);
     private static final Point3i[] kJammingBlockStarterBlocks = new Point3i[]{
             new Point3i(-49, -62, -249),
             new Point3i(-39, -62, -247),
@@ -364,6 +366,11 @@ public class BoatRaceEventListener implements Competition {
             } else if (location.equals(offset(kLeaveButton))) {
                 onClickLeave(player);
                 return;
+            } else if (location.equals(offset(kResetButtonNorth)) || location.equals(offset(kResetButtonSouth))) {
+                if (player.getGameMode() == GameMode.CREATIVE || player.isOp()) {
+                    competitionReset();
+                    return;
+                }
             }
         }
         if (_status == Status.RUN && item != null && (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {

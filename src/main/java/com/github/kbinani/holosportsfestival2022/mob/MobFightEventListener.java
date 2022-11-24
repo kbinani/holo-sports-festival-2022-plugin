@@ -216,6 +216,15 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             onClickJoin(player, TeamColor.WHITE, Role.SWORD);
         } else if (location.equals(offset(kButtonYellowLeave)) || location.equals(offset(kButtonRedLeave)) || location.equals(offset(kButtonWhiteLeave))) {
             onClickLeave(player);
+        } else {
+            if (player.getGameMode() == GameMode.CREATIVE || player.isOp()) {
+                for (Point3i p : kButtonsReset) {
+                    if (location.equals(offset(p))) {
+                        competitionReset();
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -844,6 +853,14 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     private static final Point3i kButtonYellowStart = new Point3i(-3, -58, -254);
     private static final Point3i kButtonRedStart = new Point3i(28, -58, -254);
     private static final Point3i kButtonWhiteStart = new Point3i(59, -58, -254);
+    private static final Point3i[] kButtonsReset = new Point3i[]{
+        new Point3i(-9, -60, -254),
+        new Point3i(-3, -60, -254),
+        new Point3i(22, -60, -254),
+        new Point3i(28, -60, -254),
+        new Point3i(53, -60, -254),
+        new Point3i(59, -60, -254),
+    };
 
     private static final String kBossbarRed = "hololive_sports_festival_2022_bossbar_red";
     private static final String kBossbarWhite = "hololive_sports_festival_2022_bossbar_white";

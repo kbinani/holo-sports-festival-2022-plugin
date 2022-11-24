@@ -133,6 +133,10 @@ public class RelayEventListener implements Listener, Competition {
             onClickJoin(player, TeamColor.YELLOW);
         } else if (location.equals(offset(kButtonLeave))) {
             onClickLeave(player);
+        } else if (location.equals(offset(kButtonResetWest)) || location.equals(offset(kButtonResetEast))) {
+            if (player.getGameMode() == GameMode.CREATIVE || player.isOp()) {
+                competitionReset();
+            }
         }
     }
 
@@ -964,6 +968,8 @@ public class RelayEventListener implements Listener, Competition {
     private static final Point3i kButtonEntryWhite = new Point3i(37, -60, -184);
     private static final Point3i kButtonEntryYellow = new Point3i(35, -60, -184);
     private static final Point3i kButtonLeave = new Point3i(33, -60, -184);
+    private static final Point3i kButtonResetEast = new Point3i(41, -61, -183);
+    private static final Point3i kButtonResetWest = new Point3i(33, -61, -183);
 
     private static final String kItemTag = "hololive_sports_festival_2022_relay";
 

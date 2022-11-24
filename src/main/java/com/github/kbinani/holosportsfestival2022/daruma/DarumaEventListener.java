@@ -171,6 +171,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             onClickGreen(player);
         } else if (manual && location.equals(offset(kButtonTriggerRed))) {
             onClickTriggerRed(player);
+        } else if (location.equals(offset(kButtonReset))) {
+            if (player.getGameMode() == GameMode.CREATIVE || player.isOp()) {
+                competitionReset();
+            }
         }
     }
 
@@ -889,6 +893,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             new Point3i(124, -52, -228),
             new Point3i(122, -52, -228),
     };
+    private static final Point3i kButtonReset = new Point3i(105, -61, -122);
 
     private static final BoundingBox kAnnounceBounds = new BoundingBox(96, -62, -240, 152, -30, -106);
     private static final BoundingBox kGoalDetectionBox = new BoundingBox(104, -56, -228, 145, -53, -223);
