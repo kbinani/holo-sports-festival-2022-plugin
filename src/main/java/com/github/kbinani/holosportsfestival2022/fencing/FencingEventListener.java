@@ -719,6 +719,6 @@ public class FencingEventListener implements Listener, Competition {
     private static final Point3i kButtonStart = new Point3i(134, -18, -272);
     private static final Point3i kButtonReset = new Point3i(99, -20, -264);
     private static final BoundingBox kAnnounceBounds = new BoundingBox(85, -20, -280, 171, 384, -253);
-    private static final BoundingBox kFieldBounds = new BoundingBox(104, -18, -268, 104 + 61, -18 + 5, -268 + 4);
+    private static final BoundingBox kFieldBounds = new BoundingBox(103, -18, -268, 165, -13, -264);
     private static final Point3i kRespawnLocation = new Point3i(96, -19, -274);
 }
