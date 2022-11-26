@@ -100,6 +100,9 @@ public class FencingEventListener implements Listener, Competition {
                     if (getCurrentTeam(player) != null) {
                         return;
                     }
+                    if (player.getGameMode() == GameMode.SPECTATOR) {
+                        return;
+                    }
                     Location loc = player.getLocation();
                     loc.setZ(z(-273));
                     loc.setY(y(-19));
