@@ -480,7 +480,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 .build();
         inventory.addItem(leggings, chestplate, helmet, boots, goldenApple, cookedBeef);
         switch (role) {
-            case ARROW:
+            case ARROW -> {
                 ItemStack bow = ItemBuilder.For(Material.BOW)
                         .amount(1)
                         .customByteTag(kItemTag, (byte) 1)
@@ -493,8 +493,8 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                         .customByteTag(kItemTag, (byte) 1)
                         .build();
                 inventory.addItem(bow, arrow);
-                break;
-            case SWORD:
+            }
+            case SWORD -> {
                 ItemStack shield = ItemBuilder.For(Material.SHIELD)
                         .amount(1)
                         .customByteTag(kItemTag, (byte) 1)
@@ -508,7 +508,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                         .enchant(Enchantment.DURABILITY, 3)
                         .build();
                 inventory.addItem(shield, sword);
-                break;
+            }
         }
         setStatus(Status.AWAIT_COUNTDOWN);
     }
@@ -703,15 +703,11 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     }
 
     private Level newLevel(TeamColor color) {
-        switch (color) {
-            case YELLOW:
-                return new Level(offset(new Point3i(-9, -59, -254)), this);
-            case RED:
-                return new Level(offset(new Point3i(22, -59, -254)), this);
-            case WHITE:
-                return new Level(offset(new Point3i(53, -59, -254)), this);
-        }
-        return null;
+        return switch (color) {
+            case YELLOW -> new Level(offset(new Point3i(-9, -59, -254)), this);
+            case RED -> new Level(offset(new Point3i(22, -59, -254)), this);
+            case WHITE -> new Level(offset(new Point3i(53, -59, -254)), this);
+        };
     }
 
     @Nullable
@@ -792,49 +788,34 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     }
 
     static String ToString(TeamColor color) {
-        switch (color) {
-            case RED:
-                return "TEAM RED";
-            case WHITE:
-                return "TEAM WHITE";
-            case YELLOW:
-                return "TEAM YELLOW";
-        }
-        return "";
+        return switch (color) {
+            case RED -> "TEAM RED";
+            case WHITE -> "TEAM WHITE";
+            case YELLOW -> "TEAM YELLOW";
+        };
     }
 
     static String ToColoredString(TeamColor color) {
-        switch (color) {
-            case RED:
-                return ChatColor.RED + "TEAM RED" + ChatColor.RESET;
-            case WHITE:
-                return ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
-            case YELLOW:
-                return ChatColor.YELLOW + "TEAM YELLOW" + ChatColor.RESET;
-        }
-        return "";
+        return switch (color) {
+            case RED -> ChatColor.RED + "TEAM RED" + ChatColor.RESET;
+            case WHITE -> ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
+            case YELLOW -> ChatColor.YELLOW + "TEAM YELLOW" + ChatColor.RESET;
+        };
     }
 
     static String ToString(Role role) {
-        switch (role) {
-            case ARROW:
-                return "（弓）";
-            case SWORD:
-                return "（剣）";
-        }
-        return "";
+        return switch (role) {
+            case ARROW -> "（弓）";
+            case SWORD -> "（剣）";
+        };
     }
 
     static int FireworkRocketColor(TeamColor color) {
-        switch (color) {
-            case YELLOW:
-                return FireworkRocket.Color.YELLOW;
-            case WHITE:
-                return FireworkRocket.Color.LIGHT_BLUE;
-            case RED:
-                return FireworkRocket.Color.PINK;
-        }
-        return 0;
+        return switch (color) {
+            case YELLOW -> FireworkRocket.Color.YELLOW;
+            case WHITE -> FireworkRocket.Color.LIGHT_BLUE;
+            case RED -> FireworkRocket.Color.PINK;
+        };
     }
 
     static final String kItemTag = "hololive_sports_festival_2022_mob";
