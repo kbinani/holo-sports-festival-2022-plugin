@@ -82,6 +82,7 @@ class OceanMonumentStage extends Stage {
             drowned.addScoreboardTag(stageEntityTag);
             drowned.setLootTable(LootTables.EMPTY.getLootTable());
             drowned.setPersistent(true);
+            drowned.setCanPickupItems(false);
         });
     }
 
@@ -103,6 +104,7 @@ class OceanMonumentStage extends Stage {
                 maxHealth.setBaseValue(200);
             }
             drowned.setHealth(200);
+            drowned.setCanPickupItems(false);
         });
     }
 
@@ -117,6 +119,7 @@ class OceanMonumentStage extends Stage {
             guardian.addScoreboardTag(stageEntityTag);
             guardian.setLootTable(LootTables.EMPTY.getLootTable());
             guardian.setPersistent(true);
+            guardian.setCanPickupItems(false);
         });
     }
 

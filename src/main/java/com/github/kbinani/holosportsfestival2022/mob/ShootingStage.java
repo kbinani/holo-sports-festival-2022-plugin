@@ -99,6 +99,7 @@ class ShootingStage extends Stage {
                 skeleton.addScoreboardTag(stageEntityTag);
                 skeleton.setLootTable(LootTables.EMPTY.getLootTable());
                 skeleton.setPersistent(true);
+                skeleton.setCanPickupItems(false);
 
                 minecart.addPassenger(skeleton);
             });
@@ -128,6 +129,7 @@ class ShootingStage extends Stage {
                 zombie.addScoreboardTag(stageEntityTag);
                 zombie.setLootTable(LootTables.EMPTY.getLootTable());
                 zombie.setPersistent(true);
+                zombie.setCanPickupItems(false);
 
                 minecart.addPassenger(zombie);
             });

@@ -71,6 +71,7 @@ class WoodlandMansionStage extends Stage {
             ravager.addScoreboardTag(stageEntityTag);
             ravager.setLootTable(LootTables.EMPTY.getLootTable());
             ravager.setPersistent(true);
+            ravager.setCanPickupItems(false);
         });
     }
 
@@ -86,6 +87,7 @@ class WoodlandMansionStage extends Stage {
             vindicator.addScoreboardTag(stageEntityTag);
             vindicator.setLootTable(LootTables.EMPTY.getLootTable());
             vindicator.setPersistent(true);
+            vindicator.setCanPickupItems(false);
         });
     }
 
@@ -100,6 +102,7 @@ class WoodlandMansionStage extends Stage {
             witch.addScoreboardTag(stageEntityTag);
             witch.setLootTable(LootTables.EMPTY.getLootTable());
             witch.setPersistent(true);
+            witch.setCanPickupItems(false);
         });
     }
 
@@ -115,6 +118,7 @@ class WoodlandMansionStage extends Stage {
             pillager.addScoreboardTag(stageEntityTag);
             pillager.setLootTable(LootTables.EMPTY.getLootTable());
             pillager.setPersistent(true);
+            pillager.setCanPickupItems(false);
         });
     }
 

@@ -75,6 +75,7 @@ class NetherStage extends Stage {
             ghast.addScoreboardTag(stageEntityTag);
             ghast.setLootTable(LootTables.EMPTY.getLootTable());
             ghast.setPersistent(true);
+            ghast.setCanPickupItems(false);
         });
     }
 
@@ -101,6 +102,7 @@ class NetherStage extends Stage {
             if (movementSpeed != null) {
                 movementSpeed.setBaseValue(0.345);
             }
+            witherSkeleton.setCanPickupItems(false);
         });
     }
 
@@ -115,6 +117,7 @@ class NetherStage extends Stage {
             blaze.addScoreboardTag(stageEntityTag);
             blaze.setLootTable(LootTables.EMPTY.getLootTable());
             blaze.setPersistent(true);
+            blaze.setCanPickupItems(false);
         });
     }
 
@@ -131,6 +134,7 @@ class NetherStage extends Stage {
             zombifiedPiglin.addScoreboardTag(stageEntityTag);
             zombifiedPiglin.setLootTable(LootTables.EMPTY.getLootTable());
             zombifiedPiglin.setPersistent(true);
+            zombifiedPiglin.setCanPickupItems(false);
         });
     }
 

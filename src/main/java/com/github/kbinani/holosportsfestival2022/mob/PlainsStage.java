@@ -145,6 +145,7 @@ class PlainsStage extends Stage {
             zombie.addScoreboardTag(stageEntityTag);
             zombie.setLootTable(LootTables.EMPTY.getLootTable());
             zombie.setPersistent(true);
+            zombie.setCanPickupItems(false);
         });
     }
 
@@ -170,6 +171,7 @@ class PlainsStage extends Stage {
             if (movementSpeed != null) {
                 movementSpeed.setBaseValue(0.345);
             }
+            zombie.setCanPickupItems(false);
         });
     }
 
