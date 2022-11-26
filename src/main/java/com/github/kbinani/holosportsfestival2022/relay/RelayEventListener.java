@@ -342,226 +342,6 @@ public class RelayEventListener implements Listener, Competition {
         setEnableCornerFence(false);
     }
 
-    private void setEnableCornerFence(boolean enable) {
-        final int y = -60;
-
-        // 第1コーナー内側
-        if (enable) {
-            setBlock(58, y, -179, "birch_fence[east=true]");
-            fill(new Point3i(59, y, -179), new Point3i(61, y, -179), "birch_fence[east=true,west=true]");
-            setBlock(62, y, -179, "birch_fence[north=true,west=true]");
-            setBlock(62, y, -180, "birch_fence[east=true,south=true]");
-            setBlock(63, y, -180, "birch_fence[north=true,west=true]");
-            setBlock(63, y, -181, "birch_fence[east=true,south=true]");
-            setBlock(64, y, -181, "birch_fence[north=true,west=true]");
-            fill(new Point3i(64, y, -182), new Point3i(64, y, -184), "birch_fence[north=true,south=true]");
-            setBlock(64, y, -185, "birch_fence[south=true]");
-        } else {
-            stroke("air",
-                    new Point3i(58, -60, -179),
-                    new Point3i(62, -60, -179),
-                    new Point3i(62, -60, -180),
-                    new Point3i(63, -60, -180),
-                    new Point3i(63, -60, -181),
-                    new Point3i(64, -60, -181),
-                    new Point3i(64, -60, -185));
-        }
-
-        // 第1コーナー外側
-        if (enable) {
-            setBlock(58, y, -171, "birch_fence[east=true]");
-            fill(new Point3i(59, y, -171), new Point3i(69, y, -171), "birch_fence[east=true,west=true]");
-            setBlock(70, y, -171, "birch_fence[north=true,west=true]");
-            setBlock(70, y, -172, "birch_fence[east=true,south=true]");
-            setBlock(71, y, -172, "birch_fence[north=true,west=true]");
-            setBlock(71, y, -173, "birch_fence[east=true,south=true]");
-            setBlock(72, y, -173, "birch_fence[north=true,west=true]");
-            fill(new Point3i(72, y, -174), new Point3i(72, y, -184), "birch_fence[north=true,south=true]");
-            setBlock(72, y, -185, "birch_fence[south=true]");
-        } else {
-            stroke("air",
-                    new Point3i(58, -60, -171),
-                    new Point3i(70, -60, -171),
-                    new Point3i(70, -60, -172),
-                    new Point3i(71, -60, -172),
-                    new Point3i(71, -60, -173),
-                    new Point3i(72, -60, -173),
-                    new Point3i(72, -60, -185));
-        }
-
-        // 第2コーナー内側
-        if (enable) {
-            setBlock(64, y, -220, "birch_fence[north=true]");
-            fill(new Point3i(64, y, -221), new Point3i(64, y, -223), "birch_fence[north=true,south=true]");
-            setBlock(64, y, -224, "birch_fence[south=true,west=true]");
-            setBlock(63, y, -224, "birch_fence[east=true,north=true]");
-            setBlock(63, y, -225, "birch_fence[south=true,west=true]");
-            setBlock(62, y, -225, "birch_fence[east=true,north=true]");
-            setBlock(62, y, -226, "birch_fence[south=true,west=true]");
-            fill(new Point3i(61, y, -226), new Point3i(59, y, -226), "birch_fence[east=true,west=true]");
-            setBlock(58, y, -226, "birch_fence[east=true]");
-        } else {
-            stroke("air",
-                    new Point3i(64, -60, -220),
-                    new Point3i(64, -60, -224),
-                    new Point3i(63, -60, -224),
-                    new Point3i(63, -60, -225),
-                    new Point3i(62, -60, -225),
-                    new Point3i(62, -60, -226),
-                    new Point3i(58, -60, -226));
-        }
-
-        // 第2コーナー外側
-        if (enable) {
-            setBlock(72, y, -220, "birch_fence[north=true]");
-            fill(new Point3i(72, y, -221), new Point3i(72, y, -231), "birch_fence[north=true,south=true]");
-            setBlock(72, y, -232, "birch_fence[south=true,west=true]");
-            setBlock(71, y, -232, "birch_fence[east=true,north=true]");
-            setBlock(71, y, -233, "birch_fence[south=true,west=true]");
-            setBlock(70, y, -233, "birch_fence[east=true,north=true]");
-            setBlock(70, y, -234, "birch_fence[south=true,west=true]");
-            fill(new Point3i(69, y, -234), new Point3i(59, y, -234), "birch_fence[east=true,west=true]");
-            setBlock(58, y, -234, "birch_fence[east=true]");
-        } else {
-            stroke("air",
-                    new Point3i(72, -60, -220),
-                    new Point3i(72, -60, -232),
-                    new Point3i(71, -60, -232),
-                    new Point3i(71, -60, -233),
-                    new Point3i(70, -60, -233),
-                    new Point3i(70, -60, -234),
-                    new Point3i(58, -60, -234));
-        }
-
-        // 第3コーナー内側
-        if (enable) {
-            setBlock(15, y, -226, "birch_fence[west=true]");
-            fill(new Point3i(14, y, -226), new Point3i(12, y, -226), "birch_fence[east=true,west=true]");
-            setBlock(11, y, -226, "birch_fence[east=true,south=true]");
-            setBlock(11, y, -225, "birch_fence[north=true,west=true]");
-            setBlock(10, y, -225, "birch_fence[east=true,south=true]");
-            setBlock(10, y, -224, "birch_fence[north=true,west=true]");
-            setBlock(9, y, -224, "birch_fence[east=true,south=true]");
-            fill(new Point3i(9, y, -223), new Point3i(9, y, -221), "birch_fence[north=true,south=true]");
-            setBlock(9, y, -220, "birch_fence[north=true]");
-        } else {
-            stroke("air",
-                    new Point3i(15, -60, -226),
-                    new Point3i(11, -60, -226),
-                    new Point3i(11, -60, -225),
-                    new Point3i(10, -60, -225),
-                    new Point3i(10, -60, -224),
-                    new Point3i(9, -60, -224),
-                    new Point3i(9, -60, -220));
-        }
-
-        // 第3コーナー外側
-        if (enable) {
-            setBlock(15, y, -234, "birch_fence[west=true]");
-            fill(new Point3i(14, y, -234), new Point3i(4, y, -234), "birch_fence[east=true,west=true]");
-            setBlock(3, y, -234, "birch_fence[east=true,south=true]");
-            setBlock(3, y, -233, "birch_fence[north=true,west=true]");
-            setBlock(2, y, -233, "birch_fence[east=true,south=true]");
-            setBlock(2, y, -232, "birch_fence[north=true,west=true]");
-            setBlock(1, y, -232, "birch_fence[east=true,south=true]");
-            fill(new Point3i(1, y, -231), new Point3i(1, y, -221), "birch_fence[north=true,south=true]");
-            setBlock(1, y, -220, "birch_fence[north=true]");
-        } else {
-            stroke("air",
-                    new Point3i(15, -60, -234),
-                    new Point3i(3, -60, -234),
-                    new Point3i(3, -60, -233),
-                    new Point3i(2, -60, -233),
-                    new Point3i(2, -60, -232),
-                    new Point3i(1, -60, -232),
-                    new Point3i(1, -60, -220));
-        }
-
-        // 第4コーナー内側
-        if (enable) {
-            setBlock(9, y, -185, "birch_fence[south=true]");
-            fill(new Point3i(9, y, -184), new Point3i(9, y, -182), "birch_fence[north=true,south=true]");
-            setBlock(9, y, -181, "birch_fence[east=true,north=true]");
-            setBlock(10, y, -181, "birch_fence[south=true,west=true]");
-            setBlock(10, y, -180, "birch_fence[east=true,north=true]");
-            setBlock(11, y, -180, "birch_fence[south=true,west=true]");
-            setBlock(11, y, -179, "birch_fence[east=true,north=true]");
-            fill(new Point3i(12, y, -179), new Point3i(14, y, -179), "birch_fence[east=true,west=true]");
-            setBlock(15, y, -179, "birch_fence[west=true]");
-        } else {
-            stroke("air",
-                    new Point3i(9, -60, -185),
-                    new Point3i(9, -60, -181),
-                    new Point3i(10, -60, -181),
-                    new Point3i(10, -60, -180),
-                    new Point3i(11, -60, -180),
-                    new Point3i(11, -60, -179),
-                    new Point3i(15, -60, -179));
-        }
-
-        // 第4コーナー外側
-        if (enable) {
-            setBlock(1, y, -185, "birch_fence[south=true]");
-            fill(new Point3i(1, y, -184), new Point3i(1, y, -174), "birch_fence[north=true,south=true]");
-            setBlock(1, y, -173, "birch_fence[east=true,north=true]");
-            setBlock(2, y, -173, "birch_fence[south=true,west=true]");
-            setBlock(2, y, -172, "birch_fence[east=true,north=true]");
-            setBlock(3, y, -172, "birch_fence[south=true,west=true]");
-            setBlock(3, y, -171, "birch_fence[east=true,north=true]");
-            fill(new Point3i(4, y, -171), new Point3i(14, y, -171), "birch_fence[east=true,west=true]");
-            setBlock(15, y, -171, "birch_fence[west=true]");
-        } else {
-            stroke("air",
-                    new Point3i(1, -60, -185),
-                    new Point3i(1, -60, -173),
-                    new Point3i(2, -60, -173),
-                    new Point3i(2, -60, -172),
-                    new Point3i(3, -60, -172),
-                    new Point3i(3, -60, -171),
-                    new Point3i(15, -60, -171));
-        }
-    }
-
-    private void setEnableStartGate(boolean enable) {
-        if (enable) {
-            // 第1レーン
-            fill(new Point3i(37, -60, -178), new Point3i(38, -60, -176), "birch_fence");
-            setBlock(new Point3i(37, -61, -177), "command_block[facing=north]");
-            setBlock(new Point3i(37, -60, -177), "birch_button[face=floor,facing=east]");
-
-            // 第2レーン
-            fill(new Point3i(38, -60, -176), new Point3i(39, -60, -174), "birch_fence");
-            setBlock(new Point3i(38, -61, -175), "command_block[facing=north]");
-            setBlock(new Point3i(38, -60, -175), "birch_button[face=floor,facing=east]");
-
-            // 第3レーン
-            fill(new Point3i(39, -60, -174), new Point3i(40, -60, -172), "birch_fence");
-            setBlock(new Point3i(39, -61, -173), "command_block[facing=north]");
-            setBlock(new Point3i(39, -60, -173), "birch_button[face=floor,facing=east]");
-
-            setBlock(new Point3i(38, -60, -176), "birch_fence[east=true,north=true,west=true]");
-            setBlock(new Point3i(39, -60, -174), "birch_fence[east=true,north=true,west=true]");
-        } else {
-            fill(new Point3i(37, -60, -178), new Point3i(40, -60, -172), "air");
-            fill(new Point3i(40, -61, -172), new Point3i(37, -61, -178), "dirt_path");
-        }
-    }
-
-    private void fill(Point3i from, Point3i to, String block) {
-        World world = delegate.mainGetWorld();
-        Editor.Fill(world, offset(from), offset(to), block);
-    }
-
-    private void setBlock(int x, int y, int z, String block) {
-        World world = delegate.mainGetWorld();
-        Editor.SetBlock(world, offset(new Point3i(x, y, z)), block);
-    }
-
-    private void setBlock(Point3i p, String block) {
-        World world = delegate.mainGetWorld();
-        Editor.SetBlock(world, offset(p), block);
-    }
-
     private void onClickJoin(Player player, TeamColor teamColor) {
         if (_status != Status.IDLE && _status != Status.AWAIT_START) {
             return;
@@ -885,7 +665,6 @@ public class RelayEventListener implements Listener, Competition {
             case WHITE -> ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
             case RED -> ChatColor.RED + "TEAM RED" + ChatColor.RESET;
             case YELLOW -> ChatColor.YELLOW + "TEAM YELLOW" + ChatColor.RESET;
-            default -> "";
         };
     }
 
@@ -898,6 +677,226 @@ public class RelayEventListener implements Listener, Competition {
     // 本家側とメッセージが同一かどうか確認できてないものを broadcast する
     private ConsoleLogger broadcastUnofficial(String msg, Object... args) {
         return broadcast(msg, args);
+    }
+
+    private void setEnableCornerFence(boolean enable) {
+        final int y = -60;
+
+        // 第1コーナー内側
+        if (enable) {
+            setBlock(58, y, -179, "birch_fence[east=true]");
+            fill(new Point3i(59, y, -179), new Point3i(61, y, -179), "birch_fence[east=true,west=true]");
+            setBlock(62, y, -179, "birch_fence[north=true,west=true]");
+            setBlock(62, y, -180, "birch_fence[east=true,south=true]");
+            setBlock(63, y, -180, "birch_fence[north=true,west=true]");
+            setBlock(63, y, -181, "birch_fence[east=true,south=true]");
+            setBlock(64, y, -181, "birch_fence[north=true,west=true]");
+            fill(new Point3i(64, y, -182), new Point3i(64, y, -184), "birch_fence[north=true,south=true]");
+            setBlock(64, y, -185, "birch_fence[south=true]");
+        } else {
+            stroke("air",
+                    new Point3i(58, -60, -179),
+                    new Point3i(62, -60, -179),
+                    new Point3i(62, -60, -180),
+                    new Point3i(63, -60, -180),
+                    new Point3i(63, -60, -181),
+                    new Point3i(64, -60, -181),
+                    new Point3i(64, -60, -185));
+        }
+
+        // 第1コーナー外側
+        if (enable) {
+            setBlock(58, y, -171, "birch_fence[east=true]");
+            fill(new Point3i(59, y, -171), new Point3i(69, y, -171), "birch_fence[east=true,west=true]");
+            setBlock(70, y, -171, "birch_fence[north=true,west=true]");
+            setBlock(70, y, -172, "birch_fence[east=true,south=true]");
+            setBlock(71, y, -172, "birch_fence[north=true,west=true]");
+            setBlock(71, y, -173, "birch_fence[east=true,south=true]");
+            setBlock(72, y, -173, "birch_fence[north=true,west=true]");
+            fill(new Point3i(72, y, -174), new Point3i(72, y, -184), "birch_fence[north=true,south=true]");
+            setBlock(72, y, -185, "birch_fence[south=true]");
+        } else {
+            stroke("air",
+                    new Point3i(58, -60, -171),
+                    new Point3i(70, -60, -171),
+                    new Point3i(70, -60, -172),
+                    new Point3i(71, -60, -172),
+                    new Point3i(71, -60, -173),
+                    new Point3i(72, -60, -173),
+                    new Point3i(72, -60, -185));
+        }
+
+        // 第2コーナー内側
+        if (enable) {
+            setBlock(64, y, -220, "birch_fence[north=true]");
+            fill(new Point3i(64, y, -221), new Point3i(64, y, -223), "birch_fence[north=true,south=true]");
+            setBlock(64, y, -224, "birch_fence[south=true,west=true]");
+            setBlock(63, y, -224, "birch_fence[east=true,north=true]");
+            setBlock(63, y, -225, "birch_fence[south=true,west=true]");
+            setBlock(62, y, -225, "birch_fence[east=true,north=true]");
+            setBlock(62, y, -226, "birch_fence[south=true,west=true]");
+            fill(new Point3i(61, y, -226), new Point3i(59, y, -226), "birch_fence[east=true,west=true]");
+            setBlock(58, y, -226, "birch_fence[east=true]");
+        } else {
+            stroke("air",
+                    new Point3i(64, -60, -220),
+                    new Point3i(64, -60, -224),
+                    new Point3i(63, -60, -224),
+                    new Point3i(63, -60, -225),
+                    new Point3i(62, -60, -225),
+                    new Point3i(62, -60, -226),
+                    new Point3i(58, -60, -226));
+        }
+
+        // 第2コーナー外側
+        if (enable) {
+            setBlock(72, y, -220, "birch_fence[north=true]");
+            fill(new Point3i(72, y, -221), new Point3i(72, y, -231), "birch_fence[north=true,south=true]");
+            setBlock(72, y, -232, "birch_fence[south=true,west=true]");
+            setBlock(71, y, -232, "birch_fence[east=true,north=true]");
+            setBlock(71, y, -233, "birch_fence[south=true,west=true]");
+            setBlock(70, y, -233, "birch_fence[east=true,north=true]");
+            setBlock(70, y, -234, "birch_fence[south=true,west=true]");
+            fill(new Point3i(69, y, -234), new Point3i(59, y, -234), "birch_fence[east=true,west=true]");
+            setBlock(58, y, -234, "birch_fence[east=true]");
+        } else {
+            stroke("air",
+                    new Point3i(72, -60, -220),
+                    new Point3i(72, -60, -232),
+                    new Point3i(71, -60, -232),
+                    new Point3i(71, -60, -233),
+                    new Point3i(70, -60, -233),
+                    new Point3i(70, -60, -234),
+                    new Point3i(58, -60, -234));
+        }
+
+        // 第3コーナー内側
+        if (enable) {
+            setBlock(15, y, -226, "birch_fence[west=true]");
+            fill(new Point3i(14, y, -226), new Point3i(12, y, -226), "birch_fence[east=true,west=true]");
+            setBlock(11, y, -226, "birch_fence[east=true,south=true]");
+            setBlock(11, y, -225, "birch_fence[north=true,west=true]");
+            setBlock(10, y, -225, "birch_fence[east=true,south=true]");
+            setBlock(10, y, -224, "birch_fence[north=true,west=true]");
+            setBlock(9, y, -224, "birch_fence[east=true,south=true]");
+            fill(new Point3i(9, y, -223), new Point3i(9, y, -221), "birch_fence[north=true,south=true]");
+            setBlock(9, y, -220, "birch_fence[north=true]");
+        } else {
+            stroke("air",
+                    new Point3i(15, -60, -226),
+                    new Point3i(11, -60, -226),
+                    new Point3i(11, -60, -225),
+                    new Point3i(10, -60, -225),
+                    new Point3i(10, -60, -224),
+                    new Point3i(9, -60, -224),
+                    new Point3i(9, -60, -220));
+        }
+
+        // 第3コーナー外側
+        if (enable) {
+            setBlock(15, y, -234, "birch_fence[west=true]");
+            fill(new Point3i(14, y, -234), new Point3i(4, y, -234), "birch_fence[east=true,west=true]");
+            setBlock(3, y, -234, "birch_fence[east=true,south=true]");
+            setBlock(3, y, -233, "birch_fence[north=true,west=true]");
+            setBlock(2, y, -233, "birch_fence[east=true,south=true]");
+            setBlock(2, y, -232, "birch_fence[north=true,west=true]");
+            setBlock(1, y, -232, "birch_fence[east=true,south=true]");
+            fill(new Point3i(1, y, -231), new Point3i(1, y, -221), "birch_fence[north=true,south=true]");
+            setBlock(1, y, -220, "birch_fence[north=true]");
+        } else {
+            stroke("air",
+                    new Point3i(15, -60, -234),
+                    new Point3i(3, -60, -234),
+                    new Point3i(3, -60, -233),
+                    new Point3i(2, -60, -233),
+                    new Point3i(2, -60, -232),
+                    new Point3i(1, -60, -232),
+                    new Point3i(1, -60, -220));
+        }
+
+        // 第4コーナー内側
+        if (enable) {
+            setBlock(9, y, -185, "birch_fence[south=true]");
+            fill(new Point3i(9, y, -184), new Point3i(9, y, -182), "birch_fence[north=true,south=true]");
+            setBlock(9, y, -181, "birch_fence[east=true,north=true]");
+            setBlock(10, y, -181, "birch_fence[south=true,west=true]");
+            setBlock(10, y, -180, "birch_fence[east=true,north=true]");
+            setBlock(11, y, -180, "birch_fence[south=true,west=true]");
+            setBlock(11, y, -179, "birch_fence[east=true,north=true]");
+            fill(new Point3i(12, y, -179), new Point3i(14, y, -179), "birch_fence[east=true,west=true]");
+            setBlock(15, y, -179, "birch_fence[west=true]");
+        } else {
+            stroke("air",
+                    new Point3i(9, -60, -185),
+                    new Point3i(9, -60, -181),
+                    new Point3i(10, -60, -181),
+                    new Point3i(10, -60, -180),
+                    new Point3i(11, -60, -180),
+                    new Point3i(11, -60, -179),
+                    new Point3i(15, -60, -179));
+        }
+
+        // 第4コーナー外側
+        if (enable) {
+            setBlock(1, y, -185, "birch_fence[south=true]");
+            fill(new Point3i(1, y, -184), new Point3i(1, y, -174), "birch_fence[north=true,south=true]");
+            setBlock(1, y, -173, "birch_fence[east=true,north=true]");
+            setBlock(2, y, -173, "birch_fence[south=true,west=true]");
+            setBlock(2, y, -172, "birch_fence[east=true,north=true]");
+            setBlock(3, y, -172, "birch_fence[south=true,west=true]");
+            setBlock(3, y, -171, "birch_fence[east=true,north=true]");
+            fill(new Point3i(4, y, -171), new Point3i(14, y, -171), "birch_fence[east=true,west=true]");
+            setBlock(15, y, -171, "birch_fence[west=true]");
+        } else {
+            stroke("air",
+                    new Point3i(1, -60, -185),
+                    new Point3i(1, -60, -173),
+                    new Point3i(2, -60, -173),
+                    new Point3i(2, -60, -172),
+                    new Point3i(3, -60, -172),
+                    new Point3i(3, -60, -171),
+                    new Point3i(15, -60, -171));
+        }
+    }
+
+    private void setEnableStartGate(boolean enable) {
+        if (enable) {
+            // 第1レーン
+            fill(new Point3i(37, -60, -178), new Point3i(38, -60, -176), "birch_fence");
+            setBlock(new Point3i(37, -61, -177), "command_block[facing=north]");
+            setBlock(new Point3i(37, -60, -177), "birch_button[face=floor,facing=east]");
+
+            // 第2レーン
+            fill(new Point3i(38, -60, -176), new Point3i(39, -60, -174), "birch_fence");
+            setBlock(new Point3i(38, -61, -175), "command_block[facing=north]");
+            setBlock(new Point3i(38, -60, -175), "birch_button[face=floor,facing=east]");
+
+            // 第3レーン
+            fill(new Point3i(39, -60, -174), new Point3i(40, -60, -172), "birch_fence");
+            setBlock(new Point3i(39, -61, -173), "command_block[facing=north]");
+            setBlock(new Point3i(39, -60, -173), "birch_button[face=floor,facing=east]");
+
+            setBlock(new Point3i(38, -60, -176), "birch_fence[east=true,north=true,west=true]");
+            setBlock(new Point3i(39, -60, -174), "birch_fence[east=true,north=true,west=true]");
+        } else {
+            fill(new Point3i(37, -60, -178), new Point3i(40, -60, -172), "air");
+            fill(new Point3i(40, -61, -172), new Point3i(37, -61, -178), "dirt_path");
+        }
+    }
+
+    private void fill(Point3i from, Point3i to, String block) {
+        World world = delegate.mainGetWorld();
+        Editor.Fill(world, offset(from), offset(to), block);
+    }
+
+    private void setBlock(int x, int y, int z, String block) {
+        World world = delegate.mainGetWorld();
+        Editor.SetBlock(world, offset(new Point3i(x, y, z)), block);
+    }
+
+    private void setBlock(Point3i p, String block) {
+        World world = delegate.mainGetWorld();
+        Editor.SetBlock(world, offset(p), block);
     }
 
     private BoundingBox offset(BoundingBox box) {
