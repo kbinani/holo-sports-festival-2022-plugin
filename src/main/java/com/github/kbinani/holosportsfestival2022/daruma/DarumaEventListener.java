@@ -37,6 +37,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private final MainDelegate delegate;
     private final Map<UUID, Point3i> respawn = new HashMap<>();
     private final Random random;
+    private boolean blockGreenSignal = false;
 
     private final Map<TeamColor, Team> teams = new HashMap<>();
 
@@ -95,7 +96,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                         break;
                     }
                     int random = this.random.nextInt(100);
-                    if (random < 50) {
+                    if (random < 50 && !blockGreenSignal) {
                         triggerGreen();
                     }
                 }
@@ -484,6 +485,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 }
                 race = null;
                 manual = false;
+                blockGreenSignal = false;
                 break;
             case COUNTDOWN_START:
                 setEntranceOpened(false);
@@ -661,6 +663,12 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 player.playSound(player.getLocation(), Sound.ENTITY_GHAST_HURT, 0.25f, 1);
             });
             setStatus(Status.RED);
+            if (!manual) {
+                blockGreenSignal = true;
+                delegate.mainRunTaskLater(() -> {
+                    blockGreenSignal = false;
+                }, 40);
+            }
             return true;
         }, 15, titleSet);
     }
@@ -810,15 +818,11 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private Point3i getEntryButtonPosition(TeamColor color) {
-        switch (color) {
-            case RED:
-                return offset(kButtonRedJoin);
-            case WHITE:
-                return offset(kButtonWhiteJoin);
-            case YELLOW:
-            default:
-                return offset(kButtonYellowJoin);
-        }
+        return switch (color) {
+            case RED -> offset(kButtonRedJoin);
+            case WHITE -> offset(kButtonWhiteJoin);
+            case YELLOW -> offset(kButtonYellowJoin);
+        };
     }
 
     private Point3i offset(Point3i p) {
@@ -882,6 +886,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         race = null;
         respawn.clear();
         teams.clear();
+        blockGreenSignal = false;
         evacuateNonParticipants();
         Bukkit.getServer().broadcastMessage(CompetitionTypeHelper.ToString(competitionGetType()) + "をリセットしました");
     }
