@@ -547,12 +547,15 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
         TeamColor current = getCurrentColor(player);
         if (current == null) {
+            delegate.mainClearCompetitionItems(player);
+            if (!giveItem(player)) {
+                player.sendMessage(ChatColor.RED + "インベントリがいっぱいで競技用アイテムが渡せません");
+                clearItem(player);
+                return;
+            }
+
             Team team = ensureTeam(color);
             team.add(player);
-
-            delegate.mainClearCompetitionItems(player);
-            giveItem(player);
-
             broadcast("[だるまさんがころんだ] %sが%sにエントリーしました", player.getName(), ToColoredString(color)).log();
         } else {
             //NOTE: 本家では全チャになる
@@ -777,12 +780,12 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
     }
 
-    private void giveItem(Player player) {
+    private boolean giveItem(Player player) {
         ItemStack goldenApple = ItemBuilder.For(Material.GOLDEN_APPLE)
                 .amount(1)
                 .customByteTag(kItemTag, (byte) 1)
                 .build();
-        player.getInventory().addItem(goldenApple);
+        return player.getInventory().addItem(goldenApple).isEmpty();
     }
 
     private void resetField() {

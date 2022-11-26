@@ -498,11 +498,6 @@ public class FencingEventListener implements Listener, Competition {
     }
 
     private void joinPlayer(@Nonnull Player player, Team team) {
-        if (team == Team.RIGHT) {
-            right = player;
-        } else if (team == Team.LEFT) {
-            left = player;
-        }
         delegate.mainClearCompetitionItems(player);
         ItemStack sword = ItemBuilder.For(Material.IRON_SWORD)
                 .amount(1)
@@ -511,7 +506,16 @@ public class FencingEventListener implements Listener, Competition {
                 .attributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, "", 0, AttributeModifier.Operation.ADD_NUMBER)
                 .flags(ItemFlag.HIDE_ATTRIBUTES)
                 .build();
-        player.getInventory().addItem(sword);
+        if (!player.getInventory().addItem(sword).isEmpty()) {
+            player.sendMessage(ChatColor.RED + "インベントリがいっぱいで競技用アイテムが渡せません");
+            clearItem(player);
+            return;
+        }
+        if (team == Team.RIGHT) {
+            right = player;
+        } else if (team == Team.LEFT) {
+            left = player;
+        }
         broadcast("[フェンシング] %sがエントリーしました（%s）", player.getName(), TeamName(team)).log();
         if (right == null && left == null) {
             setStatus(Status.IDLE);

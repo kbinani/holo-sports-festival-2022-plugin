@@ -551,57 +551,80 @@ public class BoatRaceEventListener implements Competition {
             return;
         }
         @Nullable Participation current = getCurrentParticipation(player);
-        if (current == null) {
-            Team p = ensureTeam(color);
-            p.setPlayer(role, player);
-            delegate.mainClearCompetitionItems(player);
-            PlayerInventory inventory = player.getInventory();
-            if (role == Role.DRIVER) {
-                ItemStack boat =
-                        ItemBuilder.For(Boat(color))
-                                .amount(1)
-                                .customByteTag(kItemTag, (byte) 1)
-                                .build();
-                inventory.addItem(boat);
-            } else {
-                ItemStack snowball =
-                        ItemBuilder.For(Material.SNOWBALL)
-                                .amount(1)
-                                .displayName(kPrimaryShootItemDisplayName)
-                                .customByteTag(kItemTag, (byte) 1)
-                                .build();
-                ItemStack crossbow =
-                        ItemBuilder.For(Material.CROSSBOW)
-                                .amount(1)
-                                .customByteTag(kItemTag, (byte) 1)
-                                .build();
-                ItemStack splashPotion =
-                        ItemBuilder.For(Material.SPLASH_POTION)
-                                .amount(1)
-                                .displayName(kSecondaryShootItemDisplayName)
-                                .customByteTag(kItemTag, (byte) 1)
-                                .potion(PotionType.UNCRAFTABLE)
-                                .build();
-                Color c = Color.fromRGB(FireworkRocketColor(color));
-                FireworkEffect effect = FireworkEffect.builder().withColor(c).withFade(c).build();
-                ItemStack fireworkRocket =
-                        ItemBuilder.For(Material.FIREWORK_ROCKET)
-                                .amount(3)
-                                .customByteTag(kItemTag, (byte) 1)
-                                .firework(effect)
-                                .build();
-
-                inventory.addItem(snowball);
-                inventory.addItem(crossbow);
-                inventory.addItem(splashPotion);
-                inventory.addItem(fireworkRocket);
-            }
-            broadcast("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role)).log();
-            setStatus(Status.AWAIT_START);
-        } else {
+        if (current != null) {
             // NOTE: 本家は全チャになる
             player.sendMessage(String.format("[水上レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(color)));
+            return;
         }
+
+        delegate.mainClearCompetitionItems(player);
+
+        PlayerInventory inventory = player.getInventory();
+        if (role == Role.DRIVER) {
+            ItemStack boat =
+                    ItemBuilder.For(Boat(color))
+                            .amount(1)
+                            .customByteTag(kItemTag, (byte) 1)
+                            .build();
+            var failed = inventory.addItem(boat);
+            if (!failed.isEmpty()) {
+                player.sendMessage(ChatColor.RED + "インベントリがいっぱいで競技用アイテムが渡せません");
+                clearItems(player);
+                return;
+            }
+        } else {
+            ItemStack snowball =
+                    ItemBuilder.For(Material.SNOWBALL)
+                            .amount(1)
+                            .displayName(kPrimaryShootItemDisplayName)
+                            .customByteTag(kItemTag, (byte) 1)
+                            .build();
+            ItemStack crossbow =
+                    ItemBuilder.For(Material.CROSSBOW)
+                            .amount(1)
+                            .customByteTag(kItemTag, (byte) 1)
+                            .build();
+            ItemStack splashPotion =
+                    ItemBuilder.For(Material.SPLASH_POTION)
+                            .amount(1)
+                            .displayName(kSecondaryShootItemDisplayName)
+                            .customByteTag(kItemTag, (byte) 1)
+                            .potion(PotionType.UNCRAFTABLE)
+                            .build();
+            Color c = Color.fromRGB(FireworkRocketColor(color));
+            FireworkEffect effect = FireworkEffect.builder().withColor(c).withFade(c).build();
+            ItemStack fireworkRocket =
+                    ItemBuilder.For(Material.FIREWORK_ROCKET)
+                            .amount(3)
+                            .customByteTag(kItemTag, (byte) 1)
+                            .firework(effect)
+                            .build();
+
+            var failed = inventory.addItem(snowball, crossbow, splashPotion);
+            if (!failed.isEmpty()) {
+                player.sendMessage(ChatColor.RED + "インベントリがいっぱいで競技用アイテムが渡せません");
+                clearItems(player);
+                return;
+            }
+            ItemStack offHand = inventory.getItemInOffHand();
+            if (offHand.getType() == Material.AIR) {
+                inventory.setItemInOffHand(fireworkRocket);
+            } else {
+                int index = inventory.firstEmpty();
+                if (index < 0) {
+                    player.sendMessage(ChatColor.RED + "インベントリがいっぱいで競技用アイテムが渡せません");
+                    clearItems(player);
+                    return;
+                }
+                inventory.setItem(index, offHand);
+                inventory.setItemInOffHand(fireworkRocket);
+            }
+        }
+
+        Team p = ensureTeam(color);
+        p.setPlayer(role, player);
+        broadcast("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role)).log();
+        setStatus(Status.AWAIT_START);
     }
 
     private void onClickLeave(Player player) {

@@ -448,9 +448,6 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             player.sendMessage(String.format("[MOB討伐レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(current.color)));
             return;
         }
-        Team team = ensureTeam(color);
-        team.add(player, role);
-        broadcast("[MOB討伐レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role)).log();
 
         delegate.mainClearCompetitionItems(player);
         PlayerInventory inventory = player.getInventory();
@@ -488,7 +485,12 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 .amount(35)
                 .customByteTag(kItemTag, (byte) 1)
                 .build();
-        inventory.addItem(leggings, chestplate, helmet, boots, goldenApple, cookedBeef);
+        var failed = inventory.addItem(leggings, chestplate, helmet, boots, goldenApple, cookedBeef);
+        if (!failed.isEmpty()) {
+            player.sendMessage(ChatColor.RED + "インベントリがいっぱいで競技用アイテムが渡せません");
+            clearItem(player);
+            return;
+        }
         switch (role) {
             case ARROW -> {
                 ItemStack bow = ItemBuilder.For(Material.BOW)
@@ -502,7 +504,12 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                         .amount(1)
                         .customByteTag(kItemTag, (byte) 1)
                         .build();
-                inventory.addItem(bow, arrow);
+                var failedJobItems = inventory.addItem(bow, arrow);
+                if (!failedJobItems.isEmpty()) {
+                    player.sendMessage(ChatColor.RED + "インベントリがいっぱいで競技用アイテムが渡せません");
+                    clearItem(player);
+                    return;
+                }
             }
             case SWORD -> {
                 ItemStack shield = ItemBuilder.For(Material.SHIELD)
@@ -517,9 +524,18 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                         .enchant(Enchantment.DAMAGE_UNDEAD, 5)
                         .enchant(Enchantment.DURABILITY, 3)
                         .build();
-                inventory.addItem(shield, sword);
+                var failedJobItems = inventory.addItem(shield, sword);
+                if (!failedJobItems.isEmpty()) {
+                    player.sendMessage(ChatColor.RED + "インベントリがいっぱいで競技用アイテムが渡せません");
+                    clearItem(player);
+                    return;
+                }
             }
         }
+
+        Team team = ensureTeam(color);
+        team.add(player, role);
+        broadcast("[MOB討伐レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role)).log();
         setStatus(Status.AWAIT_COUNTDOWN);
     }
 
