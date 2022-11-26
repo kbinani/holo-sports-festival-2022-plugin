@@ -65,7 +65,13 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 for (Level level : levels.values()) {
                     Point3i safe = level.getSafeSpawnLocation();
                     Players.Within(delegate.mainGetWorld(), level.getBounds(), player -> {
-                        player.teleport(player.getLocation().set(safe.x, safe.y, safe.z));
+                        if (player.getGameMode() == GameMode.SPECTATOR) {
+                            return;
+                        }
+                        Location l = player.getLocation();
+                        if (level.containsInBounds(l.toVector())) {
+                            player.teleport(l.set(safe.x, safe.y, safe.z));
+                        }
                     });
                     level.reset();
                 }
@@ -101,10 +107,12 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         }
         Player player = e.getPlayer();
         if (_status != Status.RUN || getCurrentParticipation(player) == null) {
-            for (Level level : levels.values()) {
-                if (level.getBounds().contains(player.getLocation().toVector())) {
-                    Point3i safe = level.getSafeSpawnLocation();
-                    player.teleport(player.getLocation().set(safe.x, safe.y, safe.z));
+            if (player.getGameMode() != GameMode.SPECTATOR) {
+                for (Level level : levels.values()) {
+                    if (level.getBounds().contains(player.getLocation().toVector())) {
+                        Point3i safe = level.getSafeSpawnLocation();
+                        player.teleport(player.getLocation().set(safe.x, safe.y, safe.z));
+                    }
                 }
             }
         }
@@ -565,10 +573,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         broadcast("[MOB討伐レース] 競技を開始します！").log();
         broadcast("");
         setStatus(Status.COUNTDOWN);
-        for (Level level : levels.values()) {
-            Point3i safe = level.getSafeSpawnLocation();
-            Players.Within(delegate.mainGetWorld(), level.getBounds(), player -> player.teleport(player.getLocation().set(safe.x, safe.y, safe.z)));
-        }
+        evacuateNonParticipants();
         delegate.mainCountdownThen(new BoundingBox[]{offset(kAnnounceBounds)}, (count) -> _status == Status.COUNTDOWN, () -> {
             if (_status != Status.COUNTDOWN) {
                 return false;
