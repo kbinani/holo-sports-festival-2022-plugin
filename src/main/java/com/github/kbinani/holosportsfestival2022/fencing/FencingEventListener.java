@@ -498,10 +498,6 @@ public class FencingEventListener implements Listener, Competition {
     }
 
     private void joinPlayer(@Nonnull Player player, Team team) {
-        if (getCurrentTeam(player) != null) {
-            broadcast("[フェンシング] %sはエントリー済みです", player.getName());
-            return;
-        }
         if (team == Team.RIGHT) {
             right = player;
         } else if (team == Team.LEFT) {
@@ -563,7 +559,15 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
         if (getCurrentTeam(player) != null) {
-            //TODO: 既に join 済みの時のメッセージ
+            broadcast("[フェンシング] %sはエントリー済みです", player.getName());
+            return;
+        }
+        if (team == Team.RIGHT && right != null) {
+            player.sendMessage(String.format("[フェンシング] %sには既に%sがエントリー済みです", TeamName(team), right.getName()));
+            return;
+        }
+        if (team == Team.LEFT && left != null) {
+            player.sendMessage(String.format("[フェンシング] %sには既に%sがエントリー済みです", TeamName(team), left.getName()));
             return;
         }
         joinPlayer(player, team);
