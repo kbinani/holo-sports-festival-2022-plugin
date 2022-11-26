@@ -540,18 +540,18 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             setBossbarVisible(current.color, false);
             Level level = ensureLevel(current.color);
             level.reset();
-        } else {
-            Level level = ensureLevel(current.color);
-            Progress progress = level.getProgress();
-            if (progress.stage == level.getStageCount() - 1) {
-                int finished = team.getFinishedPlayerCount();
-                int count = team.getPlayerCount();
-                if (finished >= count) {
-                    goal(current.color);
-                } else {
-                    applyBossbarValue(current.color, new BossbarValue(team.getFinishedPlayerCount(), team.getPlayerCount(), "GO TO GOAL !!"));
-                }
+        } else if (_status == Status.RUN) {
+            broadcastUnofficial("[MOB討伐レース] %sの参加人数が競技中に変わったため棄権扱いとします", ToColoredString(current.color)).log();
+            if (race != null) {
+                race.remove(current.color);
             }
+            Level level = ensureLevel(current.color);
+            Point3i safe = level.getSafeSpawnLocation();
+            team.usePlayers(p -> {
+                p.teleport(p.getLocation().set(safe.x + 0.5, safe.y, safe.z + 0.5));
+            });
+            level.reset();
+            setBossbarVisible(current.color, false);
         }
 
         if (_status == Status.RUN || _status == Status.COUNTDOWN) {
