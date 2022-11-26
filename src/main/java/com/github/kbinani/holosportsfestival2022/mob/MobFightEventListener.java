@@ -805,7 +805,10 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             bar.setVisible(false);
         });
         evacuateNonParticipants();
-        Bukkit.getServer().broadcastMessage(CompetitionTypeHelper.ToString(competitionGetType()) + "をリセットしました");
+
+        String message = CompetitionTypeHelper.ToString(competitionGetType()) + "をリセットしました";
+        Bukkit.getServer().getOnlinePlayers().forEach(player -> player.sendMessage(message));
+        delegate.mainGetLogger().info(message);
     }
 
     private void evacuateNonParticipants() {
