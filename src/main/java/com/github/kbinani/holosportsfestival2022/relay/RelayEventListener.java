@@ -596,16 +596,12 @@ public class RelayEventListener implements Listener, Competition {
         if (entity.getWorld() != delegate.mainGetWorld()) {
             return;
         }
-        if (!(damagerEntity instanceof Player) || !(entity instanceof Player)) {
+        if (!(damagerEntity instanceof Player from) || !(entity instanceof Player to)) {
             return;
         }
 
-        //TODO: バトンで殴ったかどうか確認するのが良さそう
-
         // 両者がバトンパス領域に入っているかどうか確かめる
         BoundingBox box = offset(kBatonPassingArea);
-        Player from = (Player) damagerEntity;
-        Player to = (Player) entity;
         if (!box.contains(from.getLocation().toVector()) || !box.contains(to.getLocation().toVector())) {
             return;
         }
@@ -644,6 +640,18 @@ public class RelayEventListener implements Listener, Competition {
 
         if (team.getOrderLength() >= race.numberOfLaps) {
             // 最終走者はバトンパスしない
+            return;
+        }
+
+        PlayerInventory inventory = from.getInventory();
+        if (!inventory.contains(Material.BLAZE_ROD)) {
+            from.sendMessage(ChatColor.RED + "バトンがインベントリにありません");
+            return;
+        }
+        ItemStack tool = inventory.getItemInMainHand();
+        ItemMeta meta = tool.getItemMeta();
+        if (tool.getType() != Material.BLAZE_ROD || meta == null || !meta.getDisplayName().equals("バトン")) {
+            from.sendMessage(ChatColor.RED + "バトンパスするにはバトンで受け手を殴る必要があります");
             return;
         }
 
