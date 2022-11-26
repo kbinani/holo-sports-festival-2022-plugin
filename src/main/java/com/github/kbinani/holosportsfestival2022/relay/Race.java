@@ -1,5 +1,7 @@
 package com.github.kbinani.holosportsfestival2022.relay;
 
+import com.github.kbinani.holosportsfestival2022.TeamColor;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
