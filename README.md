@@ -2,6 +2,8 @@
 
 Minecraft [#ホロライブ運動会2022](https://twitter.com/hashtag/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%96%E9%81%8B%E5%8B%95%E4%BC%9A2022) で行われた各種ミニゲームの動作を再現するための Paper プラグインです。
 
+![repository-open-graph-template](https://user-images.githubusercontent.com/1030301/204093873-6de7216b-b3d7-4c3a-ab7a-ab11585c2159.jpg)
+
 ## ミニゲーム一覧
 以下のミニゲームがプレイ可能です。
 - フェンシングPVP
