@@ -430,7 +430,17 @@ public class RelayEventListener implements Listener, Competition {
                 .customByteTag(kItemTag, (byte) 1)
                 .displayName("バトン")
                 .build();
-        player.getInventory().addItem(baton);
+        PlayerInventory inventory = player.getInventory();
+        ItemStack mainHand = inventory.getItemInMainHand();
+        if (mainHand.getType() == Material.AIR) {
+            inventory.setItemInMainHand(baton);
+        } else {
+            int empty = inventory.firstEmpty();
+            if (empty >= 0) {
+                inventory.setItem(empty, mainHand);
+                inventory.setItemInMainHand(baton);
+            }
+        }
     }
 
     private void onClickStart() {
