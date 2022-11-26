@@ -241,6 +241,9 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
 
+        giveParticipationReward(left);
+        giveParticipationReward(right);
+
         //NOTE: onEntityDamageByEntity と同一 tick 内で velocity を変更しても効果がないので 1 tick 後に変更する.
         if (hitpointLeft == 0) {
             float yaw = right.getLocation().getYaw();
@@ -535,6 +538,13 @@ public class FencingEventListener implements Listener, Competition {
         } else {
             setStatus(Status.AWAIT_COUNTDOWN);
         }
+    }
+
+    private void giveParticipationReward(Player player) {
+        ItemStack cookedBeef = ItemBuilder.For(Material.COOKED_BEEF)
+                .amount(15)
+                .build();
+        player.getInventory().addItem(cookedBeef);
     }
 
     private ConsoleLogger broadcast(String format, Object... args) {
