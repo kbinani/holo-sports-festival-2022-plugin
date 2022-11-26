@@ -13,7 +13,6 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTables;
-import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -70,9 +69,8 @@ class PlainsStage extends Stage {
 
     @Override
     void summonMobs(int step) {
-        BoundingBox box = getBounds();
         switch (step) {
-            case 0:
+            case 0 -> {
                 // 1F
                 summonZombie(-8, -58, -264, false);
                 summonZombie(-7, -59, -271, false);
@@ -83,58 +81,55 @@ class PlainsStage extends Stage {
                 // 2F
                 summonZombie(-4, -48, -265, false);
                 summonZombie(-8, -48, -269, true);
-                break;
-            case 1:
+            }
+            case 1 -> {
                 // 1F
                 summonZombieBoss(0, -59, -274);
                 // 2F
                 summonZombieBoss(-8, -48, -268);
                 addGlowingEffect();
-                // BOSS 戦の様子 (60fps)
-                // https://www.youtube.com/watch?v=TiSgN3lvfrM
-                // ==================================================
-                // BOSS 1/2
-                // --------------------------------------------------
-                // frame    critical    note    tick from last attack
-                // --------------------------------------------------
-                // 2428     false
-                // 2525     false               32.3
-                // 2584     false               19.7
-                // 2641     false               19
-                // 2692     false               17
-                // 2824     false               44
-                // 2888     false               21.3
-                // 2923     false               11.7
-                // 2971     false               16
-                // 3022     false               17
-                // 3082     false       killed  20
-                // =======================
-                // BOSS 2/2
-                // -----------------------
-                // frame  critical  note
-                // -----------------------
-                // 3670   false
-                // 3703   false
-                // 3738   false
-                // 3772   false
-                // 3808   N/A       fall from high place
-                // 4585   false
-                // 4660   false
-                // 4732   false
-                // 4789   false
-                // 4897   false
-                // 4993   false
-                // 5044   false
-                // 5092   false     killed
-                break;
+            }
+            // BOSS 戦の様子 (60fps)
+            // https://www.youtube.com/watch?v=TiSgN3lvfrM
+            // ==================================================
+            // BOSS 1/2
+            // --------------------------------------------------
+            // frame    critical    note    tick from last attack
+            // --------------------------------------------------
+            // 2428     false
+            // 2525     false               32.3
+            // 2584     false               19.7
+            // 2641     false               19
+            // 2692     false               17
+            // 2824     false               44
+            // 2888     false               21.3
+            // 2923     false               11.7
+            // 2971     false               16
+            // 3022     false               17
+            // 3082     false       killed  20
+            // =======================
+            // BOSS 2/2
+            // -----------------------
+            // frame  critical  note
+            // -----------------------
+            // 3670   false
+            // 3703   false
+            // 3738   false
+            // 3772   false
+            // 3808   N/A       fall from high place
+            // 4585   false
+            // 4660   false
+            // 4732   false
+            // 4789   false
+            // 4897   false
+            // 4993   false
+            // 5044   false
+            // 5092   false     killed
         }
     }
 
     private void summonZombie(int x, int y, int z, boolean baby) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Zombie zombie = (Zombie) it;
             if (baby) {
@@ -155,9 +150,6 @@ class PlainsStage extends Stage {
 
     private void summonZombieBoss(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Zombie zombie = (Zombie) it;
             zombie.setAdult();

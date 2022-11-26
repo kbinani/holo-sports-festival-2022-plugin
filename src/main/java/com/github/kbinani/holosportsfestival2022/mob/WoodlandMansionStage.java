@@ -43,29 +43,25 @@ class WoodlandMansionStage extends Stage {
     @Override
     void summonMobs(int step) {
         switch (step) {
-            case 0:
+            case 0 -> {
                 summonPillager(-8, -56, -332);
                 summonWitch(-6, -59, -349);
                 summonPillager(3, -59, -349);
                 summonVindicator(9, -59, -339);
                 summonWitch(9, -56, -332);
-
                 summonPillager(-7, -49, -342);
                 summonVindicator(1, -49, -349);
                 summonWitch(5, -49, -332);
-                break;
-            case 1:
+            }
+            case 1 -> {
                 summonRavager(-1, -59, -349);
                 addGlowingEffect();
-                break;
+            }
         }
     }
 
     private void summonRavager(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.RAVAGER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Ravager ravager = (Ravager) it;
             EntityEquipment equipment = ravager.getEquipment();
@@ -80,9 +76,6 @@ class WoodlandMansionStage extends Stage {
 
     private void summonVindicator(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.VINDICATOR, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Vindicator vindicator = (Vindicator) it;
             EntityEquipment equipment = vindicator.getEquipment();
@@ -98,9 +91,6 @@ class WoodlandMansionStage extends Stage {
 
     private void summonWitch(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.WITCH, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Witch witch = (Witch) it;
             EntityEquipment equipment = witch.getEquipment();
@@ -115,9 +105,6 @@ class WoodlandMansionStage extends Stage {
 
     private void summonPillager(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.PILLAGER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Pillager pillager = (Pillager) it;
             EntityEquipment equipment = pillager.getEquipment();

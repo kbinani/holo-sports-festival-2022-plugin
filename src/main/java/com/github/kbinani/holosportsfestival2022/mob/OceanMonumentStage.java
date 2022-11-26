@@ -52,30 +52,26 @@ class OceanMonumentStage extends Stage {
     void summonMobs(int step) {
         BoundingBox box = getBounds();
         switch (step) {
-            case 0:
+            case 0 -> {
                 summonDrowned(-7, -42, -283);
                 summonDrowned(3, -48, -297);
                 summonDrowned(-3, -52, -282);
                 summonDrowned(-8, -59, -285);
                 summonDrowned(-3, -59, -293);
-
                 summonGuardian(9, -48, -298);
                 summonGuardian(9, -55, -289);
                 summonGuardian(9, -57, -294);
-                break;
-            case 1:
+            }
+            case 1 -> {
                 summonDrownedBoss(-3, -59, -299);
                 summonDrownedBoss(5, -43, -297);
                 addGlowingEffect();
-                break;
+            }
         }
     }
 
     private void summonDrowned(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.DROWNED, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Drowned drowned = (Drowned) it;
             drowned.setAdult();
@@ -91,9 +87,6 @@ class OceanMonumentStage extends Stage {
 
     private void summonDrownedBoss(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.DROWNED, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Drowned drowned = (Drowned) it;
             drowned.setAdult();
@@ -115,9 +108,6 @@ class OceanMonumentStage extends Stage {
 
     private void summonGuardian(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.GUARDIAN, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Guardian guardian = (Guardian) it;
             EntityEquipment equipment = guardian.getEquipment();

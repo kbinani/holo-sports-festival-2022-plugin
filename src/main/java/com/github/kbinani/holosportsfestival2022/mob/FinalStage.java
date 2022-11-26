@@ -78,9 +78,6 @@ class FinalStage extends Stage {
 
     private void summonCreeper(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.CREEPER, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Creeper creeper = (Creeper) it;
             EntityEquipment equipment = creeper.getEquipment();

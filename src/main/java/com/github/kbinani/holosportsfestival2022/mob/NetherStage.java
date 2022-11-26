@@ -45,33 +45,27 @@ class NetherStage extends Stage {
     @Override
     void summonMobs(int step) {
         switch (step) {
-            case 0:
+            case 0 -> {
                 summonZombifiedPiglin(-7, -58, -314);
                 summonZombifiedPiglin(-5, -59, -321);
                 summonZombifiedPiglin(-1, -59, -324);
                 summonZombifiedPiglin(4, -59, -322);
                 summonZombifiedPiglin(8, -59, -315);
-
                 summonBlaze(-8, -49, -318);
                 summonBlaze(7, -47, -323);
                 summonBlaze(7, -53, -315);
-                break;
-            case 1:
+            }
+            case 1 -> {
                 summonWitherSkeleton(8, -49, -314);
                 summonWitherSkeleton(9, -55, -318);
-
                 summonGhast(-5, -47, -312);
-
                 addGlowingEffect();
-                break;
+            }
         }
     }
 
     private void summonGhast(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.GHAST, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Ghast ghast = (Ghast) it;
             EntityEquipment equipment = ghast.getEquipment();
@@ -88,9 +82,6 @@ class NetherStage extends Stage {
         // 通常x9, クリティカルx1: https://youtu.be/xIjr6Ct_Wlo?t=3554
         // 通常x5, クリティカルx4: https://youtu.be/26cNq-_8NIY?t=1264
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.WITHER_SKELETON, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             WitherSkeleton witherSkeleton = (WitherSkeleton) it;
             EntityEquipment equipment = witherSkeleton.getEquipment();
@@ -115,9 +106,6 @@ class NetherStage extends Stage {
 
     private void summonBlaze(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.BLAZE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Blaze blaze = (Blaze) it;
             EntityEquipment equipment = blaze.getEquipment();
@@ -132,9 +120,6 @@ class NetherStage extends Stage {
 
     private void summonZombifiedPiglin(int x, int y, int z) {
         World world = delegate.stageGetWorld();
-        if (world == null) {
-            return;
-        }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.ZOMBIFIED_PIGLIN, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             PigZombie zombifiedPiglin = (PigZombie) it;
             zombifiedPiglin.setAdult();
