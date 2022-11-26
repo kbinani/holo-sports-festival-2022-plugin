@@ -636,6 +636,8 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             return;
         }
         setStatus(Status.COUNTDOWN_RED);
+        var titleSet = Countdown.TitleSet.Default();
+        titleSet.zero = new Countdown.Title("ころんだ！！！", "Red light!!!");
         delegate.mainCountdownThen(new BoundingBox[]{getAnnounceBounds()}, (count) -> _status == Status.COUNTDOWN_RED, () -> {
             if (_status != Status.COUNTDOWN_RED) {
                 return false;
@@ -643,10 +645,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> {
                 player.playSound(player.getLocation(), Sound.ENTITY_GHAST_HURT, 0.25f, 1);
             });
-            setTitle("ころんだ！！！", "Red light!!!");
             setStatus(Status.RED);
             return true;
-        }, 15, Countdown.TitleSet.Default());
+        }, 15, titleSet);
     }
 
     private int getPlayerCount() {
