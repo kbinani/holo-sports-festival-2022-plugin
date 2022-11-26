@@ -650,7 +650,7 @@ public class FencingEventListener implements Listener, Competition {
             }
             setStatus(Status.RUN);
             return true;
-        }, 20);
+        }, 20, Countdown.TitleSet.Default());
     }
 
     private void regenerate(Player player) {

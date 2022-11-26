@@ -779,7 +779,7 @@ public class RelayEventListener implements Listener, Competition {
             });
             setStatus(Status.RUN);
             return true;
-        }, 20);
+        }, 20, Countdown.TitleSet.Default());
     }
 
     private TeamColor getCurrentTeam(@Nonnull Player player) {

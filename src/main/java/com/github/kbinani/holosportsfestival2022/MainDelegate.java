@@ -27,7 +27,7 @@ public interface MainDelegate {
 
     Logger mainGetLogger();
 
-    void mainCountdownThen(BoundingBox[] box, Predicate<Integer> countdown, Supplier<Boolean> task, long delay);
+    void mainCountdownThen(BoundingBox[] box, Predicate<Integer> countdown, Supplier<Boolean> task, long delay, Countdown.TitleSet titleSet);
 
     void mainClearCompetitionItems(Player player);
 

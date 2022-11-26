@@ -597,7 +597,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             this.race = race;
             setStatus(Status.START);
             return true;
-        }, 20);
+        }, 20, Countdown.TitleSet.Default());
     }
 
     private static double Clamp(double v, double min, double max) {
@@ -646,7 +646,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             setTitle("ころんだ！！！", "Red light!!!");
             setStatus(Status.RED);
             return true;
-        }, 15);
+        }, 15, Countdown.TitleSet.Default());
     }
 
     private int getPlayerCount() {

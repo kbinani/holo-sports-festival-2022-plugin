@@ -597,7 +597,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             }
             setStatus(Status.RUN);
             return true;
-        }, 20);
+        }, 20, Countdown.TitleSet.Default());
     }
 
     int getPlayerCount() {
@@ -859,12 +859,12 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     private static final Point3i kButtonRedStart = new Point3i(28, -58, -254);
     private static final Point3i kButtonWhiteStart = new Point3i(59, -58, -254);
     private static final Point3i[] kButtonsReset = new Point3i[]{
-        new Point3i(-9, -60, -254),
-        new Point3i(-3, -60, -254),
-        new Point3i(22, -60, -254),
-        new Point3i(28, -60, -254),
-        new Point3i(53, -60, -254),
-        new Point3i(59, -60, -254),
+            new Point3i(-9, -60, -254),
+            new Point3i(-3, -60, -254),
+            new Point3i(22, -60, -254),
+            new Point3i(28, -60, -254),
+            new Point3i(53, -60, -254),
+            new Point3i(59, -60, -254),
     };
 
     private static final String kBossbarRed = "hololive_sports_festival_2022_bossbar_red";

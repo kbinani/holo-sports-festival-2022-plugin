@@ -711,7 +711,7 @@ public class BoatRaceEventListener implements Competition {
             }
             setStatus(Status.RUN);
             return true;
-        }, 20);
+        }, 20, Countdown.TitleSet.Default());
     }
 
     private BoundingBox offset(BoundingBox box) {

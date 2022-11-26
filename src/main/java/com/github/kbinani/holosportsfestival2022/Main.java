@@ -80,8 +80,8 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     }
 
     @Override
-    public void mainCountdownThen(BoundingBox[] boxes, Predicate<Integer> countdown, Supplier<Boolean> task, long delay) {
-        Countdown.Then(world, boxes, this, countdown, task, delay);
+    public void mainCountdownThen(BoundingBox[] boxes, Predicate<Integer> countdown, Supplier<Boolean> task, long delay, Countdown.TitleSet titleSet) {
+        Countdown.Then(world, boxes, this, countdown, task, delay, titleSet);
     }
 
     @Override
