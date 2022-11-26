@@ -296,6 +296,7 @@ public class BoatRaceEventListener implements Competition {
                         broadcast("%s GOAL !!", ToColoredString(participation.color)).log();
                         launchFireworkRockets(participation.color);
                         finishedServerTime.put(participation.color, player.getWorld().getGameTime());
+                        team.eachPlayer((p, role, status) -> giveParticipationReward(p));
                         boolean cleared = true;
                         for (Long it : finishedServerTime.values()) {
                             if (it < 0) {
@@ -665,6 +666,13 @@ public class BoatRaceEventListener implements Competition {
                 inventory.clear(i);
             }
         }
+    }
+
+    private void giveParticipationReward(Player player) {
+        ItemStack cookedBeef = ItemBuilder.For(Material.COOKED_BEEF)
+                .amount(15)
+                .build();
+        player.getInventory().addItem(cookedBeef);
     }
 
     private @Nullable Participation getCurrentParticipation(@Nonnull Player player) {
