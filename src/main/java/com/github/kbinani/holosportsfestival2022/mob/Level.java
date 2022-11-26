@@ -151,8 +151,20 @@ class Level implements StageDelegate {
     }
 
     void setExitOpened(boolean opened) {
+        if (opened) {
+            fill(-3, -57, -412, -3, -59, -412, "iron_bars[south=true]");
+            fill(-2, -59, -412, 3, -57, -412, "air");
+            fill(4, -57, -412, 4, -59, -412, "iron_bars[south=true]");
+        } else {
+            fill(-3, -57, -412, -3, -59, -412, "iron_bars[east=true,south=true]");
+            fill(-2, -59, -412, 3, -57, -412, "iron_bars[east=true,west=true]");
+            fill(4, -57, -412, 4, -59, -412, "iron_bars[south=true,west=true]");
+        }
+    }
+
+    private void fill(int x1, int y1, int z1, int x2, int y2, int z2, String block) {
         World world = delegate.levelGetWorld();
-        Editor.Fill(world, new Point3i(x(-2), y(-59), z(-412)), new Point3i(x(3), y(-57), z(-412)), opened ? "air" : "iron_bars");
+        Editor.Fill(world, new Point3i(x(x1), y(y1), z(z1)), new Point3i(x(x2), y(y2), z(z2)), block);
     }
 
     Point3i getSafeSpawnLocation() {
