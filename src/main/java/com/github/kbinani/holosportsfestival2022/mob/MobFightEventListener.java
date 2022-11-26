@@ -184,7 +184,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                     }
                     Team team = ensureTeam(color);
                     List<Player> players = new ArrayList<>();
-                    team.usePlayers(players::add);
+                    team.eachPlayers(players::add);
                     stage.setExitOpened(true);
                     nextStage.onStart(players);
                     nextStage.summonMobs(0);
@@ -321,6 +321,10 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
     private void goal(TeamColor color) {
         Level level = ensureLevel(color);
         Team team = ensureTeam(color);
+        team.eachPlayers(player -> {
+            clearItem(player);
+            giveFinisherReward(player);
+        });
 
         broadcast("%s GAME CLEAR !!", ToColoredString(color)).log();
         level.showTitle("GAME CLEAR !!", Color.fromRGB(0xFFAA00)); // gold
@@ -563,7 +567,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             }
             Level level = ensureLevel(current.color);
             Point3i safe = level.getSafeSpawnLocation();
-            team.usePlayers(p -> {
+            team.eachPlayers(p -> {
                 p.teleport(p.getLocation().set(safe.x + 0.5, safe.y, safe.z + 0.5));
             });
             level.reset();
@@ -626,7 +630,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 assert stage != null;
                 Team team = ensureTeam(color);
                 ArrayList<Player> players = new ArrayList<>();
-                team.usePlayers(players::add);
+                team.eachPlayers(players::add);
                 stage.onStart(players);
                 stage.summonMobs(0);
                 stage.setEntranceOpened(true);
@@ -662,6 +666,13 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 inventory.clear(i);
             }
         }
+    }
+
+    private void giveFinisherReward(Player player) {
+        ItemStack cookedBeef = ItemBuilder.For(Material.COOKED_BEEF)
+                .amount(15)
+                .build();
+        player.getInventory().addItem(cookedBeef);
     }
 
     @Nonnull

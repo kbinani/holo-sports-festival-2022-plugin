@@ -17,18 +17,18 @@ class Team {
             return;
         }
         switch (role) {
-            case ARROW:
+            case ARROW -> {
                 if (arrow.size() > 0) {
                     return;
                 }
                 arrow.add(player);
-                break;
-            case SWORD:
+            }
+            case SWORD -> {
                 if (sword.size() > 2) {
                     return;
                 }
                 sword.add(player);
-                break;
+            }
         }
     }
 
@@ -53,10 +53,6 @@ class Team {
         return arrow.size() + sword.size();
     }
 
-    int getFinishedPlayerCount() {
-        return finished.size();
-    }
-
     int setFinished(Player player) {
         if (finished.stream().noneMatch(it -> it.getUniqueId().equals(player.getUniqueId()))) {
             finished.add(player);
@@ -78,7 +74,7 @@ class Team {
         return finished.size() == getPlayerCount();
     }
 
-    void usePlayers(Consumer<Player> callback) {
+    void eachPlayers(Consumer<Player> callback) {
         for (Player p : arrow) {
             callback.accept(p);
         }
