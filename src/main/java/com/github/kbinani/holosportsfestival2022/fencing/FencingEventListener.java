@@ -97,6 +97,9 @@ public class FencingEventListener implements Listener, Competition {
 
                 // 範囲内に居るプレイヤーを観客席側に排除する
                 Players.Within(delegate.mainGetWorld(), offset(kFieldBounds), player -> {
+                    if (getCurrentTeam(player) != null) {
+                        return;
+                    }
                     Location loc = player.getLocation();
                     loc.setZ(z(-273));
                     loc.setY(y(-19));
