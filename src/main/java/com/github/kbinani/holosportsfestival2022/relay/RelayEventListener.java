@@ -615,18 +615,6 @@ public class RelayEventListener implements Listener, Competition {
                 return;
             }
         }
-        GameMode mode = to.getGameMode();
-        if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
-            // 殴れないからここには来ないはず
-            from.sendMessage(ChatColor.RED + "バトンパス相手のゲームモードがアドベンチャーまたはサバイバルの時だけパスできます");
-            to.sendMessage(ChatColor.RED + "ゲームモードがアドベンチャーまたはサバイバルでないためバトンを受け取れません");
-            return;
-        }
-        if (to.getInventory().firstEmpty() < 0) {
-            from.sendMessage(ChatColor.RED + "バトンパス相手のインベントリに空きがないためバトンパスできません");
-            to.sendMessage(ChatColor.RED + "インベントリに空きがないためバトンパスできません");
-            return;
-        }
 
         // 殴った人がチームの現在の走者かどうかを確かめる
         Team team = ensureTeam(teamColor);
@@ -640,6 +628,19 @@ public class RelayEventListener implements Listener, Competition {
 
         if (team.getOrderLength() >= race.numberOfLaps) {
             // 最終走者はバトンパスしない
+            return;
+        }
+
+        GameMode mode = to.getGameMode();
+        if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
+            // 殴れないからここには来ないはず
+            from.sendMessage(ChatColor.RED + "バトンパス相手のゲームモードがアドベンチャーまたはサバイバルの時だけパスできます");
+            to.sendMessage(ChatColor.RED + "ゲームモードがアドベンチャーまたはサバイバルでないためバトンを受け取れません");
+            return;
+        }
+        if (to.getInventory().firstEmpty() < 0) {
+            from.sendMessage(ChatColor.RED + "バトンパス相手のインベントリに空きがないためバトンパスできません");
+            to.sendMessage(ChatColor.RED + "インベントリに空きがないためバトンパスできません");
             return;
         }
 
