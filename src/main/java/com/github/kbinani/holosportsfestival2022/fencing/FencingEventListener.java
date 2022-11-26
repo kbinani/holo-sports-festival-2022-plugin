@@ -86,8 +86,15 @@ public class FencingEventListener implements Listener, Competition {
                 setBlock(new Point3i(103, -17, -266), "air");
                 setBlock(new Point3i(103, -18, -266), "heavy_weighted_pressure_plate");
 
+                // 北側バリアブロックの柵
+                // 間違って入場してしまった場合自力で脱出できるよう, 北側の柵はカウントダウンが始まってから設置する
+                fill(new Point3i(165, -17, -269), new Point3i(103, -17, -269), "air");
+
                 // 南側バリアブロックの柵
                 fill(new Point3i(104, -17, -263), new Point3i(165, -17, -263), "barrier");
+
+                ensureRightBossbar().setVisible(false);
+                ensureLeftBossbar().setVisible(false);
 
                 break;
             case COUNTDOWN:
@@ -321,12 +328,8 @@ public class FencingEventListener implements Listener, Competition {
 
     private void clearField() {
         fill(new Point3i(102, -16, -269), new Point3i(165, -18, -264), "air");
-        if (bossbarLeft != null) {
-            bossbarLeft.setVisible(false);
-        }
-        if (bossbarRight != null) {
-            bossbarRight.setVisible(false);
-        }
+        ensureLeftBossbar().setVisible(false);
+        ensureRightBossbar().setVisible(false);
         Bukkit.getServer().getOnlinePlayers().forEach(this::clearItem);
         World world = delegate.mainGetWorld();
         Editor.WallSign(world, offset(new Point3i(101, -19, -265)), BlockFace.NORTH, "右側エントリー");
@@ -578,14 +581,10 @@ public class FencingEventListener implements Listener, Competition {
     }
 
     private static String TeamName(Team team) {
-        switch (team) {
-            case LEFT:
-                return "LEFT SIDE";
-            case RIGHT:
-                return "RIGHT SIDE";
-            default:
-                return "";
-        }
+        return switch (team) {
+            case LEFT -> "LEFT SIDE";
+            case RIGHT -> "RIGHT SIDE";
+        };
     }
 
     private void onClickLeave(@Nonnull Player player) {
