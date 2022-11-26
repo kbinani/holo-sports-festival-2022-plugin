@@ -250,11 +250,13 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                         }
                     });
                 } else if (!habitable.contains(from) || !habitable.contains(to)) {
+                    player.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 場外に出たため失格となります");
                     player.setHealth(0);
                 }
                 break;
             case RED:
                 if (!habitable.contains(from) || !habitable.contains(to)) {
+                    player.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 場外に出たため失格となります");
                     player.setHealth(0);
                 } else if (kill.contains(from) || kill.contains(to)) {
                     double dx = to.getX() - from.getX();
@@ -403,6 +405,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         e.setCancelled(true);
 
         if (race.isRunning(player)) {
+            player.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 他のプレイヤーを攻撃したため失格となります");
             attacker.setHealth(0);
         }
     }
