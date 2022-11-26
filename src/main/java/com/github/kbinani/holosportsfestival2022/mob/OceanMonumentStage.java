@@ -78,6 +78,7 @@ class OceanMonumentStage extends Stage {
         }
         world.spawnEntity(new Location(world, x(x) + 0.5, y(y), z(z) + 0.5), EntityType.DROWNED, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
             Drowned drowned = (Drowned) it;
+            drowned.setAdult();
             EntityEquipment equipment = drowned.getEquipment();
             DisableDrop(equipment);
             equipment.clear();
