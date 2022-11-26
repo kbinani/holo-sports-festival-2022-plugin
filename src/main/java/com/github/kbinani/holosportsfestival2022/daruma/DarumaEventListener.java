@@ -54,15 +54,16 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void onTick() {
+        Calendar now = GregorianCalendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
+        Calendar next = getNextAutoStart();
+        Calendar last = (Calendar) next.clone();
+        last.add(Calendar.MINUTE, -kAutoStartIntervalMinutes);
+
+        long wait = next.getTimeInMillis() - now.getTimeInMillis();
+        long passed = now.getTimeInMillis() - last.getTimeInMillis();
+
         switch (_status) {
             case IDLE:
-                Calendar now = GregorianCalendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
-                Calendar next = getNextAutoStart();
-                Calendar last = (Calendar) next.clone();
-                last.add(Calendar.MINUTE, -kAutoStartIntervalMinutes);
-
-                long wait = next.getTimeInMillis() - now.getTimeInMillis();
-                long passed = now.getTimeInMillis() - last.getTimeInMillis();
                 if (wait <= kTimerIntervalMillis * 0.5 || passed <= kTimerIntervalMillis * 0.5) {
                     manual = false;
                     start();
@@ -86,6 +87,13 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             case START:
             case RED:
                 if (!manual) {
+                    if (60 * 1000 >= wait) {
+                        // 次回のスタート時刻まで 60 秒を切っているにもかかわらず競技が続いている.
+                        // AFK によって次回のスタートが阻止されるのを防ぐため強制的に競技を止める.
+                        broadcastUnofficial("[だるまさんがころんだ] 競技が時間内に終わらなかったため強制終了となります").log();
+                        setStatus(Status.IDLE);
+                        break;
+                    }
                     int random = this.random.nextInt(100);
                     if (random < 50) {
                         triggerGreen();
@@ -94,6 +102,13 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 break;
             case GREEN:
                 if (!manual) {
+                    if (60 * 1000 >= wait) {
+                        // 次回のスタート時刻まで 60 秒を切っているにもかかわらず競技が続いている.
+                        // AFK によって次回のスタートが阻止されるのを防ぐため強制的に競技を止める.
+                        broadcastUnofficial("[だるまさんがころんだ] 競技が時間内に終わらなかったため強制終了となります").log();
+                        setStatus(Status.IDLE);
+                        break;
+                    }
                     int random = this.random.nextInt(100);
                     if (random < 20) {
                         triggerRed();
