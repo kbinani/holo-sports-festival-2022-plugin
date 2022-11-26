@@ -208,39 +208,54 @@ public class RelayEventListener implements Listener, Competition {
         }
 
         if (team.getOrderLength() >= race.numberOfLaps && team.isRunnerPassedCheckPoint(player) && goal.contains(location)) {
-            // チェックポイント通過済みの最終走者がゴールを通過した
-            race.pushOrder(color);
-            broadcast("%s GOAL !!", ToColoredString(color)).log();
-            launchFireworkRocket(color);
-
-            // 全てのチームがゴールしたら結果を表示して終了
-            AtomicBoolean allTeamsFinished = new AtomicBoolean(true);
-            teams.forEach((tc, c) -> {
-                if (!race.isActive(tc)) {
-                    return;
-                }
-                if (!race.isAlreadyFinished(tc)) {
-                    allTeamsFinished.set(false);
-                }
-            });
-            if (allTeamsFinished.get()) {
-                broadcast("");
-                broadcast("-----------------------");
-                broadcast("[結果発表]").log();
-                for (int i = 0; i < race.order.size(); i++) {
-                    TeamColor c = race.order.get(i);
-                    broadcast("%d位 : %s", i + 1, ToColoredString(c)).log();
-                }
-                broadcast("-----------------------");
-                broadcast("");
-                race = null;
-                teams.forEach((tc, t) -> {
-                    t.clearParticipants();
-                    t.clearOrder();
-                    t.clearPassedCheckPoint();
-                });
-                setStatus(Status.IDLE);
+            PlayerInventory inventory = player.getInventory();
+            ItemStack main = inventory.getItemInMainHand();
+            ItemStack off = inventory.getItemInOffHand();
+            if (IsBaton(main) || IsBaton(off)) {
+                // off hand に持っていても OK. 要は他の人から見てバトンを持っているのが見えていれば OK
+                goal(color);
+            } else {
+                runner.sendMessage(ChatColor.RED + "バトンを持った状態でゴールラインを通過してください");
             }
+        }
+    }
+
+    private void goal(TeamColor color) {
+        if (race == null) {
+            return;
+        }
+        // チェックポイント通過済みの最終走者がゴールを通過した
+        race.pushOrder(color);
+        broadcast("%s GOAL !!", ToColoredString(color)).log();
+        launchFireworkRocket(color);
+
+        // 全てのチームがゴールしたら結果を表示して終了
+        AtomicBoolean allTeamsFinished = new AtomicBoolean(true);
+        teams.forEach((tc, c) -> {
+            if (!race.isActive(tc)) {
+                return;
+            }
+            if (!race.isAlreadyFinished(tc)) {
+                allTeamsFinished.set(false);
+            }
+        });
+        if (allTeamsFinished.get()) {
+            broadcast("");
+            broadcast("-----------------------");
+            broadcast("[結果発表]").log();
+            for (int i = 0; i < race.order.size(); i++) {
+                TeamColor c = race.order.get(i);
+                broadcast("%d位 : %s", i + 1, ToColoredString(c)).log();
+            }
+            broadcast("-----------------------");
+            broadcast("");
+            race = null;
+            teams.forEach((tc, t) -> {
+                t.clearParticipants();
+                t.clearOrder();
+                t.clearPassedCheckPoint();
+            });
+            setStatus(Status.IDLE);
         }
     }
 
@@ -422,6 +437,21 @@ public class RelayEventListener implements Listener, Competition {
                 inventory.clear(i);
             }
         }
+    }
+
+    private static boolean IsBaton(ItemStack item) {
+        if (item.getType() != Material.BLAZE_ROD) {
+            return false;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return false;
+        }
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        if (!container.has(NamespacedKey.minecraft(kItemTag), PersistentDataType.BYTE)) {
+            return false;
+        }
+        return meta.getDisplayName().equals("バトン");
     }
 
     private void giveBaton(Player player) {
@@ -650,8 +680,7 @@ public class RelayEventListener implements Listener, Competition {
             return;
         }
         ItemStack tool = inventory.getItemInMainHand();
-        ItemMeta meta = tool.getItemMeta();
-        if (tool.getType() != Material.BLAZE_ROD || meta == null || !meta.getDisplayName().equals("バトン")) {
+        if (!IsBaton(tool)) {
             from.sendMessage(ChatColor.RED + "バトンパスするにはバトンで受け手を殴る必要があります");
             return;
         }
