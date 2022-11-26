@@ -247,6 +247,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
                     race.goal(player, tick);
                     team.remove(player);
+                    giveParticipationReward(player);
 
                     // 同一 tick で box に侵入したという判定になったとしても,
                     // 駆け込んだ時の速度によってはゴールラインを超えた時刻は他の人の方が早いかもしれない.
@@ -262,13 +263,13 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                     });
                 } else if (!habitable.contains(location)) {
                     player.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 場外に出たため失格となります");
-                    player.setHealth(0);
+                    disqualify(player);
                 }
                 break;
             case RED:
                 if (!habitable.contains(location)) {
                     player.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 場外に出たため失格となります");
-                    player.setHealth(0);
+                    disqualify(player);
                 } else if (kill.contains(location)) {
                     Vector from = positionWhenRed.get(player.getUniqueId());
                     if (from == null) {
@@ -277,12 +278,17 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                         double dx = location.getX() - from.getX();
                         double dz = location.getZ() - from.getZ();
                         if (dx != 0 || dz != 0) {
-                            player.setHealth(0);
+                            disqualify(player);
                         }
                     }
                 }
                 break;
         }
+    }
+
+    private void disqualify(Player player) {
+        giveParticipationReward(player);
+        player.setHealth(0);
     }
 
     private void launchFireworkRocket(double x, double y, double z, int color) {
@@ -424,7 +430,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
             if (race.isRunning(attacker)) {
                 attacker.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 他のプレイヤーを攻撃したため失格となります");
-                attacker.setHealth(0);
+                disqualify(player);
             }
         }
     }
@@ -786,6 +792,13 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                 .customByteTag(kItemTag, (byte) 1)
                 .build();
         return player.getInventory().addItem(goldenApple).isEmpty();
+    }
+
+    private void giveParticipationReward(Player player) {
+        ItemStack cookedBeef = ItemBuilder.For(Material.COOKED_BEEF)
+                .amount(15)
+                .build();
+        player.getInventory().addItem(cookedBeef);
     }
 
     private void resetField() {
