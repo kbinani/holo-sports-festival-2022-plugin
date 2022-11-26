@@ -296,7 +296,10 @@ public class BoatRaceEventListener implements Competition {
                         broadcast("%s GOAL !!", ToColoredString(participation.color)).log();
                         launchFireworkRockets(participation.color);
                         finishedServerTime.put(participation.color, player.getWorld().getGameTime());
-                        team.eachPlayer((p, role, status) -> giveParticipationReward(p));
+                        team.eachPlayer((p, role, status) -> {
+                            clearItems(p);
+                            giveParticipationReward(p);
+                        });
                         boolean cleared = true;
                         for (Long it : finishedServerTime.values()) {
                             if (it < 0) {

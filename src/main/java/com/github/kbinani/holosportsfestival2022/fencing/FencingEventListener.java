@@ -241,6 +241,8 @@ public class FencingEventListener implements Listener, Competition {
             return;
         }
 
+        clearItem(left);
+        clearItem(right);
         giveParticipationReward(left);
         giveParticipationReward(right);
 

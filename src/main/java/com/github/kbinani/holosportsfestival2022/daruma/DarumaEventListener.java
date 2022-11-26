@@ -247,6 +247,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
 
                     race.goal(player, tick);
                     team.remove(player);
+                    clearItem(player);
                     giveParticipationReward(player);
 
                     // 同一 tick で box に侵入したという判定になったとしても,
@@ -287,6 +288,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void disqualify(Player player) {
+        clearItem(player);
         giveParticipationReward(player);
         player.setHealth(0);
     }
