@@ -37,9 +37,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private final MainDelegate delegate;
     private final Map<UUID, Point3i> respawn = new HashMap<>();
     private final Random random;
-    private boolean blockGreenSignal = false;
-
     private final Map<TeamColor, Team> teams = new HashMap<>();
+    private boolean blockGreenSignal = false;
+    private final Map<UUID, Vector> positionWhenRed = new HashMap<>();
 
     public DarumaEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
@@ -220,14 +220,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
         Team team = ensureTeam(color);
 
-        Vector from = e.getFrom().toVector();
-        Location toLocation = e.getTo();
-        Vector to = null;
-        if (toLocation == null) {
-            to = player.getLocation().toVector();
-        } else {
-            to = toLocation.toVector();
-        }
+        Vector location = player.getLocation().toVector();
         BoundingBox goal = offset(kGoalDetectionBox);
         BoundingBox kill = offset(kKillZone);
         BoundingBox habitable = offset(kHabitableZone);
@@ -236,8 +229,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             case GREEN:
             case START:
             case COUNTDOWN_RED:
-                if (goal.contains(to)) {
+                if (goal.contains(location)) {
                     // ゴールラインを超えた時刻を計算する.
+                    Vector from = e.getFrom().toVector();
+                    Vector to = e.getTo().toVector();
                     double z = goal.getMaxZ();
                     double fromZ = from.getZ();
                     double toZ = to.getZ();
@@ -265,20 +260,25 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                             setStatus(Status.IDLE);
                         }
                     });
-                } else if (!habitable.contains(from) || !habitable.contains(to)) {
+                } else if (!habitable.contains(location)) {
                     player.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 場外に出たため失格となります");
                     player.setHealth(0);
                 }
                 break;
             case RED:
-                if (!habitable.contains(from) || !habitable.contains(to)) {
+                if (!habitable.contains(location)) {
                     player.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 場外に出たため失格となります");
                     player.setHealth(0);
-                } else if (kill.contains(from) || kill.contains(to)) {
-                    double dx = to.getX() - from.getX();
-                    double dz = to.getZ() - from.getZ();
-                    if (dx != 0 || dz != 0) {
-                        player.setHealth(0);
+                } else if (kill.contains(location)) {
+                    Vector from = positionWhenRed.get(player.getUniqueId());
+                    if (from == null) {
+                        positionWhenRed.put(player.getUniqueId(), location);
+                    } else {
+                        double dx = location.getX() - from.getX();
+                        double dz = location.getZ() - from.getZ();
+                        if (dx != 0 || dz != 0) {
+                            player.setHealth(0);
+                        }
                     }
                 }
                 break;
@@ -659,7 +659,9 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             if (_status != Status.COUNTDOWN_RED) {
                 return false;
             }
+            positionWhenRed.clear();
             Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> {
+                positionWhenRed.put(player.getUniqueId(), player.getLocation().toVector());
                 player.playSound(player.getLocation(), Sound.ENTITY_GHAST_HURT, 0.25f, 1);
             });
             setStatus(Status.RED);
@@ -686,27 +688,19 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     static String ToString(TeamColor color) {
-        switch (color) {
-            case RED:
-                return "TEAM RED";
-            case WHITE:
-                return "TEAM WHITE";
-            case YELLOW:
-                return "TEAM YELLOW";
-        }
-        return "";
+        return switch (color) {
+            case RED -> "TEAM RED";
+            case WHITE -> "TEAM WHITE";
+            case YELLOW -> "TEAM YELLOW";
+        };
     }
 
     static String ToColoredString(TeamColor color) {
-        switch (color) {
-            case RED:
-                return ChatColor.RED + "TEAM RED" + ChatColor.RESET;
-            case WHITE:
-                return ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
-            case YELLOW:
-                return ChatColor.YELLOW + "TEAM YELLOW" + ChatColor.RESET;
-        }
-        return "";
+        return switch (color) {
+            case RED -> ChatColor.RED + "TEAM RED" + ChatColor.RESET;
+            case WHITE -> ChatColor.GRAY + "TEAM WHITE" + ChatColor.RESET;
+            case YELLOW -> ChatColor.YELLOW + "TEAM YELLOW" + ChatColor.RESET;
+        };
     }
 
     private ConsoleLogger broadcast(String format, Object... args) {
