@@ -402,11 +402,14 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         }
         Player player = (Player) entity;
         Player attacker = (Player) damager;
-        e.setCancelled(true);
 
         if (race.isRunning(player)) {
-            player.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 他のプレイヤーを攻撃したため失格となります");
-            attacker.setHealth(0);
+            e.setCancelled(true);
+
+            if (race.isRunning(attacker)) {
+                attacker.sendMessage(ChatColor.RED + "[だるまさんがころんだ] 他のプレイヤーを攻撃したため失格となります");
+                attacker.setHealth(0);
+            }
         }
     }
 
