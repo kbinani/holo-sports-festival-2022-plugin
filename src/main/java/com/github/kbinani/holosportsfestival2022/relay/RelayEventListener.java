@@ -228,6 +228,8 @@ public class RelayEventListener implements Listener, Competition {
         race.pushOrder(color);
         broadcast("%s GOAL !!", ToColoredString(color)).log();
         launchFireworkRocket(color);
+        Team team = ensureTeam(color);
+        team.eachPlayer(this::giveFinisherReward);
 
         // 全てのチームがゴールしたら結果を表示して終了
         AtomicBoolean allTeamsFinished = new AtomicBoolean(true);
@@ -471,6 +473,13 @@ public class RelayEventListener implements Listener, Competition {
                 inventory.setItemInMainHand(baton);
             }
         }
+    }
+
+    private void giveFinisherReward(Player player) {
+        ItemStack cookedBeef = ItemBuilder.For(Material.COOKED_BEEF)
+                .amount(15)
+                .build();
+        player.getInventory().addItem(cookedBeef);
     }
 
     private void onClickStart() {

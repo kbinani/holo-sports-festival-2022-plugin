@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 class Team {
     private final Set<Player> participants = new HashSet<>();
@@ -71,5 +72,9 @@ class Team {
 
     void clearPassedCheckPoint() {
         passedCheckPoint.clear();
+    }
+
+    void eachPlayer(Consumer<Player> callback) {
+        participants.forEach(callback);
     }
 }
