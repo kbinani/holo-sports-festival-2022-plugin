@@ -53,6 +53,10 @@ class Team {
         return arrow.size() + sword.size();
     }
 
+    int getFinishedPlayerCount() {
+        return finished.size();
+    }
+
     int setFinished(Player player) {
         if (finished.stream().noneMatch(it -> it.getUniqueId().equals(player.getUniqueId()))) {
             finished.add(player);

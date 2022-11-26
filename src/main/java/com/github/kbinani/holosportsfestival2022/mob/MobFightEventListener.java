@@ -271,15 +271,15 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             }
         }
 
-        if (_status != Status.RUN) {
-            return;
-        }
-        Race race = this.race;
-        if (race == null) {
-            return;
-        }
-
         for (Map.Entry<TeamColor, Level> it : levels.entrySet()) {
+            if (_status != Status.RUN) {
+                return;
+            }
+            Race race = this.race;
+            if (race == null) {
+                return;
+            }
+
             TeamColor color = it.getKey();
             Level level = it.getValue();
 
@@ -310,52 +310,62 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             if (!team.isPlayerFinished(player) && stage.getGoalDetectionBounds().contains(location)) {
                 int finishedPlayerCount = team.setFinished(player);
                 if (finishedPlayerCount == team.getPlayerCount()) {
-                    broadcast("%s GAME CLEAR !!", ToColoredString(color)).log();
-                    level.showTitle("GAME CLEAR !!", Color.fromRGB(0xFFAA00)); // gold
-                    level.launchFireworkRockets(FireworkRocketColor(color));
-                    applyBossbarValue(color, new BossbarValue(team.getPlayerCount(), team.getPlayerCount(), "GAME CLEAR !!"));
-                    race.pushOrder(color);
-
-                    boolean allTeamCleared = true;
-                    for (TeamColor tc : race.getTeamColors()) {
-                        if (tc == color) {
-                            continue;
-                        }
-                        Team t = ensureTeam(tc);
-                        if (!t.isCleared()) {
-                            allTeamCleared = false;
-                            break;
-                        }
-                    }
-                    if (allTeamCleared) {
-                        for (TeamColor tc : race.getTeamColors()) {
-                            Level l = levels.get(tc);
-                            if (l != null) {
-                                l.setExitOpened(true);
-                            }
-                        }
-
-                        broadcast("");
-                        broadcast("-----------------------");
-                        broadcast("[結果発表]").log();
-                        for (int i = 0; i < race.order.size(); i++) {
-                            Goal goal = race.order.get(i);
-                            broadcast("%d位 : %s (%.2f 秒)", i + 1, ToColoredString(goal.color), goal.seconds).log();
-                        }
-                        broadcast("-----------------------");
-                        broadcast("");
-                        for (TeamColor tc : race.getTeamColors()) {
-                            Team t = ensureTeam(tc);
-                            t.reset();
-                        }
-                        this.race = null;
-                        setStatus(Status.IDLE);
-                        return;
-                    }
+                    goal(color);
                 } else {
                     applyBossbarValue(color, new BossbarValue(finishedPlayerCount, team.getPlayerCount(), "GO TO GOAL !!"));
                 }
             }
+        }
+    }
+
+    private void goal(TeamColor color) {
+        Level level = ensureLevel(color);
+        Team team = ensureTeam(color);
+
+        broadcast("%s GAME CLEAR !!", ToColoredString(color)).log();
+        level.showTitle("GAME CLEAR !!", Color.fromRGB(0xFFAA00)); // gold
+        level.launchFireworkRockets(FireworkRocketColor(color));
+        applyBossbarValue(color, new BossbarValue(team.getPlayerCount(), team.getPlayerCount(), "GAME CLEAR !!"));
+        Race race = this.race;
+        if (race == null) {
+            return;
+        }
+        race.pushOrder(color);
+
+        boolean allTeamCleared = true;
+        for (TeamColor tc : race.getTeamColors()) {
+            if (tc == color) {
+                continue;
+            }
+            Team t = ensureTeam(tc);
+            if (!t.isCleared()) {
+                allTeamCleared = false;
+                break;
+            }
+        }
+        if (allTeamCleared) {
+            for (TeamColor tc : race.getTeamColors()) {
+                Level l = levels.get(tc);
+                if (l != null) {
+                    l.setExitOpened(true);
+                }
+            }
+
+            broadcast("");
+            broadcast("-----------------------");
+            broadcast("[結果発表]").log();
+            for (int i = 0; i < race.order.size(); i++) {
+                Goal goal = race.order.get(i);
+                broadcast("%d位 : %s (%.2f 秒)", i + 1, ToColoredString(goal.color), goal.seconds).log();
+            }
+            broadcast("-----------------------");
+            broadcast("");
+            for (TeamColor tc : race.getTeamColors()) {
+                Team t = ensureTeam(tc);
+                t.reset();
+            }
+            this.race = null;
+            setStatus(Status.IDLE);
         }
     }
 
@@ -530,6 +540,18 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             setBossbarVisible(current.color, false);
             Level level = ensureLevel(current.color);
             level.reset();
+        } else {
+            Level level = ensureLevel(current.color);
+            Progress progress = level.getProgress();
+            if (progress.stage == level.getStageCount() - 1) {
+                int finished = team.getFinishedPlayerCount();
+                int count = team.getPlayerCount();
+                if (finished >= count) {
+                    goal(current.color);
+                } else {
+                    applyBossbarValue(current.color, new BossbarValue(team.getFinishedPlayerCount(), team.getPlayerCount(), "GO TO GOAL !!"));
+                }
+            }
         }
 
         if (_status == Status.RUN || _status == Status.COUNTDOWN) {
