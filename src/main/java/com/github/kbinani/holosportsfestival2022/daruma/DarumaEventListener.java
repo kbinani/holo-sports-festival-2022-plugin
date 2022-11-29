@@ -40,6 +40,8 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     private final Map<TeamColor, Team> teams = new HashMap<>();
     private boolean blockGreenSignal = false;
     private final Map<UUID, Vector> positionWhenRed = new HashMap<>();
+    private boolean autoStartSignaled = false;
+    private @Nullable Calendar nextAutoStart;
 
     public DarumaEventListener(MainDelegate delegate, long loadDelay) {
         this.loadDelay = loadDelay;
@@ -55,18 +57,17 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
     }
 
     private void onTick() {
-        Calendar now = GregorianCalendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
-        Calendar next = getNextAutoStart();
-        Calendar last = (Calendar) next.clone();
-        last.add(Calendar.MINUTE, -kAutoStartIntervalMinutes);
-
-        long wait = next.getTimeInMillis() - now.getTimeInMillis();
-        long passed = now.getTimeInMillis() - last.getTimeInMillis();
+        Calendar now = Now();
+        if (nextAutoStart == null) {
+            nextAutoStart = getNextAutoStart();
+        }
 
         switch (_status) {
-            case IDLE:
-                if (wait <= kTimerIntervalMillis * 0.5 || passed <= kTimerIntervalMillis * 0.5) {
+            case IDLE -> {
+                long wait = nextAutoStart.getTimeInMillis() - now.getTimeInMillis();
+                if (wait <= 0 && !autoStartSignaled) {
                     manual = false;
+                    autoStartSignaled = true;
                     start();
                 } else {
                     int stay = kTimerIntervalMillis * 20 / 1000 + 20;
@@ -76,18 +77,19 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                         int seconds = (int) (wait / 1000);
                         titleString = String.format("開始まであと %d 秒です！", seconds);
                         subtitleString = "";
+                        autoStartSignaled = false;
                     } else {
                         titleString = "";
-                        subtitleString = String.format("次回のスタートは %02d 時 %02d 分です (JST)", next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
+                        subtitleString = String.format("次回のスタートは %02d 時 %02d 分です (JST)", nextAutoStart.get(Calendar.HOUR_OF_DAY), nextAutoStart.get(Calendar.MINUTE));
                     }
                     final String title = titleString;
                     final String subtitle = subtitleString;
                     Players.Within(delegate.mainGetWorld(), getAnnounceBounds(), player -> player.sendTitle(title, subtitle, 0, stay, 20));
                 }
-                break;
-            case START:
-            case RED:
+            }
+            case START, RED -> {
                 if (!manual) {
+                    long wait = nextAutoStart.getTimeInMillis() - now.getTimeInMillis();
                     if (60 * 1000 >= wait) {
                         // 次回のスタート時刻まで 60 秒を切っているにもかかわらず競技が続いている.
                         // AFK によって次回のスタートが阻止されるのを防ぐため強制的に競技を止める.
@@ -100,9 +102,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                         triggerGreen();
                     }
                 }
-                break;
-            case GREEN:
+            }
+            case GREEN -> {
                 if (!manual) {
+                    long wait = nextAutoStart.getTimeInMillis() - now.getTimeInMillis();
                     if (60 * 1000 >= wait) {
                         // 次回のスタート時刻まで 60 秒を切っているにもかかわらず競技が続いている.
                         // AFK によって次回のスタートが阻止されるのを防ぐため強制的に競技を止める.
@@ -115,12 +118,16 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                         triggerRed();
                     }
                 }
-                break;
+            }
         }
     }
 
+    private static Calendar Now() {
+        return GregorianCalendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
+    }
+
     private Calendar getNextAutoStart() {
-        Calendar now = GregorianCalendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
+        Calendar now = Now();
         Calendar next = (Calendar) now.clone();
         int index = next.get(Calendar.MINUTE) / kAutoStartIntervalMinutes;
         int minutes = index * kAutoStartIntervalMinutes;
@@ -532,6 +539,7 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             case START:
                 setEntranceOpened(false);
                 setStartGateOpened(true);
+                nextAutoStart = getNextAutoStart();
                 break;
             case GREEN:
             case COUNTDOWN_RED:
@@ -592,9 +600,8 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
             if (manual) {
                 broadcastUnofficial("[だるまさんがころんだ] 参加者が見つかりません").log();
             } else {
-                Calendar next = getNextAutoStart();
-                next.add(Calendar.MINUTE, kAutoStartIntervalMinutes);
-                broadcastUnofficial("[だるまさんがころんだ] 参加者が見つかりません。次回のスタートは %02d 時 %02d 分です", next.get(Calendar.HOUR_OF_DAY), next.get(Calendar.MINUTE));
+                nextAutoStart = getNextAutoStart();
+                broadcastUnofficial("[だるまさんがころんだ] 参加者が見つかりません。次回のスタートは %02d 時 %02d 分です", nextAutoStart.get(Calendar.HOUR_OF_DAY), nextAutoStart.get(Calendar.MINUTE));
             }
             return;
         }
@@ -899,6 +906,8 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
         respawn.clear();
         teams.clear();
         blockGreenSignal = false;
+        nextAutoStart = null;
+        autoStartSignaled = false;
         evacuateNonParticipants();
 
         String message = CompetitionTypeHelper.ToString(competitionGetType()) + "をリセットしました";
