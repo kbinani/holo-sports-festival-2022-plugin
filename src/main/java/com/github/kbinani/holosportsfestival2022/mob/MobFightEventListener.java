@@ -722,7 +722,8 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
             Editor.WallSign(world, offset(kButtonYellowJoinSword), BlockFace.SOUTH, "黃組", "エントリー", "（剣）");
 
             for (TeamColor tc : kColors) {
-                ensureLevel(tc);
+                Level level = ensureLevel(tc);
+                level.eachStage(Stage::reset);
             }
         });
     }

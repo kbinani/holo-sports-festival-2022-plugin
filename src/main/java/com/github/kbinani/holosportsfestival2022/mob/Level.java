@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 class Level implements StageDelegate {
     private final Point3i origin;
@@ -179,6 +180,10 @@ class Level implements StageDelegate {
         FireworkRocket.Launch(world, x(2) + 0.5, y(-46) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
         FireworkRocket.Launch(world, x(3) + 0.5, y(-47) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
         FireworkRocket.Launch(world, x(4) + 0.5, y(-49) + 0.5, z(-407) + 0.5, new int[]{color}, new int[]{color}, 20, 1, false, false);
+    }
+
+    void eachStage(Consumer<Stage> action) {
+        stages.forEach(action);
     }
 
     // 黄色チーム用 Level 原点: (-9, -59, -254)
