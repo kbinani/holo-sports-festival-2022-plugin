@@ -1033,7 +1033,7 @@ public class RelayEventListener implements Listener, Competition {
     private static final String kItemTag = "hololive_sports_festival_2022_relay";
 
     // アナウンス etc. を行う範囲
-    private static final BoundingBox kAnnounceBounds = new BoundingBox(-2, -61, -241, 82, 384, -115);
+    private static final BoundingBox kAnnounceBounds = new BoundingBox(-2, -62, -241, 82, 384, -115);
     // 広めに. 進行方向手前 8 ブロック, 進行方向に 16 ブロック
     private static final BoundingBox kBatonPassingArea = new BoundingBox(36, -61, -179, 56, -58, -170);
     // 競技場の外側の白線
