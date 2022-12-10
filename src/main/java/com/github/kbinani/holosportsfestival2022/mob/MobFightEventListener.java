@@ -329,6 +329,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         broadcast("%s GAME CLEAR !!", ToColoredString(color)).log();
         level.showTitle("GAME CLEAR !!", Color.fromRGB(0xFFAA00)); // gold
         level.launchFireworkRockets(FireworkRocketColor(color));
+        level.finalStage.reset();
         applyBossbarValue(color, new BossbarValue(team.getPlayerCount(), team.getPlayerCount(), "GAME CLEAR !!"));
         Race race = this.race;
         if (race == null) {
