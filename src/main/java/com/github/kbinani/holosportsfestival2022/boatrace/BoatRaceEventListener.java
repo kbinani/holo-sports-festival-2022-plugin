@@ -1,6 +1,9 @@
 package com.github.kbinani.holosportsfestival2022.boatrace;
 
 import com.github.kbinani.holosportsfestival2022.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -22,6 +25,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
+import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,6 +63,11 @@ public class BoatRaceEventListener implements Competition {
             case IDLE:
                 resetField();
                 Bukkit.getServer().getOnlinePlayers().forEach(this::clearItems);
+                for (TeamColor color : new TeamColor[]{TeamColor.RED, TeamColor.YELLOW, TeamColor.WHITE}) {
+                    for (Role role : new Role[]{Role.DRIVER, Role.SHOOTER}) {
+                        ensureScoreboardTeam(color, role).unregister();
+                    }
+                }
                 break;
             case AWAIT_START:
                 // ゴールラインに柵を設置
@@ -198,6 +207,51 @@ public class BoatRaceEventListener implements Competition {
             teams.put(color, t);
         }
         return t;
+    }
+
+    private @Nonnull org.bukkit.scoreboard.Team ensureScoreboardTeam(TeamColor color, Role role) {
+        String name = "holosportsfestival_boatrace_team_";
+        String prefix = "";
+        TextColor textColor = NamedTextColor.WHITE;
+        switch (color) {
+            case RED -> {
+                name += "red";
+                prefix += "赤組";
+                textColor = NamedTextColor.RED;
+            }
+            case WHITE -> {
+                name += "white";
+                prefix += "白組";
+                textColor = NamedTextColor.AQUA;
+            }
+            case YELLOW -> {
+                name += "yellow";
+                prefix += "黄組";
+                textColor = NamedTextColor.YELLOW;
+            }
+        }
+        switch (role) {
+            case DRIVER -> name += "_driver";
+            case SHOOTER -> name += "_shooter";
+        }
+        prefix += ToString(role);
+        Scoreboard scoreboard = Bukkit.getServer().getScoreboardManager().getMainScoreboard();
+        org.bukkit.scoreboard.Team team = scoreboard.getTeam(name);
+        if (team == null) {
+            team = scoreboard.registerNewTeam(name);
+        }
+        team.prefix(Component.text(prefix + " ").color(textColor));
+        team.color(NamedTextColor.WHITE);
+        return team;
+    }
+
+    private void clearScoreboardTeam(Player player) {
+        for (TeamColor color : new TeamColor[]{TeamColor.RED, TeamColor.YELLOW, TeamColor.WHITE}) {
+            for (Role role : new Role[]{Role.DRIVER, Role.SHOOTER}) {
+                var team = ensureScoreboardTeam(color, role);
+                team.removePlayer(player);
+            }
+        }
     }
 
     private static final Point3i kYellowEntryShooter = new Point3i(-56, -59, -198);
@@ -451,6 +505,12 @@ public class BoatRaceEventListener implements Competition {
             delegate.mainUsingChunk(getFieldBounds(), world -> {
                 resetField();
             });
+            for (TeamColor color : new TeamColor[]{TeamColor.RED, TeamColor.YELLOW, TeamColor.WHITE}) {
+                for (Role role : new Role[]{Role.DRIVER, Role.SHOOTER}) {
+                    var team = ensureScoreboardTeam(color, role);
+                    team.getEntries().forEach(team::removeEntry);
+                }
+            }
         }, loadDelay);
     }
 
@@ -572,6 +632,7 @@ public class BoatRaceEventListener implements Competition {
         }
 
         delegate.mainClearCompetitionItems(player);
+        clearScoreboardTeam(player);
 
         PlayerInventory inventory = player.getInventory();
         if (role == Role.DRIVER) {
@@ -637,6 +698,10 @@ public class BoatRaceEventListener implements Competition {
 
         Team p = ensureTeam(color);
         p.setPlayer(role, player);
+        var scoreboardTeam = ensureScoreboardTeam(color, role);
+        scoreboardTeam.addPlayer(player);
+        var prefix = scoreboardTeam.prefix();
+        var style = prefix.style();
         broadcast("[水上レース] %sが%s%sにエントリーしました", player.getName(), ToColoredString(color), ToString(role)).log();
         setStatus(Status.AWAIT_START);
     }
@@ -651,6 +716,7 @@ public class BoatRaceEventListener implements Competition {
         Team team = ensureTeam(current.color);
         team.setPlayer(current.role, null);
         clearItems(player);
+        clearScoreboardTeam(player);
         broadcast("[水上レース] %sがエントリー解除しました", player.getName()).log();
 
         AtomicInteger totalPlayerCount = new AtomicInteger(0);
@@ -818,6 +884,12 @@ public class BoatRaceEventListener implements Competition {
         resetField();
         finishedServerTime.clear();
         teams.clear();
+        for (TeamColor color : new TeamColor[]{TeamColor.RED, TeamColor.YELLOW, TeamColor.WHITE}) {
+            for (Role role : new Role[]{Role.DRIVER, Role.SHOOTER}) {
+                var team = ensureScoreboardTeam(color, role);
+                team.getEntries().forEach(team::removeEntry);
+            }
+        }
 
         String message = CompetitionTypeHelper.ToString(competitionGetType()) + "をリセットしました";
         Bukkit.getServer().getOnlinePlayers().forEach(player -> player.sendMessage(message));
