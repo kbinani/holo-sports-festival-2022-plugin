@@ -564,6 +564,12 @@ public class BoatRaceEventListener implements Competition {
             player.sendMessage(String.format("[水上レース] %sは%sにエントリー済みです", player.getName(), ToColoredString(color)));
             return;
         }
+        Team team = ensureTeam(color);
+        Player currentRolePlaying = team.getPlayer(role);
+        if (currentRolePlaying != null && !currentRolePlaying.getUniqueId().equals(player.getUniqueId())) {
+            player.sendMessage(String.format("[水上レース] %sの%sには%sがエントリー済みです", ToColoredString(color), ToString(role), currentRolePlaying.getName()));
+            return;
+        }
 
         delegate.mainClearCompetitionItems(player);
 
