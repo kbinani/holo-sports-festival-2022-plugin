@@ -1,12 +1,14 @@
 package com.github.kbinani.holosportsfestival2022.boatrace;
 
 import com.github.kbinani.holosportsfestival2022.TriConsumer;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 class Team {
     private @Nullable Player shooter;
@@ -34,6 +36,14 @@ class Team {
             this.driver = player;
         } else {
             this.shooter = player;
+        }
+    }
+
+    @Nullable Player getPlayer(Role role) {
+        if (role == Role.DRIVER) {
+            return driver;
+        } else {
+            return shooter;
         }
     }
 
@@ -70,6 +80,34 @@ class Team {
     }
 
     void updatePlayerStatus(Role role, PlayerStatus status) {
+        updatePlayerStatus(role, status, (p, r) -> {
+        });
+    }
+
+    void updatePlayerStatus(Role role, PlayerStatus status, BiConsumer<Player, Role> callback) {
+        Player player = getPlayer(role);
+        if (player != null) {
+            callback.accept(player, role);
+        }
+        setPlayerStatus(role, status);
+        if (driver != null && shooter != null) {
+            Entity driverVehicle = driver.getVehicle();
+            Entity shooterVehicle = shooter.getVehicle();
+            if (driverVehicle != null && shooterVehicle != null && driverVehicle.getUniqueId().equals(shooterVehicle.getUniqueId())) {
+                // ボートの後席に乗っている場合 PlayerMoveEvent が検出できていないので同席していたら status は同じにする
+                if (role == Role.DRIVER) {
+                    setPlayerStatus(Role.SHOOTER, status);
+                    callback.accept(shooter, Role.SHOOTER);
+                } else {
+                    setPlayerStatus(Role.DRIVER, status);
+                    callback.accept(driver, Role.DRIVER);
+                }
+            }
+        }
+    }
+
+    private void setPlayerStatus(Role role, PlayerStatus status) {
+        Player player = getPlayer(role);
         this.status.put(role, status);
         if (status == PlayerStatus.FINISHED) {
             setPlayer(role, null);

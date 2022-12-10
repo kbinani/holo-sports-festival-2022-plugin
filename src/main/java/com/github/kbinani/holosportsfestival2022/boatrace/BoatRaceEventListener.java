@@ -266,15 +266,17 @@ public class BoatRaceEventListener implements Competition {
             case STARTED:
                 if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
                     // 滝の頂上を通過
-                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT1);
-                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
+                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT1, (p, r) -> {
+                        delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のチェックポイントを通過", p.getName(), ToString(participation.color), ToString(r)));
+                    });
                 }
                 break;
             case CLEARED_CHECKPOINT1:
                 if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
                     // ゴールラインを通過
-                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_START_LINE1);
-                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
+                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_START_LINE1, (p, r) -> {
+                        delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のゴールラインを通過", p.getName(), ToString(participation.color), ToString(r)));
+                    });
                     if (team.getRemainingRound() == 1) {
                         broadcast("%s あと1周！", ToColoredString(participation.color)).log();
                     }
@@ -283,15 +285,17 @@ public class BoatRaceEventListener implements Competition {
             case CLEARED_START_LINE1:
                 if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
                     // 滝の頂上を通過
-                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT2);
-                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のチェックポイントを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
+                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT2, (p, r) -> {
+                        delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のチェックポイントを通過", p.getName(), ToString(participation.color), ToString(r)));
+                    });
                 }
                 break;
             case CLEARED_CHECKPOINT2:
                 if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
                     // ゴールラインを通過
-                    team.updatePlayerStatus(participation.role, PlayerStatus.FINISHED);
-                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のゴールラインを通過", player.getName(), ToString(participation.color), ToString(participation.role)));
+                    team.updatePlayerStatus(participation.role, PlayerStatus.FINISHED, (p, r) -> {
+                        delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のゴールラインを通過", p.getName(), ToString(participation.color), ToString(r)));
+                    });
                     if (team.getRemainingRound() == 0) {
                         broadcast("%s GOAL !!", ToColoredString(participation.color)).log();
                         launchFireworkRockets(participation.color);
