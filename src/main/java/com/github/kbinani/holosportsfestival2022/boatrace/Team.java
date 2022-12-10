@@ -14,21 +14,6 @@ class Team {
     private @Nullable Player shooter;
     private @Nullable Player driver;
 
-    private static int RemainingRound(PlayerStatus s) {
-        switch (s) {
-            case IDLE:
-            case STARTED:
-            case CLEARED_CHECKPOINT1:
-                return 2;
-            case CLEARED_START_LINE1:
-            case CLEARED_CHECKPOINT2:
-                return 1;
-            case FINISHED:
-                return 0;
-        }
-        return 2;
-    }
-
     private final Map<Role, PlayerStatus> status = new HashMap<>();
 
     void setPlayer(Role role, @Nullable Player player) {
@@ -86,31 +71,26 @@ class Team {
 
     void updatePlayerStatus(Role role, PlayerStatus status, BiConsumer<Player, Role> callback) {
         Player player = getPlayer(role);
-        if (player != null) {
-            callback.accept(player, role);
-        }
-        setPlayerStatus(role, status);
+        setPlayerStatus(role, status, () -> callback.accept(player, role));
         if (driver != null && shooter != null) {
             Entity driverVehicle = driver.getVehicle();
             Entity shooterVehicle = shooter.getVehicle();
             if (driverVehicle != null && shooterVehicle != null && driverVehicle.getUniqueId().equals(shooterVehicle.getUniqueId())) {
                 // ボートの後席に乗っている場合 PlayerMoveEvent が検出できていないので同席していたら status は同じにする
                 if (role == Role.DRIVER) {
-                    setPlayerStatus(Role.SHOOTER, status);
-                    callback.accept(shooter, Role.SHOOTER);
+                    setPlayerStatus(Role.SHOOTER, status, () -> callback.accept(shooter, Role.SHOOTER));
                 } else {
-                    setPlayerStatus(Role.DRIVER, status);
-                    callback.accept(driver, Role.DRIVER);
+                    setPlayerStatus(Role.DRIVER, status, () -> callback.accept(driver, Role.DRIVER));
                 }
             }
         }
     }
 
-    private void setPlayerStatus(Role role, PlayerStatus status) {
-        Player player = getPlayer(role);
+    private void setPlayerStatus(Role role, PlayerStatus status, Runnable callback) {
+        PlayerStatus prev = this.status.get(role);
         this.status.put(role, status);
-        if (status == PlayerStatus.FINISHED) {
-            setPlayer(role, null);
+        if (prev == null || prev.less(status)) {
+            callback.run();
         }
     }
 
@@ -119,11 +99,11 @@ class Team {
         PlayerStatus shooterStatus = status.computeIfAbsent(Role.SHOOTER, it -> PlayerStatus.IDLE);
         int driverRound = 0;
         if (driver != null && driver.isOnline()) {
-            driverRound = RemainingRound(driverStatus);
+            driverRound = driverStatus.remainingRound();
         }
         int shooterRound = 0;
         if (shooter != null && shooter.isOnline()) {
-            shooterRound = RemainingRound(shooterStatus);
+            shooterRound = shooterStatus.remainingRound();
         }
         return Math.max(driverRound, shooterRound);
     }

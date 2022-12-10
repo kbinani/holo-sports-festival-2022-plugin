@@ -107,7 +107,7 @@ public class BoatRaceEventListener implements Competition {
     }
 
     private void fill(@Nonnull World world, Point3i from, Point3i to, String block) {
-        Editor.Fill(delegate.mainGetWorld(), offset(from), offset(to), block);
+        Editor.Fill(world, offset(from), offset(to), block);
     }
 
     private void resetField() {
@@ -314,84 +314,77 @@ public class BoatRaceEventListener implements Competition {
         if (playerStatus == null) {
             return;
         }
-        switch (playerStatus) {
-            case IDLE:
-                break;
-            case STARTED:
-                if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
-                    // 滝の頂上を通過
-                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT1, (p, r) -> {
-                        delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のチェックポイントを通過", p.getName(), ToString(participation.color), ToString(r)));
-                    });
+        if  (playerStatus == PlayerStatus.STARTED) {
+            if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
+                // 滝の頂上を通過
+                team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT1, (p, r) -> {
+                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のチェックポイントを通過", p.getName(), ToString(participation.color), ToString(r)));
+                });
+            }
+        } else if (playerStatus == PlayerStatus.CLEARED_CHECKPOINT1) {
+            if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
+                // ゴールラインを通過
+                team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_START_LINE1, (p, r) -> {
+                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のゴールラインを通過", p.getName(), ToString(participation.color), ToString(r)));
+                });
+                if (team.getRemainingRound() == 1) {
+                    broadcast("%s あと1周！", ToColoredString(participation.color)).log();
                 }
-                break;
-            case CLEARED_CHECKPOINT1:
-                if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
-                    // ゴールラインを通過
-                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_START_LINE1, (p, r) -> {
-                        delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが1周目のゴールラインを通過", p.getName(), ToString(participation.color), ToString(r)));
+            }
+        } else if (playerStatus == PlayerStatus.CLEARED_START_LINE1) {
+            if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
+                // 滝の頂上を通過
+                team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT2, (p, r) -> {
+                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のチェックポイントを通過", p.getName(), ToString(participation.color), ToString(r)));
+                });
+            }
+        } else if (playerStatus == PlayerStatus.CLEARED_CHECKPOINT2) {
+            if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
+                // ゴールラインを通過
+                team.updatePlayerStatus(participation.role, PlayerStatus.FINISHED, (p, r) -> {
+                    delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のゴールラインを通過", p.getName(), ToString(participation.color), ToString(r)));
+                });
+                if (team.getRemainingRound() == 0) {
+                    broadcast("%s GOAL !!", ToColoredString(participation.color)).log();
+                    launchFireworkRockets(participation.color);
+                    finishedServerTime.put(participation.color, player.getWorld().getGameTime());
+                    team.eachPlayer((p, role, status) -> {
+                        clearItems(p);
+                        giveParticipationReward(p);
                     });
-                    if (team.getRemainingRound() == 1) {
-                        broadcast("%s あと1周！", ToColoredString(participation.color)).log();
+                    team.setPlayer(Role.DRIVER, null);
+                    team.setPlayer(Role.SHOOTER, null);
+                    boolean cleared = true;
+                    for (Long it : finishedServerTime.values()) {
+                        if (it < 0) {
+                            cleared = false;
+                            break;
+                        }
                     }
-                }
-                break;
-            case CLEARED_START_LINE1:
-                if (x(-65) <= x && x <= x(-59) && y(-47) <= y && y <= y(-44) && z(-293) <= z && z <= z(-253)) {
-                    // 滝の頂上を通過
-                    team.updatePlayerStatus(participation.role, PlayerStatus.CLEARED_CHECKPOINT2, (p, r) -> {
-                        delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のチェックポイントを通過", p.getName(), ToString(participation.color), ToString(r)));
-                    });
-                }
-                break;
-            case CLEARED_CHECKPOINT2:
-                if (x(-52) <= x && x <= x(-25) && y(-59) <= y && y <= y(-57) && z(-196) <= z && z <= z(-188)) {
-                    // ゴールラインを通過
-                    team.updatePlayerStatus(participation.role, PlayerStatus.FINISHED, (p, r) -> {
-                        delegate.mainGetLogger().info(String.format("[水上レース] %s %s%sが2周目のゴールラインを通過", p.getName(), ToString(participation.color), ToString(r)));
-                    });
-                    if (team.getRemainingRound() == 0) {
-                        broadcast("%s GOAL !!", ToColoredString(participation.color)).log();
-                        launchFireworkRockets(participation.color);
-                        finishedServerTime.put(participation.color, player.getWorld().getGameTime());
-                        team.eachPlayer((p, role, status) -> {
-                            clearItems(p);
-                            giveParticipationReward(p);
+                    if (cleared) {
+                        broadcast("");
+                        broadcast("-----------------------");
+                        broadcast("[結果発表]").log();
+                        List<TeamColor> ordered = finishedServerTime.keySet().stream().sorted((a, b) -> {
+                            long timeA = finishedServerTime.get(a);
+                            long timeB = finishedServerTime.get(b);
+                            return (int) (timeA - timeB);
+                        }).toList();
+                        for (int i = 0; i < ordered.size(); i++) {
+                            broadcast("%d位: %s", i + 1, ToColoredString(ordered.get(i))).log();
+                        }
+                        broadcast("-----------------------");
+                        broadcast("");
+                        AllTeamColors(c -> {
+                            Team p = ensureTeam(c);
+                            p.setPlayer(Role.DRIVER, null);
+                            p.setPlayer(Role.SHOOTER, null);
                         });
-                        boolean cleared = true;
-                        for (Long it : finishedServerTime.values()) {
-                            if (it < 0) {
-                                cleared = false;
-                                break;
-                            }
-                        }
-                        if (cleared) {
-                            broadcast("");
-                            broadcast("-----------------------");
-                            broadcast("[結果発表]").log();
-                            List<TeamColor> ordered = finishedServerTime.keySet().stream().sorted((a, b) -> {
-                                long timeA = finishedServerTime.get(a);
-                                long timeB = finishedServerTime.get(b);
-                                return (int) (timeA - timeB);
-                            }).toList();
-                            for (int i = 0; i < ordered.size(); i++) {
-                                broadcast("%d位: %s", i + 1, ToColoredString(ordered.get(i))).log();
-                            }
-                            broadcast("-----------------------");
-                            broadcast("");
-                            AllTeamColors(c -> {
-                                Team p = ensureTeam(c);
-                                p.setPlayer(Role.DRIVER, null);
-                                p.setPlayer(Role.SHOOTER, null);
-                            });
-                            finishedServerTime.clear();
-                            setStatus(Status.IDLE);
-                        }
+                        finishedServerTime.clear();
+                        setStatus(Status.IDLE);
                     }
                 }
-                break;
-            case FINISHED:
-                break;
+            }
         }
     }
 
