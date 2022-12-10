@@ -395,7 +395,7 @@ public class RelayEventListener implements Listener, Competition {
         if (teams.containsKey(teamColor)) {
             team = teams.get(teamColor);
         } else {
-            team = new Team();
+            team = new Team(teamColor);
             teams.put(teamColor, team);
         }
         return team;
@@ -1015,6 +1015,9 @@ public class RelayEventListener implements Listener, Competition {
     public void competitionReset() {
         setStatus(Status.IDLE);
         resetField();
+        for (var team : teams.values()) {
+            team.clearParticipants();
+        }
         teams.clear();
         race = null;
 
