@@ -302,6 +302,10 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
                 continue;
             }
 
+            if (team.isCleared()) {
+                continue;
+            }
+
             FinalStage stage = level.finalStage;
             if (!stage.isCreeperSpawned() && stage.getCreeperSpawnBounds().contains(location)) {
                 applyBossbarValue(color, new BossbarValue(0, team.getPlayerCount(), "GO TO GOAL !!"));
@@ -329,7 +333,7 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         broadcast("%s GAME CLEAR !!", ToColoredString(color)).log();
         level.showTitle("GAME CLEAR !!", Color.fromRGB(0xFFAA00)); // gold
         level.launchFireworkRockets(FireworkRocketColor(color));
-        level.finalStage.reset();
+        level.finalStage.killEnemies();
         applyBossbarValue(color, new BossbarValue(team.getPlayerCount(), team.getPlayerCount(), "GAME CLEAR !!"));
         Race race = this.race;
         if (race == null) {
@@ -416,7 +420,10 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         }
     }
 
-    void applyBossbarValue(TeamColor color, BossbarValue value) {
+    void applyBossbarValue(TeamColor color, @Nullable BossbarValue value) {
+        if (value == null) {
+            return;
+        }
         Bossbar bar = bossbars.get(color);
         if (bar == null) {
             return;

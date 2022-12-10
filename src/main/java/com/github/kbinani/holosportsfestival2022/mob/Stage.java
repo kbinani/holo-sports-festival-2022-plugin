@@ -13,6 +13,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,7 +64,7 @@ public abstract class Stage {
     abstract Optional<Result> consumeDeadMob(Entity entity);
 
     // bossbar の表示パラメータ
-    abstract BossbarValue getBossbarValue();
+    abstract @Nullable BossbarValue getBossbarValue();
 
     // チャット欄に表示する stage 名
     abstract String getMessageDisplayString();
@@ -77,8 +78,12 @@ public abstract class Stage {
     void reset() {
         setExitOpened(false);
         setEntranceOpened(false);
-        Kill.EntitiesByScoreboardTag(delegate.stageGetWorld(), getBounds(), kEntityTag);
+        killEnemies();
         onReset();
+    }
+
+    void killEnemies() {
+        Kill.EntitiesByScoreboardTag(delegate.stageGetWorld(), getBounds(), kEntityTag);
     }
 
     abstract void onReset();

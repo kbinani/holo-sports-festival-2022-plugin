@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTables;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 class PlainsStage extends Stage {
@@ -181,6 +182,7 @@ class PlainsStage extends Stage {
     }
 
     @Override
+    @Nullable
     BossbarValue getBossbarValue() {
         if (remainingMobCount <= 2) {
             return new BossbarValue(remainingMobCount, 2, "WAVE 1 BOSS");

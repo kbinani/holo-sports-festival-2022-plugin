@@ -18,6 +18,7 @@ import org.bukkit.loot.LootTables;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 class OceanMonumentStage extends Stage {
@@ -149,6 +150,7 @@ class OceanMonumentStage extends Stage {
     }
 
     @Override
+    @Nullable
     BossbarValue getBossbarValue() {
         if (remainingMobCount <= 2) {
             return new BossbarValue(remainingMobCount, 2, "WAVE 2 BOSS");

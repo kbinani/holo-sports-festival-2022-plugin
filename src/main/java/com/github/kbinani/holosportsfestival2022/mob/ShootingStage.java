@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.loot.LootTables;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -163,6 +164,7 @@ class ShootingStage extends Stage {
     }
 
     @Override
+    @Nullable
     BossbarValue getBossbarValue() {
         return new BossbarValue(remainingMobCount, 16, "WAVE FINAL");
     }

@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTables;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 class WoodlandMansionStage extends Stage {
@@ -148,6 +149,7 @@ class WoodlandMansionStage extends Stage {
     }
 
     @Override
+    @Nullable
     BossbarValue getBossbarValue() {
         if (remainingMobCount <= 1) {
             return new BossbarValue(remainingMobCount, 1, "WAVE 4 BOSS");

@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTables;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 class NetherStage extends Stage {
@@ -164,6 +165,7 @@ class NetherStage extends Stage {
     }
 
     @Override
+    @Nullable
     BossbarValue getBossbarValue() {
         if (remainingMobCount <= 3) {
             return new BossbarValue(remainingMobCount, 3, "WAVE 3 BOSS");

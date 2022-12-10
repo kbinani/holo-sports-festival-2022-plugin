@@ -13,6 +13,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 class FinalStage extends Stage {
@@ -100,9 +101,10 @@ class FinalStage extends Stage {
     }
 
     @Override
+    @Nullable
     BossbarValue getBossbarValue() {
-        // final stage の bossbar は event listener 側で制御する. ここで返しているのは初期値
-        return new BossbarValue(0, 3, "GO TO GOAL !!");
+        // final stage の bossbar は event listener 側で制御する
+        return null;
     }
 
     @Override
