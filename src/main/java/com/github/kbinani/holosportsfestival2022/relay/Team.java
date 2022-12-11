@@ -3,7 +3,6 @@ package com.github.kbinani.holosportsfestival2022.relay;
 import com.github.kbinani.holosportsfestival2022.TeamColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
@@ -44,7 +43,7 @@ class Team {
         }
         team.color(NamedTextColor.WHITE);
         this.scoreboardTeam = team;
-        onPlayerCountChanged();
+        updateScoreboardTeam();
     }
 
     int getPlayerCount() {
@@ -54,13 +53,13 @@ class Team {
     void add(@Nonnull Player player) {
         participants.add(player);
         scoreboardTeam.addPlayer(player);
-        onPlayerCountChanged();
+        updateScoreboardTeam();
     }
 
     void remove(@Nonnull Player player) {
         participants.removeIf(it -> it.getUniqueId().equals(player.getUniqueId()));
         scoreboardTeam.removePlayer(player);
-        onPlayerCountChanged();
+        updateScoreboardTeam();
     }
 
     void clearParticipants() {
@@ -69,7 +68,7 @@ class Team {
         }
         participants.clear();
         passedCheckPoint.clear();
-        onPlayerCountChanged();
+        updateScoreboardTeam();
     }
 
     boolean contains(@Nonnull Player player) {
@@ -81,6 +80,7 @@ class Team {
             return;
         }
         order.add(player);
+        updateScoreboardTeam();
     }
 
     @Nullable
@@ -104,6 +104,7 @@ class Team {
 
     void clearOrder() {
         order.clear();
+        updateScoreboardTeam();
     }
 
     int getOrderLength() {
@@ -118,9 +119,9 @@ class Team {
         participants.forEach(callback);
     }
 
-    private void onPlayerCountChanged() {
+    private void updateScoreboardTeam() {
+        NamedTextColor textColor = NamedTextColor.WHITE;
         String prefix = "";
-        TextColor textColor = NamedTextColor.WHITE;
         switch (color) {
             case RED -> {
                 prefix += "赤組";
@@ -135,6 +136,12 @@ class Team {
                 textColor = NamedTextColor.YELLOW;
             }
         }
-        scoreboardTeam.prefix(Component.text(String.format("%s(参加者%d) ", prefix, getPlayerCount())).color(textColor));
+        if (order.isEmpty()) {
+            scoreboardTeam.prefix(Component.text(String.format("%s(参加者%d) ", prefix, getPlayerCount())).color(textColor));
+            scoreboardTeam.color(NamedTextColor.WHITE);
+        } else {
+            scoreboardTeam.prefix(Component.empty());
+            scoreboardTeam.color(textColor);
+        }
     }
 }
