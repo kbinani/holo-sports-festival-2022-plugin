@@ -50,14 +50,17 @@ public class RelayEventListener implements Listener, Competition {
             case IDLE:
                 resetField();
                 Bukkit.getServer().getOnlinePlayers().forEach(this::clearBatons);
+                teams.forEach((c, team) -> team.clearOrder());
                 race = null;
                 break;
             case AWAIT_START:
                 setEnableStartGate(true);
                 setEnableCornerFence(true);
                 Bukkit.getServer().getOnlinePlayers().forEach(this::clearBatons);
+                teams.forEach((c, team) -> team.clearOrder());
                 break;
             case COUNTDOWN:
+                teams.forEach((c, team) -> team.clearOrder());
                 break;
             case RUN:
                 setEnableStartGate(false);
