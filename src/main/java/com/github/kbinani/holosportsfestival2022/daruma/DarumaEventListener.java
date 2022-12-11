@@ -243,9 +243,10 @@ public class DarumaEventListener implements Listener, Announcer, Competition {
                     double z = goal.getMaxZ();
                     double fromZ = from.getZ();
                     double toZ = to.getZ();
-                    double tick = world.getFullTime();
+                    double gameTick = world.getGameTime();
+                    double tick = gameTick;
                     if (fromZ != toZ && toZ <= z && z <= fromZ) {
-                        tick = (z - fromZ) / (toZ - fromZ) + world.getFullTime() - 1;
+                        tick = (gameTick - 1) + (z - fromZ) / (toZ - fromZ);
                     }
 
                     launchFireworkRocket(xd(134.5), yd(-47.5), zd(-223.5), FireworkRocket.Color.LIGHT_BLUE);
