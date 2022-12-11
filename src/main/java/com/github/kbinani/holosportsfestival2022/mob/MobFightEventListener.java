@@ -7,12 +7,14 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.boss.BarColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PigZombieAngerEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -417,6 +419,28 @@ public class MobFightEventListener implements Listener, LevelDelegate, Competiti
         GameMode mode = e.getNewGameMode();
         if (mode != GameMode.ADVENTURE && mode != GameMode.SURVIVAL) {
             onClickLeave(player);
+        }
+    }
+
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPigZombieAnger(PigZombieAngerEvent e) {
+        PigZombie pigZombie = e.getEntity();
+        if (pigZombie.getWorld().getEnvironment() != World.Environment.NORMAL) {
+            return;
+        }
+        if (!(e.getTarget() instanceof Player target)) {
+            return;
+        }
+        Participation current = getCurrentParticipation(target);
+        Vector location = pigZombie.getLocation().toVector();
+        for (var entry : levels.entrySet()) {
+            TeamColor color = entry.getKey();
+            Level level = entry.getValue();
+            if (level.containsInBounds(location) && (current == null || color != current.color)) {
+                e.setCancelled(true);
+                return;
+            }
         }
     }
 
