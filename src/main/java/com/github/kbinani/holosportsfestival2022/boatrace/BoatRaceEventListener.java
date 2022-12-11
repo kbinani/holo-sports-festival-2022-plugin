@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class BoatRaceEventListener implements Competition {
@@ -47,6 +48,13 @@ public class BoatRaceEventListener implements Competition {
         callback.accept(TeamColor.RED);
         callback.accept(TeamColor.WHITE);
         callback.accept(TeamColor.YELLOW);
+    }
+
+    static void AllTeamColorsAndRoles(BiConsumer<TeamColor, Role> callback) {
+        AllTeamColors((color) -> {
+            callback.accept(color, Role.DRIVER);
+            callback.accept(color, Role.SHOOTER);
+        });
     }
 
     private Status _status = Status.IDLE;
@@ -63,11 +71,8 @@ public class BoatRaceEventListener implements Competition {
             case IDLE:
                 resetField();
                 Bukkit.getServer().getOnlinePlayers().forEach(this::clearItems);
-                for (TeamColor color : new TeamColor[]{TeamColor.RED, TeamColor.YELLOW, TeamColor.WHITE}) {
-                    for (Role role : new Role[]{Role.DRIVER, Role.SHOOTER}) {
-                        ensureScoreboardTeam(color, role).unregister();
-                    }
-                }
+                AllTeamColorsAndRoles((color, role) -> ensureScoreboardTeam(color, role).unregister());
+                finishedServerTime.clear();
                 break;
             case AWAIT_START:
                 // ゴールラインに柵を設置
@@ -90,6 +95,13 @@ public class BoatRaceEventListener implements Competition {
                 for (Point3i p : kJammingBlockStarterBlocks) {
                     setLeverPowered(offset(p), true);
                 }
+
+                AllTeamColorsAndRoles((color, role) -> {
+                    var textColor = TextColor(color);
+                    var team = ensureScoreboardTeam(color, role);
+                    team.prefix(Component.empty());
+                    team.color(textColor);
+                });
                 break;
         }
     }
@@ -200,6 +212,14 @@ public class BoatRaceEventListener implements Competition {
         }
     }
 
+    static NamedTextColor TextColor(TeamColor color) {
+        return switch (color) {
+            case RED -> NamedTextColor.RED;
+            case WHITE -> NamedTextColor.GRAY;
+            case YELLOW -> NamedTextColor.YELLOW;
+        };
+    }
+
     private @Nonnull Team ensureTeam(TeamColor color) {
         Team t = teams.get(color);
         if (t == null) {
@@ -212,22 +232,19 @@ public class BoatRaceEventListener implements Competition {
     private @Nonnull org.bukkit.scoreboard.Team ensureScoreboardTeam(TeamColor color, Role role) {
         String name = "holosportsfestival_boatrace_team_";
         String prefix = "";
-        TextColor textColor = NamedTextColor.WHITE;
+        TextColor textColor = TextColor(color);
         switch (color) {
             case RED -> {
                 name += "red";
                 prefix += "赤組";
-                textColor = NamedTextColor.RED;
             }
             case WHITE -> {
                 name += "white";
                 prefix += "白組";
-                textColor = NamedTextColor.AQUA;
             }
             case YELLOW -> {
                 name += "yellow";
                 prefix += "黄組";
-                textColor = NamedTextColor.YELLOW;
             }
         }
         switch (role) {
@@ -239,19 +256,17 @@ public class BoatRaceEventListener implements Competition {
         org.bukkit.scoreboard.Team team = scoreboard.getTeam(name);
         if (team == null) {
             team = scoreboard.registerNewTeam(name);
+            team.prefix(Component.text(prefix + " ").color(textColor));
+            team.color(NamedTextColor.WHITE);
         }
-        team.prefix(Component.text(prefix + " ").color(textColor));
-        team.color(NamedTextColor.WHITE);
         return team;
     }
 
     private void clearScoreboardTeam(Player player) {
-        for (TeamColor color : new TeamColor[]{TeamColor.RED, TeamColor.YELLOW, TeamColor.WHITE}) {
-            for (Role role : new Role[]{Role.DRIVER, Role.SHOOTER}) {
-                var team = ensureScoreboardTeam(color, role);
-                team.removePlayer(player);
-            }
-        }
+        AllTeamColorsAndRoles((color, role) -> {
+            var team = ensureScoreboardTeam(color, role);
+            team.removePlayer(player);
+        });
     }
 
     private static final Point3i kYellowEntryShooter = new Point3i(-56, -59, -198);
@@ -352,11 +367,12 @@ public class BoatRaceEventListener implements Competition {
                         clearItems(p);
                         giveParticipationReward(p);
                     });
-                    team.setPlayer(Role.DRIVER, null);
-                    team.setPlayer(Role.SHOOTER, null);
                     boolean cleared = true;
-                    for (Long it : finishedServerTime.values()) {
-                        if (it < 0) {
+                    for (var it : finishedServerTime.entrySet()) {
+                        if (ensureTeam(it.getKey()).getPlayerCount() == 0) {
+                            continue;
+                        }
+                        if (it.getValue() < 0) {
                             cleared = false;
                             break;
                         }
@@ -498,12 +514,10 @@ public class BoatRaceEventListener implements Competition {
             delegate.mainUsingChunk(getFieldBounds(), world -> {
                 resetField();
             });
-            for (TeamColor color : new TeamColor[]{TeamColor.RED, TeamColor.YELLOW, TeamColor.WHITE}) {
-                for (Role role : new Role[]{Role.DRIVER, Role.SHOOTER}) {
-                    var team = ensureScoreboardTeam(color, role);
-                    team.getEntries().forEach(team::removeEntry);
-                }
-            }
+            AllTeamColorsAndRoles((color, role) -> {
+                var team = ensureScoreboardTeam(color, role);
+                team.getEntries().forEach(team::removeEntry);
+            });
         }, loadDelay);
     }
 
@@ -777,7 +791,7 @@ public class BoatRaceEventListener implements Competition {
         }
         broadcast("");
         broadcast("-----------------------");
-        for (TeamColor color : new TeamColor[]{TeamColor.YELLOW, TeamColor.RED, TeamColor.WHITE}) {
+        AllTeamColors(color -> {
             Team team = ensureTeam(color);
             int count = team.getPlayerCount();
             if (count < 1) {
@@ -785,7 +799,7 @@ public class BoatRaceEventListener implements Competition {
             } else {
                 broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), count).log();
             }
-        }
+        });
         AllTeamColors(color -> {
             Team team = ensureTeam(color);
             team.updatePlayerStatus(Role.DRIVER, PlayerStatus.STARTED);
