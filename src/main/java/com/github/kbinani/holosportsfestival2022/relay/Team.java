@@ -129,7 +129,7 @@ class Team {
             }
             case WHITE -> {
                 prefix += "白組";
-                textColor = NamedTextColor.AQUA;
+                textColor = NamedTextColor.GRAY;
             }
             case YELLOW -> {
                 prefix += "黄組";
