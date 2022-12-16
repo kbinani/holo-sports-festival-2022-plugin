@@ -489,18 +489,29 @@ public class RelayEventListener implements Listener, Competition {
         if (_status != Status.AWAIT_START) {
             return;
         }
-        AtomicBoolean canStart = new AtomicBoolean(false);
+        AtomicInteger min = new AtomicInteger(-1);
+        AtomicInteger max = new AtomicInteger(-1);
         teams.forEach((color, team) -> {
-            int count = team.getPlayerCount();
-            if (count < 1) {
-                // 不参加
+            int c = team.getPlayerCount();
+            if (c < 1) {
+                return;
+            }
+            if (min.get() < 0 || max.get() < 0) {
+                min.set(c);
+                max.set(c);
             } else {
-                canStart.set(true);
+                min.set(Math.min(min.get(), c));
+                max.set(Math.max(max.get(), c));
             }
         });
-        if (!canStart.get()) {
+        if (min.get() < 0 || max.get() < 0) {
             return;
         }
+        if (min.get() != max.get()) {
+            broadcastUnofficial("チームごとの参加人数を揃えてからスタートする必要があります");
+            return;
+        }
+        final int numberOfLaps = min.get();
 
         // 第一走者を検出する
         Map<TeamColor, Player> firstRunners = new HashMap<>();
@@ -545,13 +556,14 @@ public class RelayEventListener implements Listener, Competition {
             firstRunners.put(tc, player);
             lanes[i] = player;
         }
+
         teams.forEach((color, team) -> {
             if (team.getPlayerCount() < 1) {
                 return;
             }
             Player runner = firstRunners.getOrDefault(color, null);
             if (runner == null) {
-                broadcast("%sの第一走者はスタート位置についてください！", ToColoredString(color));
+                broadcastUnofficial("%sの第一走者はスタート位置についてください！", ToColoredString(color));
                 isReady.set(false);
             }
         });
@@ -561,14 +573,11 @@ public class RelayEventListener implements Listener, Competition {
 
         broadcast("");
         broadcast("-----------------------");
-        AtomicInteger numberOfLaps = new AtomicInteger(0);
         teams.forEach((color, team) -> {
             int c = team.getPlayerCount();
             if (c < 1) {
                 return;
             }
-            // 最も参加人数が多いチームの人数を周回数とする. 人数が足りないチームは複数回出走する
-            numberOfLaps.set(Math.max(c, numberOfLaps.get()));
             broadcast("%s が競技に参加します（参加者%d人）", ToColoredString(color), c).log();
         });
         broadcast("-----------------------");
@@ -599,7 +608,7 @@ public class RelayEventListener implements Listener, Competition {
                 return false;
             }
 
-            race = new Race(numberOfLaps.get());
+            race = new Race(numberOfLaps);
             teams.forEach((color, team) -> {
                 team.clearOrder();
             });
